@@ -20,7 +20,7 @@ type fredNode struct {
 
 func (n *fredNode) Connect() error {
 	log.Printf("Connecting to node '%s' at '%s'\n", n.Name, n.Address)
-	conn, err := grpc.Dial("172.26.1.2:9001", grpc.WithTransportCredentials(*n.tc))
+	conn, err := grpc.Dial(n.Address, grpc.WithTransportCredentials(*n.tc))
 	if err != nil {
 		return err
 	}
@@ -142,11 +142,6 @@ func main() {
 	defer node3.Disconnect()
 
 	err = node2.CreateKeygroup("test")
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = node2.AddReplica("test", node2.Name)
 	if err != nil {
 		log.Println(err)
 	}

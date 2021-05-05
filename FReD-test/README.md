@@ -14,6 +14,19 @@
 
 I created the containers manually for now and used the commands from the FReD readme. Docker compose will be used later.
 
+First, we need to generate the following certificates **in addition** to the ones mentioned in the FReD readme.
+
+The following commands should be executed in `FReD/nase/tls`:
+```sh
+bash gen-cert.sh frednode.3 172.26.1.3
+bash gen-cert.sh client 172.26.0.1
+```
+
+
+Now we can start the docker containers for the NaSe and 2 nodes.
+
+These commands should be executed in the `FReD` directory.
+
 NaSe:
 ```sh
 docker run -d \
@@ -21,20 +34,20 @@ docker run -d \
 -v $(pwd)/nase/tls/etcdnase.key:/cert/etcdnase.key \
 -v $(pwd)/nase/tls/ca.crt:/cert/ca.crt \
 --network=fredwork \
---ip=172.26.1.1 --name NaSe \ 
+--ip=172.26.1.1 --name NaSe \
 quay.io/coreos/etcd:v3.4.10 \
-etcd --name s-1 \      
+etcd --name s-1 \
 --data-dir /tmp/etcd/s-1 \
 --listen-client-urls https://172.26.1.1:2379 \
 --advertise-client-urls https://172.26.1.1:2379 \
 --listen-peer-urls http://172.26.1.1:2380 \
 --initial-advertise-peer-urls http://172.26.1.1:2380 \
 --initial-cluster s-1=http://172.26.1.1:2380 \
---initial-cluster-token tkn \        
---initial-cluster-state new \   
+--initial-cluster-token tkn \
+--initial-cluster-state new \
 --cert-file=/cert/etcdnase.crt \
 --key-file=/cert/etcdnase.key \
---client-cert-auth \               
+--client-cert-auth \
 --trusted-ca-file=/cert/ca.crt
 ```
 
@@ -89,13 +102,4 @@ fred --log-level info \
 --cert /cert/frednode.crt \
 --key /cert/frednode.key \
 --ca-file /cert/ca.crt
-```
-
-Certificates:
-```sh
-bash gen-cert.sh frednode.3 172.26.1.3
-```
-
-```sh
-bash gen-cert.sh client 172.26.0.1
 ```
