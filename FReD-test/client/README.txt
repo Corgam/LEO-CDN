@@ -1,0 +1,1 @@
+I copied the client files from the openfogstack/fred repo.
