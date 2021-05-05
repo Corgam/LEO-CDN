@@ -1,0 +1,3 @@
+[submodule "FReD"]
+	path = FReD
+	url = git@github.com:OpenFogStack/FReD.git
