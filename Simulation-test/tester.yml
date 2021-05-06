@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  tester:
+    build:
+      context: ../
+      dockerfile: ./Simulation-test/Dockerfile
+    image: fred/keygroup-passer:local
+    container_name: keygroupPasser
+    volumes:
+      - ../FReD/nase/tls/keygroupPasser.crt:/cert/client.crt
+      - ../FReD/nase/tls/keygroupPasser.key:/cert/client.key
+    networks:
+      fredwork:
+        ipv4_address: 172.26.4.1
+
+networks:
+  fredwork:
+    external: true
