@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  etcd:
+    image: quay.io/coreos/etcd:v3.4.10
+    container_name: etcd-1
+    entrypoint: "etcd --name s-1 \
+      --data-dir /tmp/etcd/s-1 \
+      --listen-client-urls https://172.26.6.1:2379 \
+      --advertise-client-urls https://172.26.6.1:2379 \
+      --listen-peer-urls http://172.26.6.1:2380 \
+      --initial-advertise-peer-urls http://172.26.6.1:2380 \
+      --initial-cluster s-1=http://172.26.6.1:2380 \
+      --initial-cluster-token tkn \
+      --initial-cluster-state new \
+      --cert-file=/cert/server.crt \
+      --key-file=/cert/server.key \
+      --client-cert-auth \
+      --trusted-ca-file=/cert/ca.crt"
+    volumes:
+      - ../FReD/nase/tls/etcd.crt:/cert/server.crt
+      - ../FReD/nase/tls/etcd.key:/cert/server.key
+      - ../FReD/nase/tls/ca.crt:/cert/ca.crt
+    ports:
+      - 2379:2379
+      - 2380:2380
+    networks:
+      fredwork:
+        ipv4_address: 172.26.6.1
+
+networks:
+  fredwork:
+    external: true
