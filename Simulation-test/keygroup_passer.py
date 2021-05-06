@@ -58,7 +58,7 @@ def add_node_to_keygroup(target_node, keygroup=KEYGROUP):
 
 
 def remove_node_from_keygroup(target_node, keygroup=KEYGROUP):
-    print(f"Removing {target_node=} to {keygroup=}...")
+    print(f"Removing {target_node=} from {keygroup=}...")
     node_cfg = node_configs[target_node]
     target = f"{node_cfg['host']}:{node_cfg['port']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
@@ -81,12 +81,14 @@ def read_file_from_nodes(keygroup=KEYGROUP, file_id=FILE_ID):
                     client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
                 print(response)
+                print(f"File exists on node {target_node}!")
         except Exception as e:
-            print("Could not read file")
+            # if file does not exist an error is raised
+            print(f"File does NOT exist on node {target_node}!")
 
 
 current_node_ind = 0
-init_keygroup(nodes[0])
+init_keygroup(nodes[current_node_ind])
 
 
 period = 10
@@ -94,6 +96,7 @@ duration_per_node = period // len(nodes)
 
 current_time = 0
 while True:
+    print("================")
     current_node = nodes[current_node_ind]
 
     current_time += 1
@@ -104,6 +107,9 @@ while True:
     print(f"{current_time=}, {current_node=}, {target_node=}")
 
     if target_node != current_node:
+        print(
+            f"Switching node that hosts keygroup from {current_node} to {target_node}..."
+        )
         add_node_to_keygroup(target_node)
         remove_node_from_keygroup(current_node)
 
@@ -111,4 +117,6 @@ while True:
 
     read_file_from_nodes()
 
+    print("================")
+    print("\n")
     time.sleep(5)
