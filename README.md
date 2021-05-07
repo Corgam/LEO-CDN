@@ -33,3 +33,9 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
 2. Generate Python gRPC client: `make compile_grpc_python`
 3. Start FReD nodes and NaSe: `make run_nodes`
 4. Start tester: `make run_tester`
+
+## Run
+
+1. Make sure that the docker network and all its containers are deleted `make clean`
+2. Start FReD nodes and NaSe: `make run_nodes`
+3. Start tester: `make run_tester`
