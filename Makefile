@@ -7,6 +7,7 @@ run_nodes:
 run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \
+		--name keygroup-passer \
 		-v `pwd`/FReD/nase/tls/keygroupPasser.crt:/cert/client.crt \
 		-v `pwd`/FReD/nase/tls/keygroupPasser.key:/cert/client.key \
 		-v `pwd`/FReD/nase/tls/ca.crt:/cert/ca.crt \
