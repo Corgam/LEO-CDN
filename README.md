@@ -38,4 +38,4 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
 
 1. Make sure that the docker network and all its containers are deleted `make clean`
 2. Start FReD nodes and NaSe: `make run_nodes`
-3. Start tester: `make run_tester`
+3. Start tester: `make run_tester` (on Windows the Makefile should not contain `pwd`, replace it with global path)
