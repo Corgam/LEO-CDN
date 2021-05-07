@@ -1,6 +1,7 @@
 import sys
 import subprocess
 
+# Validates command line argument
 if len(sys.argv) != 3:
     print('generator.py -node <number>')
     exit()
@@ -13,10 +14,16 @@ if not sys.argv[2].isnumeric():
     print('generator.py -node <number>')
     exit()
 
+if int(sys.argv[2]) < 1:
+    print('Please use a number >0')
+    exit()
+
 # amount of nodes for our simulation
 nodes = int(sys.argv[2])
 
 # Generating certificates for every store and fred node
+print('Generating certificates for', nodes, 'nodes...')
+
 for x in range(nodes):
     subprocess.call(['sh','./cert/gen-cert-default.sh', './cert/store{}'.format(x+1),'172.26.{}.2'.format(x+3  if x+2 >= 6  else x+2)])
     subprocess.call(['sh','./cert/gen-cert.sh', './cert/node{}x'.format(x+1),'172.26.{}.1'.format(x+3  if x+2 >= 6  else x+2)])
@@ -141,5 +148,10 @@ f.write(nodesString)
 f.write(' down')
 f.close()
 
+# Start a pre-cleaning
+print('Start cleaning process..')
 subprocess.call(['make', 'clean'])
+
+# Start running the nodes
+print('Running', nodes, 'nodes...')
 subprocess.call(['make','run_nodes'])
