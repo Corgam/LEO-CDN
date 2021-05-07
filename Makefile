@@ -16,3 +16,7 @@ run_tester:
 
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./FReD/proto/client/client.proto
+
+clean:
+	@docker network rm fredwork
+	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml down
