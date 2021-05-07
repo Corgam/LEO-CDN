@@ -1,5 +1,5 @@
 import grpc
-from stub import stub_pb2, stub_pb2_grpc
+from client import client_pb2, client_pb2_grpc
 import time
 
 nodes = ["nodeB", "nodeC"]
@@ -34,13 +34,13 @@ def init_keygroup(target_node, keygroup=KEYGROUP):
     node_cfg = node_configs[target_node]
     target = f"{node_cfg['host']}:{node_cfg['port']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = stub_pb2_grpc.ClientStub(channel)
+        stub = client_pb2_grpc.ClientStub(channel)
         response = stub.CreateKeygroup(
-            stub_pb2.CreateKeygroupRequest(keygroup=KEYGROUP, mutable=True)
+            client_pb2.CreateKeygroupRequest(keygroup=KEYGROUP, mutable=True)
         )
         print(response)
         response = stub.Update(
-            stub_pb2.UpdateRequest(keygroup=KEYGROUP, id=FILE_ID, data=":-)")
+            client_pb2.UpdateRequest(keygroup=KEYGROUP, id=FILE_ID, data=":-)")
         )
         print(response)
 
@@ -50,9 +50,9 @@ def add_node_to_keygroup(target_node, keygroup=KEYGROUP):
     node_cfg = node_configs[target_node]
     target = f"{node_cfg['host']}:{node_cfg['port']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = stub_pb2_grpc.ClientStub(channel)
+        stub = client_pb2_grpc.ClientStub(channel)
         response = stub.AddReplica(
-            stub_pb2.AddReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
+            client_pb2.AddReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
         )
         print(response)
 
@@ -62,9 +62,9 @@ def remove_node_from_keygroup(target_node, keygroup=KEYGROUP):
     node_cfg = node_configs[target_node]
     target = f"{node_cfg['host']}:{node_cfg['port']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = stub_pb2_grpc.ClientStub(channel)
+        stub = client_pb2_grpc.ClientStub(channel)
         response = stub.RemoveReplica(
-            stub_pb2.RemoveReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
+            client_pb2.RemoveReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
         )
         print(response)
 
@@ -76,9 +76,9 @@ def read_file_from_nodes(keygroup=KEYGROUP, file_id=FILE_ID):
             node_cfg = node_configs[target_node]
             target = f"{node_cfg['host']}:{node_cfg['port']}"
             with grpc.secure_channel(target, credentials=creds) as channel:
-                stub = stub_pb2_grpc.ClientStub(channel)
+                stub = client_pb2_grpc.ClientStub(channel)
                 response = stub.Read(
-                    stub_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
                 print(response)
                 print(f"File exists on node {target_node}!")
