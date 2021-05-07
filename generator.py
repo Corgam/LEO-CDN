@@ -18,15 +18,15 @@ nodes = int(sys.argv[2])
 
 # Generating certificates for every store and fred node
 for x in range(nodes):
-    subprocess.call(['sh','./cert/gen-cert-default.sh', './cert/store{}'.format(x+1),'172.26.{}.2'.format(x+2)])
-    subprocess.call(['sh','./cert/gen-cert.sh', './cert/node{}x'.format(x+1),'172.26.{}.1'.format(x+2)])
+    subprocess.call(['sh','./cert/gen-cert-default.sh', './cert/store{}'.format(x+1),'172.26.{}.2'.format(x+3  if x+2 >= 6  else x+2)])
+    subprocess.call(['sh','./cert/gen-cert.sh', './cert/node{}x'.format(x+1),'172.26.{}.1'.format(x+3  if x+2 >= 6  else x+2)])
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
 
 for x in range(nodes):
-    nodeIP = '172.26.{}.1'.format(x+2)
-    storeIP = '172.26.{}.2'.format(x+2)
+    nodeIP = '172.26.{}.1'.format(x+3 if x+2 >= 6 else x+2)
+    storeIP = '172.26.{}.2'.format(x+3 if x+2 >= 6 else x+2)
     nodeName = 'node{}'.format(x+1)
     storeName = 'store{}'.format(x+1)
     
