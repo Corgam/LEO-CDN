@@ -31,7 +31,7 @@ services:
     volumes:
       - ../cert/nodeCx.crt:/cert/nodeC.crt
       - ../cert/nodeCx.key:/cert/nodeC.key
-      - ../FReD/nase/tls/ca.crt:/cert/ca.crt
+      - ../cert/ca.crt:/cert/ca.crt
     ports:
       - 9004:9001
     networks:
@@ -50,9 +50,9 @@ services:
     --key /cert/key.key \
     --ca-file /cert/ca.crt"
     volumes:
-      - ../FReD/nase/tls/storeC.crt:/cert/cert.crt
-      - ../FReD/nase/tls/storeC.key:/cert/key.key
-      - ../FReD/nase/tls/ca.crt:/cert/ca.crt
+      - ../cert/storeC.crt:/cert/cert.crt
+      - ../cert/storeC.key:/cert/key.key
+      - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
         ipv4_address: 172.26.3.2

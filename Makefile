@@ -8,9 +8,9 @@ run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \
 		--name keygroup-passer \
-		-v `pwd`/FReD/nase/tls/keygroupPasser.crt:/cert/client.crt \
-		-v `pwd`/FReD/nase/tls/keygroupPasser.key:/cert/client.key \
-		-v `pwd`/FReD/nase/tls/ca.crt:/cert/ca.crt \
+		-v `pwd`/cert/keygroupPasser.crt:/cert/client.crt \
+		-v `pwd`/cert/keygroupPasser.key:/cert/client.key \
+		-v `pwd`/cert/ca.crt:/cert/ca.crt \
 		--network=fredwork \
 		--ip=172.26.4.1 \
 		keygroup-passer
