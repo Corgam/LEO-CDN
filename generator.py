@@ -18,104 +18,97 @@ if int(sys.argv[2]) < 1:
     print('Please use a number >0')
     exit()
 
-# amount of nodes for our simulation
+# Number of nodes to generate
 nodes = int(sys.argv[2])
 
 # Generating certificates for every store and fred node
 print('Generating certificates for', nodes, 'nodes...')
 
-for x in range(nodes):
-    subprocess.call(["bash.exe",'./cert/gen-cert-default.sh', './cert/store{}'.format(x+1),'172.26.{}.2'.format(x+3  if x+2 >= 6  else x+2)])
-    subprocess.call(['sh','./cert/gen-cert.sh', './cert/node{}x'.format(x+1),'172.26.{}.1'.format(x+3  if x+2 >= 6  else x+2)])
+# Generate n certificates
+# Nodes will have IP starting from 127.26.7.1 (to not use the NS's IP)
+# To prevent 'Anomalous backslash in string' warning: '\\' inside string
+subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
 
 for x in range(nodes):
-    nodeIP = '172.26.{}.1'.format(x+3 if x+2 >= 6 else x+2)
-    storeIP = '172.26.{}.2'.format(x+3 if x+2 >= 6 else x+2)
-    nodeName = 'node{}'.format(x+1)
-    storeName = 'store{}'.format(x+1)
+    nodeIP = f"172.26.{x+7}.1"
+    storeIP = f"172.26.{x+7}.2"
+    nodeName = f"node{x}"
+    storeName = f"store{x}"
     
-    f = open('./docker/node{}.yml'.format(x+1), 'w')
-    f.write('''version: "3.7"
-
+    f = open(f"./docker/node{x}.yml", 'w')
+    f.write(f"""version: "3.7"
 services:
-  {}:
+  {nodeName}:
     build: ../FReD
     depends_on:
-      - {}
+      - {storeName}
     image: fred/fred:local
-    container_name: {}
+    container_name: {nodeName}
     entrypoint: "fred \\
-    --remote-storage-host {}:1337 \\
-    --peer-host {}:5555 \\
+    --remote-storage-host {storeIP}:1337 \\
+    --peer-host {nodeIP}:5555 \\
     --nodeID nodeB \\
-    --host {}:9001 \\
-    --cert /cert/node.crt \\
-    --key /cert/node.key \\
+    --host {nodeIP}:9001 \\
+    --cert /cert/node{x}.crt \\
+    --key /cert/node{x}.key \\
     --ca-file /cert/ca.crt \\
     --adaptor remote \\
     --nase-host https://172.26.6.1:2379 \\
-    --nase-cert /cert/node.crt \\
-    --nase-key /cert/node.key \\
+    --nase-cert /cert/node{x}.crt \\
+    --nase-key /cert/node{x}.key \\
     --nase-ca /cert/ca.crt \\
     --handler dev \\
     --badgerdb-path ./db \\
-    --remote-storage-cert /cert/node.crt \\
-    --remote-storage-key /cert/node.key  \\
-    --trigger-cert /cert/node.crt \\
-    --trigger-key /cert/node.key"
+    --remote-storage-cert /cert/node{x}.crt \\
+    --remote-storage-key /cert/node{x}.key  \\
+    --trigger-cert /cert/node{x}.crt \\
+    --trigger-key /cert/node{x}.key\"
     environment:
       - LOG_LEVEL
     volumes:
-      - ../cert/{}x.crt:/cert/node.crt
-      - ../cert/{}x.key:/cert/node.key
+      - ../cert/{nodeName}.crt:/cert/node{x}.crt
+      - ../cert/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
-      - 900{}:9001
+      - 900{x+3}:9001
     networks:
       fredwork:
-        ipv4_address: {}
+        ipv4_address: {nodeIP}
 
-  {}:
+  {storeName}:
     build:
       context: ../FReD
       dockerfile: storage.Dockerfile
     image: fred/store:local
-    container_name: {}
+    container_name: {storeName}
     entrypoint: "storageserver \\
     --log-level '${{LOG_LEVEL_STORE}}' \\
     --cert /cert/cert.crt \\
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ../cert/{}.crt:/cert/cert.crt
-      - ../cert/{}.key:/cert/key.key
+      - ../cert/{storeName}.crt:/cert/cert.crt
+      - ../cert/{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
-        ipv4_address: {}
+        ipv4_address: {storeIP}
 
 networks:
   fredwork:
     external: true
-'''.format(nodeName, 
-    storeName, nodeName, 
-    storeIP, nodeIP, 
-    nodeIP, nodeName, 
-    nodeName, x+3, 
-    nodeIP, storeName, 
-    storeName, storeName, 
-    storeName, storeIP))
-    f.close()
+""")
 
-# Adjusting the Makerfile
+
+# Adjusting the Makefile
 print('Generating Makerfile for', nodes, 'nodes...')
 
 nodesString =""
 for x in range(nodes):
-    nodesString+=' -f docker/node{}.yml'.format(x+1)
+    nodesString+=' -f docker/node{}.yml'.format(x)
 
 f = open('Makefile', 'w')
 f.write('''run_nodes:
