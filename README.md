@@ -15,9 +15,20 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
   - see for details https://superuser.com/a/1248085
 - Generate certificates
   - `cd FReD/nase/tls/`
+- Linux:
   - `sh gen-cert.sh nodeBx 172.26.2.1`
   - `sh gen-cert.sh nodeCx 172.26.3.1`
   - `sh gen-cert.sh keygroupPasser 172.26.4.1`
+
+- Windows:
+  - `PowerShell:`
+    - `./gen-cert.sh nodeBx 172.26.2.1`
+    - `./gen-cert.sh nodeCx 172.26.3.1`
+    - `./gen-cert.sh keygroupPasser 172.26.4.1`
+  - `CMD:`
+    - `gen-cert.sh nodeBx 172.26.2.1`
+    - `gen-cert.sh nodeCx 172.26.3.1`
+    - `gen-cert.sh keygroupPasser 172.26.4.1`
 
 2. Generate Python gRPC client: `make compile_grpc_python`
 3. Start FReD nodes and NaSe: `make run_nodes`
