@@ -136,5 +136,10 @@ compile_grpc_python:
 
 clean:
 	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml down''')
+	@docker-compose -f docker/etcd.yml''')
+f.write(nodesString)
+f.write(' down')
 f.close()
+
+subprocess.call(['make', 'clean'])
+subprocess.call(['make','run_nodes'])

@@ -20,4 +20,4 @@ compile_grpc_python:
 
 clean:
 	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml down
+	@docker-compose -f docker/etcd.yml -f docker/node1.yml -f docker/node2.yml -f docker/node3.yml -f docker/node4.yml down
