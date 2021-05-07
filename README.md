@@ -29,10 +29,10 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
     - `gen-cert.sh nodeBx 172.26.2.1`
     - `gen-cert.sh nodeCx 172.26.3.1`
     - `gen-cert.sh keygroupPasser 172.26.4.1`
-
-2. Generate Python gRPC client: `make compile_grpc_python`
-3. Start FReD nodes and NaSe: `make run_nodes`
-4. Start tester: `make run_tester`
+2. Go back to the main folder (LEO-CDN)
+3. Generate Python gRPC client: `make compile_grpc_python`
+4. Start FReD nodes and NaSe: `make run_nodes`
+5. Start tester: `make run_tester`
 
 ## Run
 
