@@ -21,11 +21,11 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
   - `sh gen-cert.sh keygroupPasser 172.26.4.1`
 
 - Windows:
-  - `PowerShell:`
+  - PowerShell:
     - `./gen-cert.sh nodeBx 172.26.2.1`
     - `./gen-cert.sh nodeCx 172.26.3.1`
     - `./gen-cert.sh keygroupPasser 172.26.4.1`
-  - `CMD:`
+  - CMD:
     - `gen-cert.sh nodeBx 172.26.2.1`
     - `gen-cert.sh nodeCx 172.26.3.1`
     - `gen-cert.sh keygroupPasser 172.26.4.1`
