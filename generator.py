@@ -73,7 +73,7 @@ services:
       - ../cert/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
-      - 900{x+3}:9001
+      - {9000+x+3}:9001
     networks:
       fredwork:
         ipv4_address: {nodeIP}
