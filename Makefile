@@ -15,7 +15,7 @@ run_tester:
 		keygroup-passer
 
 compile_grpc_python:
-	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./FReD/proto/client/client.proto
+	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
 
 clean:
 	@docker network rm fredwork

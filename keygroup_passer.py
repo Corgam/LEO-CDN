@@ -1,5 +1,5 @@
 import grpc
-from client import client_pb2, client_pb2_grpc
+from proto import client_pb2, client_pb2_grpc
 import time
 
 nodes = ["nodeB", "nodeC"]
