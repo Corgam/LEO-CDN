@@ -1,10 +1,11 @@
 run_nodes:
-	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || true
-	@docker-compose -f Simulation-test/etcd.yml -f Simulation-test/nodeB.yml -f Simulation-test/nodeC.yml build
-	@docker-compose --env-file .env -f Simulation-test/etcd.yml -f Simulation-test/nodeB.yml -f Simulation-test/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+#Check if the docker network "fredwork" is already created, if not create one.
+	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
+	@docker-compose -f images/etcd.yml -f images/nodeB.yml -f images/nodeC.yml build
+	@docker-compose --env-file .env -f images/etcd.yml -f images/nodeB.yml -f images/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
 
 run_tester:
-	@docker build -f ./Simulation-test/Dockerfile -t keygroup-passer .
+	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \
 		-v `pwd`/FReD/nase/tls/keygroupPasser.crt:/cert/client.crt \
 		-v `pwd`/FReD/nase/tls/keygroupPasser.key:/cert/client.key \
