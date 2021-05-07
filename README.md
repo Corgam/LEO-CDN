@@ -8,9 +8,9 @@ Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `F
 
 ## Setup
 
-1. Fix key usage and generate certificates
+1. Generate certificates and fix key usage
 
-- Fix key usage in `FReD/nase/tls/gen-cert.sh`
+- Fix key usage in `FReD/nase/tls/gen-cert.sh` in line 38
   - add `digitalSignature` so it looks like `keyUsage = keyEncipherment, dataEncipherment, digitalSignature`
   - see for details https://superuser.com/a/1248085
 - Generate certificates
