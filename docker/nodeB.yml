@@ -29,8 +29,8 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../FReD/nase/tls/nodeBx.crt:/cert/nodeB.crt
-      - ../FReD/nase/tls/nodeBx.key:/cert/nodeB.key
+      - ../cert/nodeBx.crt:/cert/nodeB.crt
+      - ../cert/nodeBx.key:/cert/nodeB.key
       - ../FReD/nase/tls/ca.crt:/cert/ca.crt
     ports:
       - 9003:9001

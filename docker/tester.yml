@@ -8,8 +8,8 @@ services:
     image: fred/keygroup-passer:local
     container_name: keygroupPasser
     volumes:
-      - ../FReD/nase/tls/keygroupPasser.crt:/cert/client.crt
-      - ../FReD/nase/tls/keygroupPasser.key:/cert/client.key
+      - ../cert/keygroupPasser.crt:/cert/client.crt
+      - ../cert/keygroupPasser.key:/cert/client.key
     networks:
       fredwork:
         ipv4_address: 172.26.4.1

@@ -29,8 +29,8 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../FReD/nase/tls/nodeCx.crt:/cert/nodeC.crt
-      - ../FReD/nase/tls/nodeCx.key:/cert/nodeC.key
+      - ../cert/nodeCx.crt:/cert/nodeC.crt
+      - ../cert/nodeCx.key:/cert/nodeC.key
       - ../FReD/nase/tls/ca.crt:/cert/ca.crt
     ports:
       - 9004:9001
