@@ -1,8 +1,8 @@
 run_nodes:
 #Check if the docker network "fredwork" is already created, if not create one.
 	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
-	@docker-compose -f images/etcd.yml -f images/nodeB.yml -f images/nodeC.yml build
-	@docker-compose --env-file .env -f images/etcd.yml -f images/nodeB.yml -f images/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml build
+	@docker-compose --env-file .env -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
 
 run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
