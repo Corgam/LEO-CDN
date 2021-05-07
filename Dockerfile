@@ -7,5 +7,6 @@ COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./keygroup_passer.py /keygroup_passer.py
+COPY ./proto /proto
 
 CMD ["python", "keygroup_passer.py"]
