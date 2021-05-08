@@ -1,8 +1,8 @@
 run_nodes:
 #Check if the docker network "fredwork" is already created, if not create one.
 	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml build
-	@docker-compose --env-file .env -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+	@docker-compose -f docker/etcd.yml -f docker/node1.yml -f docker/node2.yml -f docker/node3.yml -f docker/node4.yml -f docker/node5.yml -f docker/node6.yml -f docker/node7.yml build
+	@docker-compose --env-file .env -f docker/etcd.yml -f docker/node1.yml -f docker/node2.yml -f docker/node3.yml -f docker/node4.yml -f docker/node5.yml -f docker/node6.yml -f docker/node7.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
 
 run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
@@ -20,4 +20,4 @@ compile_grpc_python:
 
 clean:
 	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml down
+	@docker-compose -f docker/etcd.yml -f docker/node1.yml -f docker/node2.yml -f docker/node3.yml -f docker/node4.yml -f docker/node5.yml -f docker/node6.yml -f docker/node7.yml down
