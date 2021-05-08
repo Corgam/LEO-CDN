@@ -103,24 +103,23 @@ networks:
 """)
 
 
-# Adjusting the Makefile
+### Adjusting the Makefile ###
 print('Generating Makerfile for', nodes, 'nodes...')
 
+# Create a list of yml files
 nodesString =""
 for x in range(nodes):
     nodesString+=' -f docker/node{}.yml'.format(x)
 
+# Write the Makefile
 f = open('Makefile', 'w')
-f.write('''run_nodes:
-#Check if the docker network "fredwork" is already created, if not create one.
+f.write(f"""
+run_nodes:
 	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
-	@docker-compose -f docker/etcd.yml''')
-f.write(nodesString)
-f.write(' build\n')
-f.write('	@docker-compose --env-file .env -f docker/etcd.yml')
-f.write(nodesString)
-f.write(' up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans\n\n')
-f.write('''run_tester:
+	@docker-compose -f docker/etcd.yml {nodesString} build
+	@docker-compose --env-file .env -f docker/etcd.yml {nodesString} up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+
+run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \\
 		--name keygroup-passer \\
@@ -136,15 +135,13 @@ compile_grpc_python:
 
 clean:
 	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml''')
-f.write(nodesString)
-f.write(' down')
+	@docker-compose -f docker/etcd.yml {nodesString} down""")
 f.close()
 
 # Start a pre-cleaning
-print('Start cleaning process..')
-subprocess.call(['make', 'clean'])
+# print('Start cleaning process..')
+# subprocess.call(['make', 'clean'])
 
-# Start running the nodes
-print('Running', nodes, 'nodes...')
-subprocess.call(['make','run_nodes'])
+# # Start running the nodes
+# print('Running', nodes, 'nodes...')
+# subprocess.call(['make','run_nodes'])
