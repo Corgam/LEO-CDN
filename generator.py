@@ -143,9 +143,9 @@ clean:
 f.close()
 
 # Start a pre-cleaning
-# print('Start cleaning process..')
-# subprocess.call(['make', 'clean'])
+print('Start cleaning process..')
+subprocess.call(['make', 'clean'])
 
 # # Start running the nodes
-# print('Running', nodes, 'nodes...')
-# subprocess.call(['make','run_nodes'])
+print('Running', nodes, 'nodes...')
+subprocess.call(['make','run_nodes'])
