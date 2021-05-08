@@ -25,9 +25,13 @@ nodes = int(sys.argv[2])
 print('Generating certificates for', nodes, 'nodes...')
 
 # Generate n certificates
+# Run specific command based on OS
 # Nodes will have IP starting from 127.26.7.1 (to not use the NS's IP)
 # To prevent 'Anomalous backslash in string' warning: '\\' inside string
-subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+if sys.platform.startswith('win'):
+      subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+elif sys.platform.startswith('linux'):
+      subprocess.call("sh ./cert/generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
