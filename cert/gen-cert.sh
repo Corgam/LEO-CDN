@@ -50,7 +50,7 @@ echo "IP.2 = ${IP}" >> "${NAME}".conf
 openssl req -new -key "${NAME}".key -out "${NAME}".csr -config "${NAME}".conf
 
 # build the certificate
-openssl x509 -req -in "${NAME}".csr -CA ./cert/ca.crt -CAkey ./cert/ca.key \
+openssl x509 -req -in "${NAME}".csr -CA ca.crt -CAkey ca.key \
 -CAcreateserial -out "${NAME}".crt -days 1825 \
 -extfile "${NAME}".conf -extensions v3_req
 

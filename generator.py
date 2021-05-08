@@ -24,34 +24,34 @@ nodes = int(sys.argv[2])
 # Generating certificates for every store and fred node
 print('Generating certificates for', nodes, 'nodes...')
 
-for x in range(nodes):
-    subprocess.call(['sh','./cert/gen-cert-default.sh', './cert/store{}'.format(x+1),'172.26.{}.2'.format(x+3  if x+2 >= 6  else x+2)])
-    subprocess.call(['sh','./cert/gen-cert.sh', './cert/node{}x'.format(x+1),'172.26.{}.1'.format(x+3  if x+2 >= 6  else x+2)])
+# Nodes will have IP starting from 127.26.7.1 (to not use the NS's IP)
+# To prevent 'Anomalous backslash in string' warning: '\\' inside string
+subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
 
 for x in range(nodes):
-    nodeIP = '172.26.{}.1'.format(x+3 if x+2 >= 6 else x+2)
-    storeIP = '172.26.{}.2'.format(x+3 if x+2 >= 6 else x+2)
-    nodeName = 'node{}'.format(x+1)
-    storeName = 'store{}'.format(x+1)
+    nodeIP = f'172.26.{x+3 if x+2 >= 6 else x+2}.1'
+    storeIP = f'172.26.{x+3 if x+2 >= 6 else x+2}.2'
+    nodeName = f'node{x}'
+    storeName = f'store{x}'
     
-    f = open('./docker/node{}.yml'.format(x+1), 'w')
-    f.write('''version: "3.7"
+    f = open(f'./docker/node{x}.yml', 'w')
+    f.write(f'''version: "3.7"
 
 services:
-  {}:
+  {nodeName}:
     build: ../FReD
     depends_on:
-      - {}
+      - {storeName}
     image: fred/fred:local
-    container_name: {}
+    container_name: {nodeName}
     entrypoint: "fred \\
-    --remote-storage-host {}:1337 \\
-    --peer-host {}:5555 \\
+    --remote-storage-host {storeIP}:1337 \\
+    --peer-host {nodeIP}:5555 \\
     --nodeID nodeB \\
-    --host {}:9001 \\
+    --host {nodeIP}:9001 \\
     --cert /cert/node.crt \\
     --key /cert/node.key \\
     --ca-file /cert/ca.crt \\
@@ -69,45 +69,38 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../cert/{}x.crt:/cert/node.crt
-      - ../cert/{}x.key:/cert/node.key
+      - ../cert/{nodeName}.crt:/cert/node.crt
+      - ../cert/{nodeName}.key:/cert/node.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
-      - 900{}:9001
+      - 900{x+3}:9001
     networks:
       fredwork:
-        ipv4_address: {}
+        ipv4_address: {nodeIP}
 
-  {}:
+  {storeName}:
     build:
       context: ../FReD
       dockerfile: storage.Dockerfile
     image: fred/store:local
-    container_name: {}
+    container_name: {storeName}
     entrypoint: "storageserver \\
     --log-level '${{LOG_LEVEL_STORE}}' \\
     --cert /cert/cert.crt \\
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ../cert/{}.crt:/cert/cert.crt
-      - ../cert/{}.key:/cert/key.key
+      - ../cert/{storeName}.crt:/cert/cert.crt
+      - ../cert/{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
-        ipv4_address: {}
+        ipv4_address: {storeIP}
 
 networks:
   fredwork:
     external: true
-'''.format(nodeName, 
-    storeName, nodeName, 
-    storeIP, nodeIP, 
-    nodeIP, nodeName, 
-    nodeName, x+3, 
-    nodeIP, storeName, 
-    storeName, storeName, 
-    storeName, storeIP))
+''')
     f.close()
 
 # Adjusting the Makerfile
@@ -115,7 +108,7 @@ print('Generating Makerfile for', nodes, 'nodes...')
 
 nodesString =""
 for x in range(nodes):
-    nodesString+=' -f docker/node{}.yml'.format(x+1)
+    nodesString+=f' -f docker/node{x}.yml'
 
 f = open('Makefile', 'w')
 f.write('''run_nodes:
@@ -131,9 +124,9 @@ f.write('''run_tester:
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \\
 		--name keygroup-passer \\
-		-v `pwd`/cert/keygroupPasser.crt:/cert/client.crt \\
-		-v `pwd`/cert/keygroupPasser.key:/cert/client.key \\
-		-v `pwd`/cert/ca.crt:/cert/ca.crt \\
+		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \\
+		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \\
+		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
