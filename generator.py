@@ -18,28 +18,32 @@ if int(sys.argv[2]) < 1:
     print('Please use a number >0')
     exit()
 
-# amount of nodes for our simulation
+# Number of nodes to generate
 nodes = int(sys.argv[2])
 
 # Generating certificates for every store and fred node
 print('Generating certificates for', nodes, 'nodes...')
 
+# Generate n certificates
+# Run specific command based on OS
 # Nodes will have IP starting from 127.26.7.1 (to not use the NS's IP)
 # To prevent 'Anomalous backslash in string' warning: '\\' inside string
-subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+if sys.platform.startswith('win'):
+      subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+elif sys.platform.startswith('linux'):
+      subprocess.call("sh ./cert/generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
 
 for x in range(nodes):
-    nodeIP = f'172.26.{x+3 if x+2 >= 6 else x+2}.1'
-    storeIP = f'172.26.{x+3 if x+2 >= 6 else x+2}.2'
-    nodeName = f'node{x}'
-    storeName = f'store{x}'
+    nodeIP = f"172.26.{x+7}.1"
+    storeIP = f"172.26.{x+7}.2"
+    nodeName = f"node{x}"
+    storeName = f"store{x}"
     
-    f = open(f'./docker/node{x}.yml', 'w')
-    f.write(f'''version: "3.7"
-
+    f = open(f"./docker/node{x}.yml", 'w')
+    f.write(f"""version: "3.7"
 services:
   {nodeName}:
     build: ../FReD
@@ -50,30 +54,30 @@ services:
     entrypoint: "fred \\
     --remote-storage-host {storeIP}:1337 \\
     --peer-host {nodeIP}:5555 \\
-    --nodeID nodeB \\
+    --nodeID node{x} \\
     --host {nodeIP}:9001 \\
-    --cert /cert/node.crt \\
-    --key /cert/node.key \\
+    --cert /cert/node{x}.crt \\
+    --key /cert/node{x}.key \\
     --ca-file /cert/ca.crt \\
     --adaptor remote \\
     --nase-host https://172.26.6.1:2379 \\
-    --nase-cert /cert/node.crt \\
-    --nase-key /cert/node.key \\
+    --nase-cert /cert/node{x}.crt \\
+    --nase-key /cert/node{x}.key \\
     --nase-ca /cert/ca.crt \\
     --handler dev \\
     --badgerdb-path ./db \\
-    --remote-storage-cert /cert/node.crt \\
-    --remote-storage-key /cert/node.key  \\
-    --trigger-cert /cert/node.crt \\
-    --trigger-key /cert/node.key"
+    --remote-storage-cert /cert/node{x}.crt \\
+    --remote-storage-key /cert/node{x}.key  \\
+    --trigger-cert /cert/node{x}.crt \\
+    --trigger-key /cert/node{x}.key\"
     environment:
       - LOG_LEVEL
     volumes:
-      - ../cert/{nodeName}.crt:/cert/node.crt
-      - ../cert/{nodeName}.key:/cert/node.key
+      - ../cert/{nodeName}.crt:/cert/node{x}.crt
+      - ../cert/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
-      - 900{x+3}:9001
+      - {9000+x+3}:9001
     networks:
       fredwork:
         ipv4_address: {nodeIP}
@@ -100,33 +104,34 @@ services:
 networks:
   fredwork:
     external: true
-''')
-    f.close()
+""")
 
-# Adjusting the Makerfile
+
+### Adjusting the Makefile ###
 print('Generating Makerfile for', nodes, 'nodes...')
 
+# Create a list of yml files
 nodesString =""
 for x in range(nodes):
-    nodesString+=f' -f docker/node{x}.yml'
+    nodesString+=' -f docker/node{}.yml'.format(x)
 
+# Write the Makefile
 f = open('Makefile', 'w')
-f.write('''run_nodes:
-#Check if the docker network "fredwork" is already created, if not create one.
+f.write(f"""
+run_nodes:
 	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
-	@docker-compose -f docker/etcd.yml''')
-f.write(nodesString)
-f.write(' build\n')
-f.write('	@docker-compose --env-file .env -f docker/etcd.yml')
-f.write(nodesString)
-f.write(' up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans\n\n')
-f.write('''run_tester:
+	@docker-compose -f docker/etcd.yml {nodesString} build
+	@docker-compose --env-file .env -f docker/etcd.yml {nodesString} up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+
+run_tester:
+	@docker container rm keygroup-passer -f
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \\
 		--name keygroup-passer \\
 		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \\
 		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \\
 		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
+    -v $(CURDIR)/nodes.json:/nodes.json \\
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
@@ -136,15 +141,22 @@ compile_grpc_python:
 
 clean:
 	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml''')
-f.write(nodesString)
-f.write(' down')
+	@docker-compose -f docker/etcd.yml {nodesString} down""")
+f.close()
+
+# Generating json with node data
+f = open('nodes.json', 'w')
+f.write('{\n')
+for x in range(nodes):
+  f.write(f'    "node{x}": {{"host": "172.26.{x+7}.1", "port": "9001"}}')
+  f.write(',\n') if x+1<nodes else f.write('\n')
+f.write('}')
 f.close()
 
 # Start a pre-cleaning
 print('Start cleaning process..')
 subprocess.call(['make', 'clean'])
 
-# Start running the nodes
+# # Start running the nodes
 print('Running', nodes, 'nodes...')
 subprocess.call(['make','run_nodes'])
