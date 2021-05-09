@@ -54,7 +54,7 @@ services:
     entrypoint: "fred \\
     --remote-storage-host {storeIP}:1337 \\
     --peer-host {nodeIP}:5555 \\
-    --nodeID nodeB \\
+    --nodeID node{x} \\
     --host {nodeIP}:9001 \\
     --cert /cert/node{x}.crt \\
     --key /cert/node{x}.key \\
@@ -124,12 +124,14 @@ run_nodes:
 	@docker-compose --env-file .env -f docker/etcd.yml {nodesString} up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
 
 run_tester:
+	@docker container rm keygroup-passer -f
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \\
 		--name keygroup-passer \\
-		-v `pwd`/cert/keygroupPasser.crt:/cert/client.crt \\
-		-v `pwd`/cert/keygroupPasser.key:/cert/client.key \\
-		-v `pwd`/cert/ca.crt:/cert/ca.crt \\
+		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \\
+		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \\
+		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
+    -v $(CURDIR)/nodes.json:/nodes.json \\
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
@@ -140,6 +142,15 @@ compile_grpc_python:
 clean:
 	@docker network rm fredwork
 	@docker-compose -f docker/etcd.yml {nodesString} down""")
+f.close()
+
+# Generating json with node data
+f = open('nodes.json', 'w')
+f.write('{\n')
+for x in range(nodes):
+  f.write(f'    "node{x}": {{"host": "172.26.{x+7}.1", "port": "9001"}}')
+  f.write(',\n') if x+1<nodes else f.write('\n')
+f.write('}')
 f.close()
 
 # Start a pre-cleaning
