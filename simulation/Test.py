@@ -1,10 +1,12 @@
 from PyAstronomy import pyasl
 import math
 
+from satellite import Satellite
+
 EARTH_RADIUS = 6371000
 # Orbit Altitude (Km)
 ALTITUDE = 550
-semiMajorAxis=float(ALTITUDE)*1000 + EARTH_RADIUS
+semiMajorAxis = float(ALTITUDE) * 1000 + EARTH_RADIUS
 STD_GRAVITATIONAL_PARAMETER_EARTH = 3.986004418e14
 
 
@@ -27,6 +29,7 @@ def calculate_orbit_period(semi_major_axis=0.0):
 
 
 def initialize_position(planes, nodes_per_plane):
+    list_of_satellites = []
     # Abstände der Satelliten zueinander, bzw. im 360° wo befinden sich die Satelliten beim Start
     raan_offsets = [(360 / planes) * i for i in
                     range(0, planes)]
@@ -58,10 +61,8 @@ def initialize_position(planes, nodes_per_plane):
     for i in range(planes):
         if toggle:
             temp.append(phase_offset)
-            print(temp, i)
         else:
             temp.insert(0, phase_offset)
-            print(temp, i)
             # temp.append(phase_offset)
         toggle = not toggle
         phase_offset = phase_offset + phase_offset_increment
@@ -72,16 +73,53 @@ def initialize_position(planes, nodes_per_plane):
         for node in range(0, nodes_per_plane):
             # calculate the KE solver time offset
             offset = (time_offsets[node] + phase_offsets[plane])
-            print(offset)
-            init_pos = ellipse.xyzPos(offset)
-            print(init_pos)
+            new_satellite = Satellite(name=f"test_satellite_{plane}_{node}", kepler_ellipse=ellipse, offset=offset)
+            list_of_satellites.append(new_satellite)
+    return list_of_satellites
+
+
+def update_position(all_satellites, time=0):
+    """
+
+    Parameters
+    ----------
+    all_satellites : list
+        List of Satellite objects.
+    time :
+        The new current time.
+
+    Returns
+    -------
+
+    """
+    for satellite in all_satellites:
+        satellite.set_new_position(time)
+
+    return all_satellites
+
+
+def print_current_position(all_satellites):
+    for sat in all_satellites:
+        print(sat.name)
+        print(sat.get_current_position())
 
 
 if __name__ == "__main__":
     period = calculate_orbit_period(semi_major_axis=semiMajorAxis)
     number_of_planes = 1
-    nodes_per_plane = 1
+    nodes_per_plane = 4
 
-    initialize_position(number_of_planes, nodes_per_plane)
+    all_satellites = initialize_position(number_of_planes, nodes_per_plane)
 
+    print("======== initialized position =======")
+    print_current_position(all_satellites)
 
+    steps = 5
+    step_length = 3600
+
+    for step in range(0, steps):
+        next_time = step * step_length
+
+        all_satellites = update_position(all_satellites=all_satellites, time=next_time)
+        print(f"======= updated position {step} =======")
+        print_current_position(all_satellites)

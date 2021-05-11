@@ -1,4 +1,5 @@
 from PyAstronomy import pyasl
+import numpy as np
 
 
 class Satellite:
@@ -14,27 +15,31 @@ class Satellite:
     def __init__(self, name, kepler_ellipse, offset):
         self.name = name
         self.kepler_ellipse = kepler_ellipse
-        current_position = self.kepler_ellipse.xyzPos(offset)
+        self.offset = offset
+        current_position = self.kepler_ellipse.xyzPos(self.offset)
         self.x_position = current_position[0]
         self.y_position = current_position[1]
         self.z_position = current_position[2]
 
-    def set_new_position(self, offset):
+    def set_new_position(self, current_time):
         """
         Sets the new position of a satellite.
+        It calls xyzPos from PyAstronomy KeplerEllipse. The parameter for this function is the time.
+        Therefore, we have to add the current time to the offset (the initial position of the satellite)
 
         Parameters
         ----------
-        offset
+        current_time : int
+            new time to calculate the new position
 
         Returns
         -------
 
         """
-        updated_position = self.kepler_ellipse.xyzPos(offset)
-        self.x_position = updated_position[0]
-        self.y_position = updated_position[1]
-        self.z_position = updated_position[2]
+        updated_position = self.kepler_ellipse.xyzPos(current_time + self.offset)
+        self.x_position = np.int32(updated_position[0])
+        self.y_position = np.int32(updated_position[1])
+        self.z_position = np.int32(updated_position[2])
 
     def get_current_position(self):
         """
