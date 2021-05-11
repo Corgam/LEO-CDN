@@ -1,2 +1,7 @@
 grpcio
 grpcio-tools
+
+PyAstronomy~=0.16.0
+numpy~=1.20.3
+vtk~=9.0.1
+networkx~=2.5.1
