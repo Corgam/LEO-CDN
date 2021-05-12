@@ -93,15 +93,14 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ./{nodeName}.crt:/cert/node{x}.crt
-      - ./{nodeName}.key:/cert/node{x}.key
+      - ../temp/{nodeName}.crt:/cert/node{x}.crt
+      - ../temp/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
       - {9000+x+3}:9001
     networks:
       fredwork:
         ipv4_address: {nodeIP}
-
   {storeName}:
     build:
       context: ../FReD
@@ -114,13 +113,12 @@ services:
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ./{storeName}.crt:/cert/cert.crt
-      - ./{storeName}.key:/cert/key.key
+      - ../temp/{storeName}.crt:/cert/cert.crt
+      - ../temp/{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
         ipv4_address: {storeIP}
-
 networks:
   fredwork:
     external: true
@@ -142,7 +140,6 @@ run_nodes:
 	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
 	@docker-compose -f docker/etcd.yml {nodesString} build
 	@docker-compose --env-file .env -f docker/etcd.yml {nodesString} up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
-
 run_tester:
 	@docker container rm keygroup-passer -f
 	@docker build -f ./Dockerfile -t keygroup-passer .
@@ -155,10 +152,8 @@ run_tester:
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
-
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
-
 clean:
 	@docker network rm fredwork
 	@docker-compose -f docker/etcd.yml {nodesString} down""")
