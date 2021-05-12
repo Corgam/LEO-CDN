@@ -1,0 +1,17 @@
+#!/bin/bash
+
+docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16
+
+docker-compose \
+  -f docker/etcd.yml \
+  {%- for name in node_names %}
+  -f temp/{{name}}.yml \
+  {%- endfor %}
+  build
+
+docker-compose --env-file .env \
+  -f docker/etcd.yml \
+  {%- for name in node_names %}
+  -f temp/{{name}}.yml \
+  {%- endfor %}
+  up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans

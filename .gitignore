@@ -158,4 +158,3 @@ cython_debug/
 # LEO-CDN
 FReD
 temp/
-Makefile
