@@ -152,6 +152,18 @@ run_tester:
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
+stardust:
+	@docker container rm stardust -f
+	@docker build -f ./Dockerfile_stardust -t stardust .
+	@docker run -it \\
+		--name stardust \\
+		-v $(CURDIR)/cert/Stardust.crt:/cert/client.crt \\
+		-v $(CURDIR)/cert/Stardust.key:/cert/client.key \\
+		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
+    -v $(CURDIR)/temp/nodes.json:/nodes.json \\
+		--network=fredwork \\
+		--ip=172.26.5.1 \\
+		stardust
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
 clean:

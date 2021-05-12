@@ -10,13 +10,13 @@ with open('./nodes.json') as f:
 nodes = [key for key in node_configs.keys()]
 
 # Loading certificates
-with open("./cert/client.crt", "rb") as f:
+with open("/cert/client.crt", "rb") as f:
     client_crt = f.read()
 
-with open("./cert/client.key", "rb") as f:
+with open("/cert/client.key", "rb") as f:
     client_key = f.read()
 
-with open("./cert/ca.crt", "rb") as f:
+with open("/cert/ca.crt", "rb") as f:
     ca_crt = f.read()
 
 creds = grpc.ssl_channel_credentials(
@@ -96,7 +96,7 @@ current_Node = None
 
 # Print welcome msg
 print("\n")
-print("Welcome pionier! You are accessing the STARDUST, also known as Satellite Transmitting and Receiving Data Utility Simplification Tool.")
+print("Welcome pionier! You are accessing the STARDUST,\nalso known as Satellite Transmitting and Receiving Data Utility Simplification Tool.")
 print("Type 'help' for list of all available commands and info.")
 print("\n")
 running = True
@@ -110,7 +110,7 @@ while(running):
         print("List of available commands and their usage:")
         print("     'start <IP> <Port>' - Starts connection to a specified satellite.")
         print("     'pull <fileID> <filePath>' - Requests from the satellite a file with given file ID and saves it at given location.")
-        print("     'push <fileID> <filePath> ' - Sends a file from given path to the satellite and saves it in it's keygroup under given file ID.")
+        print("     'push <fileID> <filePath> ' - Sends a file from given path to the satellite and saves it under given file ID.")
         print("     'end' - Ends connection with currently connected satellite.")
         print("     'exit' - Terminate SIP.")
         print("\n")
