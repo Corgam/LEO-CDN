@@ -158,5 +158,6 @@ cython_debug/
 # LEO-CDN
 FReD
 Makefile
+cert/ca.srl
 tmp/*
 !tmp/.gitkeep
