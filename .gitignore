@@ -158,5 +158,5 @@ cython_debug/
 # LEO-CDN
 FReD
 Makefile
-tmp/**
-!tmp/**/
+tmp/*
+!tmp/.gitkeep
