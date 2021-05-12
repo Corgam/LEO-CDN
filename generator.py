@@ -1,5 +1,7 @@
 import sys
 import subprocess
+import os
+import shutil
 
 # Validates command line argument
 if len(sys.argv) != 3:
@@ -21,6 +23,24 @@ if int(sys.argv[2]) < 1:
 # Number of nodes to generate
 nodes = int(sys.argv[2])
 
+# Create temp directory
+print("Creating temp directory...")
+if not os.path.exists("./temp"):
+      os.makedirs("./temp")
+else:
+      # If the temp dir already exists, remove it and make new one
+      shutil.rmtree("./temp")
+      os.makedirs("./temp")
+
+# Copy the certificates generators
+shutil.copyfile("./cert/gen-cert.sh","./temp/gen-cert.sh")
+shutil.copyfile("./cert/generate-n-certificates.sh","./temp/generate-n-certificates.sh")
+shutil.copyfile("./cert/ca.crt","./temp/ca.crt")
+shutil.copyfile("./cert/ca.key","./temp/ca.key")
+shutil.copyfile("./cert/ca.key","./temp/ca.key")
+
+
+
 # Generating certificates for every store and fred node
 print('Generating certificates for', nodes, 'nodes...')
 
@@ -29,9 +49,9 @@ print('Generating certificates for', nodes, 'nodes...')
 # Nodes will have IP starting from 127.26.7.1 (to not use the NS's IP)
 # To prevent 'Anomalous backslash in string' warning: '\\' inside string
 if sys.platform.startswith('win'):
-      subprocess.call(".\\cert\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+      subprocess.call(".\\temp\\generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 elif sys.platform.startswith('linux'):
-      subprocess.call("sh ./cert/generate-n-certificates.sh '%s'" % str(nodes), shell=True)
+      subprocess.call("sh ./temp/generate-n-certificates.sh '%s'" % str(nodes), shell=True)
 
 # Creating the yml files
 print('Generating yml file for', nodes, 'nodes...')
@@ -42,7 +62,7 @@ for x in range(nodes):
     nodeName = f"node{x}"
     storeName = f"store{x}"
     
-    f = open(f"./docker/node{x}.yml", 'w')
+    f = open(f"./temp/node{x}.yml", 'w')
     f.write(f"""version: "3.7"
 services:
   {nodeName}:
@@ -73,8 +93,8 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../cert/{nodeName}.crt:/cert/node{x}.crt
-      - ../cert/{nodeName}.key:/cert/node{x}.key
+      - ../temp/{nodeName}.crt:/cert/node{x}.crt
+      - ../temp/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
       - {9000+x+3}:9001
@@ -94,8 +114,8 @@ services:
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ../cert/{storeName}.crt:/cert/cert.crt
-      - ../cert/{storeName}.key:/cert/key.key
+      - ../temp/{storeName}.crt:/cert/cert.crt
+      - ../temp/{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
@@ -108,12 +128,12 @@ networks:
 
 
 ### Adjusting the Makefile ###
-print('Generating Makerfile for', nodes, 'nodes...')
+print('Generating Makefile for', nodes, 'nodes...')
 
 # Create a list of yml files
 nodesString =""
 for x in range(nodes):
-    nodesString+=' -f docker/node{}.yml'.format(x)
+    nodesString+=' -f temp/node{}.yml'.format(x)
 
 # Write the Makefile
 f = open('Makefile', 'w')
@@ -131,7 +151,7 @@ run_tester:
 		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \\
 		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \\
 		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
-    -v $(CURDIR)/nodes.json:/nodes.json \\
+    -v $(CURDIR)/temp/nodes.json:/nodes.json \\
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
@@ -145,7 +165,7 @@ clean:
 f.close()
 
 # Generating json with node data
-f = open('nodes.json', 'w')
+f = open('./temp/nodes.json', 'w')
 f.write('{\n')
 for x in range(nodes):
   f.write(f'    "node{x}": {{"host": "172.26.{x+7}.1", "port": "9001"}}')

@@ -157,11 +157,5 @@ cython_debug/
 
 # LEO-CDN
 FReD
+temp/
 Makefile
-nodes.json
-docker/node?.yml
-cert/node?.key
-cert/node?.crt
-cert/store?.key
-cert/store?.crt
-cert/ca.srl

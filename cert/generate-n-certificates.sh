@@ -4,7 +4,7 @@
 [ $# -ne 1 ] && { echo "Usage: $0 <number of certificates>"; exit 1; }
 
 # Change directory
-cd cert
+cd temp
 
 # Run the gen-cert N times
 N=${1}
