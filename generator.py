@@ -42,7 +42,7 @@ for x in range(nodes):
     nodeName = f"node{x}"
     storeName = f"store{x}"
     
-    f = open(f"./docker/node{x}.yml", 'w')
+    f = open(f"./tmp/node{x}.yml", 'w')
     f.write(f"""version: "3.7"
 services:
   {nodeName}:
@@ -73,8 +73,8 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../cert/{nodeName}.crt:/cert/node{x}.crt
-      - ../cert/{nodeName}.key:/cert/node{x}.key
+      - ../tmp/{nodeName}.crt:/cert/node{x}.crt
+      - ../tmp/{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
       - {9000+x+3}:9001
@@ -94,8 +94,8 @@ services:
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ../cert/{storeName}.crt:/cert/cert.crt
-      - ../cert/{storeName}.key:/cert/key.key
+      - ../tmp/{storeName}.crt:/cert/cert.crt
+      - ../tmp/{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
@@ -113,7 +113,7 @@ print('Generating Makerfile for', nodes, 'nodes...')
 # Create a list of yml files
 nodesString =""
 for x in range(nodes):
-    nodesString+=' -f docker/node{}.yml'.format(x)
+    nodesString+=' -f tmp/node{}.yml'.format(x)
 
 # Write the Makefile
 f = open('Makefile', 'w')
@@ -131,7 +131,7 @@ run_tester:
 		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \\
 		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \\
 		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \\
-    -v $(CURDIR)/nodes.json:/nodes.json \\
+    -v $(CURDIR)/tmp/nodes.json:/nodes.json \\
 		--network=fredwork \\
 		--ip=172.26.4.1 \\
 		keygroup-passer
@@ -145,7 +145,7 @@ clean:
 f.close()
 
 # Generating json with node data
-f = open('nodes.json', 'w')
+f = open('./tmp/nodes.json', 'w')
 f.write('{\n')
 for x in range(nodes):
   f.write(f'    "node{x}": {{"host": "172.26.{x+7}.1", "port": "9001"}}')
