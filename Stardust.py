@@ -96,8 +96,10 @@ current_Node = None
 
 # Print welcome msg
 print("\n")
+print("=====================================================================================")
 print("Welcome pionier! You are accessing the STARDUST,\nalso known as Satellite Transmitting and Receiving Data Utility Simplification Tool.")
 print("Type 'help' for list of all available commands and info.")
+print("=====================================================================================")
 print("\n")
 running = True
 # Constantly check for user input
