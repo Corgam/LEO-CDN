@@ -39,10 +39,21 @@ def init_keygroup(target_node, keygroup=KEYGROUP):
     print(target)
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
+        # Create keygroup
         response = stub.CreateKeygroup(
             client_pb2.CreateKeygroupRequest(keygroup=KEYGROUP, mutable=True)
         )
         print(response)
+        # Add Stardust to write role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=KEYGROUP,role="WriteKeygroup")
+        )
+        # Add Stardust to read role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=KEYGROUP,role="ReadKeygroup")
+        )
+        print(response)
+        # Add simple file
         response = stub.Update(
             client_pb2.UpdateRequest(keygroup=KEYGROUP, id=FILE_ID, data=":-)")
         )

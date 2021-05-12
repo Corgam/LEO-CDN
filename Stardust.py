@@ -111,8 +111,8 @@ while(running):
         print("Stardust allows for easy access to data stored in selected satellite. After connecting to a satellite,\none can request a specified data or upload a new file.")
         print("List of available commands and their usage:")
         print("     'start <IP> <Port>' - Starts connection to a specified satellite.")
-        print("     'pull <fileID> <filePath>' - Requests from the satellite a file with given file ID and saves it at given location.")
-        print("     'push <fileID> <filePath> ' - Sends a file from given path to the satellite and saves it under given file ID.")
+        print("     'pull <fileID>' - Requests from the satellite a file with given file ID and prints its content.")
+        print("     'push <fileID> <data> ' - Sends a file to the satellite and saves it under given file ID.")
         print("     'end' - Ends connection with currently connected satellite.")
         print("     'exit' - Terminate SIP.")
         print("\n")
@@ -151,13 +151,12 @@ while(running):
             print("Before you pull data, you need to connect to a satellite. Type 'help' for more info.")
             continue
         # Split the command 
-        args = command.rsplit(' ', 2)
+        args = command.rsplit(' ', 1)
         # Check if usage was correct
-        if(len(args) != 3):
+        if(len(args) != 2):
             print("Invalid usage of command. Type 'help' to see the usage.")
             continue
         fileID = args[1]
-        savePath = args[2]
         keygroup = "northernfiles" # TODO - Use non static keygroup?
         # Request the file
         pull(keygroup,fileID)
@@ -174,8 +173,7 @@ while(running):
             print("Invalid usage of command. Type 'help' to see the usage.")
             continue
         fileID = args[1]
-        locationPath = args[2]
-        file = "SPAAACE!!" #TODO load file from given location
+        file = args[2]
         keygroup = "northernfiles" # TODO - Use non static keygroup?
         # Send the file
         push(keygroup,fileID,file)
