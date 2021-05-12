@@ -93,8 +93,8 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../temp/{nodeName}.crt:/cert/node{x}.crt
-      - ../temp/{nodeName}.key:/cert/node{x}.key
+      - ./{nodeName}.crt:/cert/node{x}.crt
+      - ./{nodeName}.key:/cert/node{x}.key
       - ../cert/ca.crt:/cert/ca.crt
     ports:
       - {9000+x+3}:9001
@@ -114,8 +114,8 @@ services:
     --key /cert/key.key \\
     --ca-file /cert/ca.crt"
     volumes:
-      - ../temp/{storeName}.crt:/cert/cert.crt
-      - ../temp/{storeName}.key:/cert/key.key
+      - ./{storeName}.crt:/cert/cert.crt
+      - ./{storeName}.key:/cert/key.key
       - ../cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
