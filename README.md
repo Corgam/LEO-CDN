@@ -2,23 +2,24 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
-# Simulation-test
+# Requirements
 
-Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `FReD` tests) and a client (`tester`) that initializes a keygroup that is continuously passed between the two nodes.
+- Docker
+- Python
 
-## Setup
+# Run Simulation
 
-1. Fix key usage and generate certificates
+1. Run `py .\generator.py -node {number}`
+2. Run `make run_tester`
 
-- Fix key usage in `FReD/nase/tls/gen-cert.sh`
-  - add `digitalSignature` so it looks like `keyUsage = keyEncipherment, dataEncipherment, digitalSignature`
-  - see for details https://superuser.com/a/1248085
-- Generate certificates
-  - `cd FReD/nase/tls/`
-  - `sh gen-cert.sh nodeBx 172.26.2.1`
-  - `sh gen-cert.sh nodeCx 172.26.3.1`
-  - `sh gen-cert.sh keygroupPasser 172.26.4.1`
+## Generator.py
 
-2. Generate Python gRPC client: `make compile_grpc_python`
-3. Start FReD nodes and NaSe: `make run_nodes`
-4. Start tester: `make run_tester`
+Generates certificates and a .yml file for each node. Creates a Makerfile and then runs docker-compose to start all storage and FReD nodes automatically.
+
+- Usage `py generator.py -node {number}` whereas number indicates the number of nodes
+
+## keygroup_passer.py
+
+Manages the communication between nodes. The first node initializes a keygroup and adds data into the keygroup. Afterwards the keygroup gets passed between all nodes.
+
+- Usage `make run_tester'
