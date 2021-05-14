@@ -1,0 +1,7 @@
+PyAstronomy
+h3
+sgp4
+julian
+requests
+astropy
+folium
