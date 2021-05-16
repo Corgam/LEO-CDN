@@ -111,7 +111,7 @@ if __name__ == "__main__":
     number_of_planes = 1
     nodes_per_plane = 4
 
-    all_satellites = initialize_position(number_of_planes, nodes_per_plane)
+    all_satellites = initialize_position(number_of_planes, nodes_per_plane, period)
 
     print("======== initialized position =======")
     print_current_position(all_satellites)
