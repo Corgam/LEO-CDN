@@ -11,7 +11,7 @@ STD_GRAVITATIONAL_PARAMETER_EARTH = 3.986004418e14
 
 
 def calculate_orbit_period(semi_major_axis=0.0):
-    """ calculates the period of a orbit for Earth
+    """calculates the period of a orbit for Earth
 
     Parameters
     ----------
@@ -31,12 +31,10 @@ def calculate_orbit_period(semi_major_axis=0.0):
 def initialize_position(planes, nodes_per_plane):
     list_of_satellites = []
     # Abstände der Satelliten zueinander, bzw. im 360° wo befinden sich die Satelliten beim Start
-    raan_offsets = [(360 / planes) * i for i in
-                    range(0, planes)]
+    raan_offsets = [(360 / planes) * i for i in range(0, planes)]
 
     # for xyzPos, auf welcher Zeitachse befindet sich der Satellit beim Start, wie raan_offsets aber als Zeitachse
-    time_offsets = [(period / nodes_per_plane) * i for i in
-                    range(0, nodes_per_plane)]
+    time_offsets = [(period / nodes_per_plane) * i for i in range(0, nodes_per_plane)]
 
     # KeplerEllipse für eine einzige Ellipse
     # Bei mehr Ellipsen müsste man Omega auf die einzlnen raan_offsets mit einer for schleife erstellen
@@ -46,12 +44,12 @@ def initialize_position(planes, nodes_per_plane):
         e=0,  # generally close to 0 for leo constillations
         Omega=raan_offsets[0],  # right ascention of the ascending node
         w=0.0,  # initial time offset / mean anamoly
-        i=53)
+        i=53,
+    )
 
     # increment ist dafür da, dass Satelliten nicht zusammenstoßen
     phase_offset = 0
-    phase_offset_increment = ((period / nodes_per_plane) /
-                              planes)
+    phase_offset_increment = (period / nodes_per_plane) / planes
     temp = []
     toggle = False
     # this loop results puts thing in an array in this order:
@@ -72,8 +70,12 @@ def initialize_position(planes, nodes_per_plane):
     for plane in range(0, planes):
         for node in range(0, nodes_per_plane):
             # calculate the KE solver time offset
-            offset = (time_offsets[node] + phase_offsets[plane])
-            new_satellite = Satellite(name=f"test_satellite_{plane}_{node}", kepler_ellipse=ellipse, offset=offset)
+            offset = time_offsets[node] + phase_offsets[plane]
+            new_satellite = Satellite(
+                name=f"test_satellite_{plane}_{node}",
+                kepler_ellipse=ellipse,
+                offset=offset,
+            )
             list_of_satellites.append(new_satellite)
     return list_of_satellites
 
