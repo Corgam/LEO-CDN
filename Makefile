@@ -1,23 +1,28 @@
+.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester clean compile_grpc_python
+
+generate_nodes:
+	@python ./generator.py -node $(n)
+
 run_nodes:
-#Check if the docker network "fredwork" is already created, if not create one.
-	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || (exit 0)
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml build
-	@docker-compose --env-file .env -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+	@sh ./temp/run-nodes.sh
+
+generate_and_run_nodes: generate_nodes run_nodes
 
 run_tester:
+	@docker container rm keygroup-passer -f
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \
 		--name keygroup-passer \
-		-v `pwd`/cert/keygroupPasser.crt:/cert/client.crt \
-		-v `pwd`/cert/keygroupPasser.key:/cert/client.key \
-		-v `pwd`/cert/ca.crt:/cert/ca.crt \
+		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \
+		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \
+		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
+    -v $(CURDIR)/temp/nodes.json:/nodes.json \
 		--network=fredwork \
 		--ip=172.26.4.1 \
 		keygroup-passer
 
+clean:
+	@sh temp/clean.sh
+
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
-
-clean:
-	@docker network rm fredwork
-	@docker-compose -f docker/etcd.yml -f docker/nodeB.yml -f docker/nodeC.yml down

@@ -154,4 +154,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# LEO-CDN
 FReD
+temp/

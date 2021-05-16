@@ -1,0 +1,12 @@
+#!/bin/bash
+
+docker network rm fredwork
+
+docker-compose \
+  -f docker/etcd.yml \
+  {%- for name in node_names %}
+  -f temp/{{name}}.yml \
+  {%- endfor %}
+  down
+
+rm -rf ./temp

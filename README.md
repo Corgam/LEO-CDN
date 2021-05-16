@@ -2,37 +2,30 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
-# Simulation-test
-
-Starts two FReD nodes (`nodeB` and `nodeC`, corresponding to the nodes in the `FReD` tests) and a client (`tester`) that initializes a keygroup that is continuously passed between the two nodes.
-
 ## Setup
 
-1. Generate certificates
+`pip install -r requirements.txt`
+## Requirements
 
-- Generate certificates
-  - `cd cert`
-- Linux:
-  - `sh gen-cert.sh nodeBx 172.26.2.1`
-  - `sh gen-cert.sh nodeCx 172.26.3.1`
-  - `sh gen-cert.sh keygroupPasser 172.26.4.1`
+- Docker
+- Python
 
-- Windows:
-  - PowerShell:
-    - `./gen-cert.sh nodeBx 172.26.2.1`
-    - `./gen-cert.sh nodeCx 172.26.3.1`
-    - `./gen-cert.sh keygroupPasser 172.26.4.1`
-  - CMD:
-    - `gen-cert.sh nodeBx 172.26.2.1`
-    - `gen-cert.sh nodeCx 172.26.3.1`
-    - `gen-cert.sh keygroupPasser 172.26.4.1`
-2. Go back to the main folder (LEO-CDN)
-3. Generate Python gRPC client: `make compile_grpc_python`
-4. Start FReD nodes and NaSe: `make run_nodes`
-5. Start tester: `make run_tester`
+## Run Simulation
 
-## Run
+1. Run `make generate_nodes n=<int>` (e.g. `make generate_nodes n=3` for generating 3 nodes)
+2. Run `make run_nodes`
+3. Run `make run_tester`
 
-1. Make sure that the docker network and all its containers are deleted `make clean`
-2. Start FReD nodes and NaSe: `make run_nodes`
-3. Start tester: `make run_tester` (on Windows the Makefile should not contain `pwd`, replace it with global path)
+Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
+
+## Generator.py
+
+Generates certificates and a .yml file for each node. Creates a Makerfile and then runs docker-compose to start all storage and FReD nodes automatically.
+
+- Usage `make generate_nodes n=<int>` whereas `n` indicates the number of nodes
+
+## keygroup_passer.py
+
+Manages the communication between nodes. The first node initializes a keygroup and adds data into the keygroup. Afterwards the keygroup gets passed between all nodes.
+
+- Usage `make run_tester'
