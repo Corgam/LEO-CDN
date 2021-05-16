@@ -1,7 +1,7 @@
 from PyAstronomy import pyasl
 import math
 
-from satellite import Satellite
+from simulation.satellite import Satellite
 
 EARTH_RADIUS = 6371000
 # Orbit Altitude (Km)

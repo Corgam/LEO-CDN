@@ -1,4 +1,3 @@
-from PyAstronomy import pyasl
 import numpy as np
 
 
@@ -12,6 +11,7 @@ class Satellite:
     name: str
     kepler_ellipse: KeplerEllipse
     """
+
     def __init__(self, name, kepler_ellipse, offset):
         self.name = name
         self.kepler_ellipse = kepler_ellipse
@@ -54,4 +54,3 @@ class Satellite:
 
         """
         return self.x_position, self.y_position, self.z_position
-
