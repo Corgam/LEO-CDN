@@ -28,7 +28,7 @@ def calculate_orbit_period(semi_major_axis=0.0):
     return int(2.0 * math.pi * math.sqrt(tmp))
 
 
-def initialize_position(planes, nodes_per_plane):
+def initialize_position(planes, nodes_per_plane, period):
     list_of_satellites = []
     # Abstände der Satelliten zueinander, bzw. im 360° wo befinden sich die Satelliten beim Start
     raan_offsets = [(360 / planes) * i for i in range(0, planes)]
