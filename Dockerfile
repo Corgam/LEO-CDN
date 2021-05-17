@@ -10,7 +10,11 @@ RUN pip install -r /requirements.txt
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
+COPY ./simulation /simulation
+
+COPY ./simulation.py /simulation.py
+COPY ./keygroup_areas.py /keygroup_areas.py
 COPY ./keygroup_passer.py /keygroup_passer.py
 COPY ./proto /proto
 
-CMD ["python", "keygroup_passer.py"]
+CMD ["python", "simulation.py"]

@@ -9,17 +9,18 @@ run_nodes:
 generate_and_run_nodes: generate_nodes run_nodes
 
 run_tester:
-	@! docker ps -a | grep keygroup-passer || docker container rm keygroup-passer -f
-	@docker build -f ./Dockerfile -t keygroup-passer .
+	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
+	@docker build -f ./Dockerfile -t leo-cdn-simulation .
 	@docker run -it \
-		--name keygroup-passer \
+		--name leo-cdn-simulation \
 		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \
 		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \
 		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
     -v $(CURDIR)/temp/nodes.json:/nodes.json \
+		-v $(CURDIR)/output/:/output \
 		--network=fredwork \
 		--ip=172.26.4.1 \
-		keygroup-passer
+		leo-cdn-simulation
 
 clean:
 	@sh temp/clean.sh
