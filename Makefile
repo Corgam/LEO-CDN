@@ -9,7 +9,7 @@ run_nodes:
 generate_and_run_nodes: generate_nodes run_nodes
 
 run_tester:
-	@docker container rm keygroup-passer -f
+	@! docker ps -a | grep keygroup-passer || docker container rm keygroup-passer -f
 	@docker build -f ./Dockerfile -t keygroup-passer .
 	@docker run -it \
 		--name keygroup-passer \

@@ -28,4 +28,4 @@ Generates certificates and a .yml file for each node. Creates a Makerfile and th
 
 Manages the communication between nodes. The first node initializes a keygroup and adds data into the keygroup. Afterwards the keygroup gets passed between all nodes.
 
-- Usage `make run_tester'
+- Usage `make run_tester`
