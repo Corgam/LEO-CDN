@@ -47,6 +47,16 @@ def init_keygroup(target_node, keygroup=KEYGROUP):
             client_pb2.UpdateRequest(keygroup=KEYGROUP, id=FILE_ID, data=":-)")
         )
         print(response)
+        # Add Stardust to write role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=KEYGROUP,role="WriteKeygroup")
+        )
+        print(response)
+        # Add Stardust to read role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=KEYGROUP,role="ReadKeygroup")
+        )
+        print(response)
 
 # Adds node to the keygroup
 def add_node_to_keygroup(target_node, keygroup=KEYGROUP):
