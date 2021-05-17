@@ -1,6 +1,6 @@
 FROM python:3.8
 
-COPY ./requirements.txt /requirements.txt
+COPY ./requirements-container.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 COPY ./FReD /FReD
