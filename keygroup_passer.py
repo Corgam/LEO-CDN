@@ -106,35 +106,35 @@ def read_file_from_nodes(keygroup=KEYGROUP, file_id=FILE_ID):
 current_node_ind = 0
 init_keygroup(nodes[current_node_ind])
 
-# period = 10
-# duration_per_node = period // len(nodes)
+period = 10
+duration_per_node = period // len(nodes)
 
-# current_time = 0
-# while True:
-#     print("================")
-#     current_time += 1
+current_time = 0
+while True:
+    print("================")
+    current_time += 1
 
-#     target_node_ind = current_node_ind
+    target_node_ind = current_node_ind
 
-#     if(current_time >= duration_per_node):
-#         target_node_ind = (current_node_ind + 1) % len(nodes)
+    if(current_time >= duration_per_node):
+        target_node_ind = (current_node_ind + 1) % len(nodes)
     
-#     current_node = nodes[current_node_ind]
-#     target_node = nodes[target_node_ind]
+    current_node = nodes[current_node_ind]
+    target_node = nodes[target_node_ind]
 
-#     print(f"{current_time=}, {current_node=}, {target_node=}")
+    print(f"{current_time=}, {current_node=}, {target_node=}")
 
-#     if target_node != current_node:
-#         print(
-#             f"Switching node that hosts keygroup from {current_node} to {target_node}..."
-#         )
-#         add_node_to_keygroup(target_node)
-#         remove_node_from_keygroup(current_node)
+    if target_node != current_node:
+        print(
+            f"Switching node that hosts keygroup from {current_node} to {target_node}..."
+        )
+        add_node_to_keygroup(target_node)
+        remove_node_from_keygroup(current_node)
 
-#     current_node_ind = target_node_ind
+    current_node_ind = target_node_ind
 
-#     read_file_from_nodes()
+    read_file_from_nodes()
 
-#     print("================")
-#     print("\n")
-#     time.sleep(5)
+    print("================")
+    print("\n")
+    time.sleep(5)
