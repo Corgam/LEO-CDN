@@ -22,11 +22,11 @@ satellites, ellipse = constellation.initialize_position(
 )
 decision_planes = keygroup_areas.define_decision_planes(ellipse)
 
-steps = 20
-step_length = 100
-
 current_time = 0
 step_length = 60
+
+steps = 100
+current_steps = 0
 
 current_positions = [s.get_current_position() for s in satellites]
 keygroups_for_satellites = [
@@ -140,12 +140,13 @@ def plot_current_state(current_time, positions, keygroups_for_satellites):
         vmax=3,
     )
 
-    fig.savefig(f"/output/{current_time}_state.png")
+    fig.savefig(f"/output/frames/{current_time}_state.png")
 
 
 init_keygroups_for_satellites(keygroups_for_satellites)
 
-while True:
+while current_steps < steps:
+    current_steps += 1
     print("=============")
     satellites = constellation.update_position(
         all_satellites=satellites, time=current_time
@@ -171,4 +172,4 @@ while True:
     print("=============")
     import time
 
-    time.sleep(1)
+    time.sleep(0.5)
