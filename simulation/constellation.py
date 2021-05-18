@@ -77,7 +77,7 @@ def initialize_position(planes, nodes_per_plane, period):
                 offset=offset,
             )
             list_of_satellites.append(new_satellite)
-    return list_of_satellites
+    return list_of_satellites, ellipse
 
 
 def update_position(all_satellites, time=0):

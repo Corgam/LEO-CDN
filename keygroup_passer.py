@@ -4,8 +4,8 @@ import time
 import json
 
 # Loading node configurations
-with open('./nodes.json') as f:
-  node_configs = json.load(f)
+with open("./nodes.json") as f:
+    node_configs = json.load(f)
 
 nodes = [key for key in node_configs.keys()]
 
@@ -27,24 +27,22 @@ creds = grpc.ssl_channel_credentials(
 )
 
 # Test keygroup & file
-KEYGROUP = "northernfiles"
+KEYGROUP = "coolfiles"
 FILE_ID = "somefile"
 
 # Initializes the keygroup
-def init_keygroup(target_node, keygroup=KEYGROUP):
+def init_keygroup(target_node, data=":)", keygroup=KEYGROUP, file_id=FILE_ID):
     print(f"Initializing {keygroup=} at {target_node=}...")
     node_cfg = node_configs[target_node]
-    print(node_cfg)
     target = f"{node_cfg['host']}:{node_cfg['port']}"
-    print(target)
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         response = stub.CreateKeygroup(
-            client_pb2.CreateKeygroupRequest(keygroup=KEYGROUP, mutable=True)
+            client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=True)
         )
         print(response)
         response = stub.Update(
-            client_pb2.UpdateRequest(keygroup=KEYGROUP, id=FILE_ID, data=":-)")
+            client_pb2.UpdateRequest(keygroup=keygroup, id=file_id, data=data)
         )
         print(response)
         # Add Stardust to write role
@@ -58,19 +56,19 @@ def init_keygroup(target_node, keygroup=KEYGROUP):
         )
         print(response)
 
+
 # Adds node to the keygroup
 def add_node_to_keygroup(target_node, keygroup=KEYGROUP):
     print(f"Adding {target_node=} to {keygroup=}...")
     node_cfg = node_configs[target_node]
-    print(node_cfg)
     target = f"{node_cfg['host']}:{node_cfg['port']}"
-    print(target)
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         response = stub.AddReplica(
-            client_pb2.AddReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
+            client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=target_node)
         )
         print(response)
+
 
 # Removes node from the keygroup
 def remove_node_from_keygroup(target_node, keygroup=KEYGROUP):
@@ -80,9 +78,10 @@ def remove_node_from_keygroup(target_node, keygroup=KEYGROUP):
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         response = stub.RemoveReplica(
-            client_pb2.RemoveReplicaRequest(keygroup=KEYGROUP, nodeId=target_node)
+            client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=target_node)
         )
         print(response)
+
 
 # Reads file
 def read_file_from_nodes(keygroup=KEYGROUP, file_id=FILE_ID):
@@ -102,38 +101,40 @@ def read_file_from_nodes(keygroup=KEYGROUP, file_id=FILE_ID):
             # if file does not exist an error is raised
             print(f"File does NOT exist on node {target_node}!")
 
-current_node_ind = 0
-init_keygroup(nodes[current_node_ind])
 
-period = 10
-duration_per_node = period // len(nodes)
+if __name__ == "__main__":
+    current_node_ind = 0
+    init_keygroup(nodes[current_node_ind])
 
-current_time = 0
-while True:
-    print("================")
-    current_time += 1
+    period = 30
+    duration_per_node = period // len(nodes)
 
-    target_node_ind = current_node_ind
+    current_time = 0
+    while True:
+        print("================")
+        current_time += 1
 
-    if(current_time >= duration_per_node):
-        target_node_ind = (current_node_ind + 1) % len(nodes)
-    
-    current_node = nodes[current_node_ind]
-    target_node = nodes[target_node_ind]
+        target_node_ind = current_node_ind
 
-    print(f"{current_time=}, {current_node=}, {target_node=}")
+        if current_time >= duration_per_node:
+            target_node_ind = (current_node_ind + 1) % len(nodes)
 
-    if target_node != current_node:
-        print(
-            f"Switching node that hosts keygroup from {current_node} to {target_node}..."
-        )
-        add_node_to_keygroup(target_node)
-        remove_node_from_keygroup(current_node)
+        current_node = nodes[current_node_ind]
+        target_node = nodes[target_node_ind]
 
-    current_node_ind = target_node_ind
+        print(f"{current_time=}, {current_node=}, {target_node=}")
 
-    read_file_from_nodes()
+        if target_node != current_node:
+            print(
+                f"Switching node that hosts keygroup from {current_node} to {target_node}..."
+            )
+            add_node_to_keygroup(target_node)
+            remove_node_from_keygroup(current_node)
 
-    print("================")
-    print("\n")
-    time.sleep(5)
+        current_node_ind = target_node_ind
+
+        read_file_from_nodes()
+
+        print("================")
+        print("\n")
+        time.sleep(5)
