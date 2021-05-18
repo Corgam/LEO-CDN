@@ -33,9 +33,12 @@ Manages the communication between nodes. The first node initializes a keygroup a
 
 - Usage `make run_tester`
 
-### stardust.py
+## Stardust v1.0
+
+Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
 First version of the GST-Satellite interface. Can connect to a chosen satellite and pull/push data from/to it.
-Note: `make run_tester` needs to be run first to create a keygroup.
 
 - Usage `make stardust`
+
+Note: `make run_tester` needs to be run first to create a keygroup.
