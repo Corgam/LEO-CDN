@@ -21,6 +21,19 @@ run_tester:
 		--ip=172.26.4.1 \
 		keygroup-passer
 
+stardust:
+	@! docker ps -a | grep stardust || docker container rm stardust -f
+	@docker build -f ./Dockerfile-stardust -t stardust .
+	@docker run -it \
+		--name stardust \
+		-v $(CURDIR)/cert/stardust.crt:/cert/stardust.crt \
+		-v $(CURDIR)/cert/stardust.key:/cert/stardust.key \
+		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
+    -v $(CURDIR)/temp/nodes.json:/temp/nodes.json \
+		--network=fredwork \
+		--ip=172.26.5.1 \
+		stardust
+
 clean:
 	@sh temp/clean.sh
 
