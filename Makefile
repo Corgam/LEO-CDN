@@ -10,6 +10,8 @@ generate_and_run_nodes: generate_nodes run_nodes
 
 run_tester:
 	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
+	@mkdir -p output/frames
+	@rm -rf output/frames/*
 	@docker build -f ./Dockerfile -t leo-cdn-simulation .
 	@docker run -it \
 		--name leo-cdn-simulation \
