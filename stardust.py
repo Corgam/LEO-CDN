@@ -49,11 +49,6 @@ def start():
     return True
 
 
-# Disconnects with currently connected satellite.
-def end(ip, port):
-    print("")
-
-
 # Tries to get a file with given ID from currently connected satellite.
 def pull(keygroup, file_ID):
     # Try to request the file
