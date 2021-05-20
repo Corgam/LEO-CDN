@@ -67,8 +67,10 @@ with open("template/nodex.yaml.jinja2") as file_:
 for x in range(nodes):
     node_IP = f"172.26.{x+7}.1"
     store_IP = f"172.26.{x+7}.2"
+    server_IP = f"172.26.{x+7}.3"
     node_name = f"node{x}"
     store_name = f"store{x}"
+    server_name = f"httpserver{x}"
     host_port = 9000 + x + 3
     nase_host = "https://172.26.6.1:2379"
 
@@ -79,6 +81,8 @@ for x in range(nodes):
         store_name=store_name,
         host_port=host_port,
         nase_host=nase_host,
+        server_name=server_name,
+        server_IP=server_IP,
     )
     with open(f"./temp/node{x}.yml", "w") as f:
         f.write(nodex_yaml)
@@ -119,7 +123,7 @@ with open("./temp/nodes.json", "w") as f:
     json.dump(nodes_config, f, indent=4)
 
 for x in range(nodes):
-    with open(f"./temp/node{x}.json", "w") as f:
+    with open(f"./temp/httpserver{x}.json", "w") as f:
         nodes_config = {
             f"node{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001}
         }

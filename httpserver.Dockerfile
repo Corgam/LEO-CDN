@@ -9,8 +9,6 @@ RUN pip install -r /requirements.txt
 
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
-
-COPY ./temp/node1.json /node.json
 COPY ./satellite_server.py /satellite_server.py
 COPY ./proto /proto
 
