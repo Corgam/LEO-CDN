@@ -54,7 +54,7 @@ HTTP Server for a satellite, provides following end-points:
 | POST  | IP:5000/initializeKeygroup  | keygroup (string) | Initializes a keygroup |
 | POST  | IP:5000/addKeygroup  | keygroup (string) | Adds the fred node to a keygroup |
 | POST  | IP:5000/removeKeygroup  | keygroup (string) | Removes the fred node from a keygroup |
-| GET  | IP:5000/getValue/<keygroup>/<key>  | - | Retrieves data from a specific keygroup with a given key |
-| GET  | IP:5000/getValue/<key>  | - | Goes through all keygroups of the fred node and tries to retrieve data with a given key |
-| GET  | IP:5000/getLocation  | - | Returns a json with the following format: {x: <number>, y: <number>, z: <number>} |
-| POST  | IP:5000/setLocation  | {x: <number>, y: <number>, z: <number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
+| GET  | IP:5000/getValue/&lt;keygroup>/&lt;key>  | - | Retrieves data from a specific keygroup with a given key |
+| GET  | IP:5000/getValue/&lt;key>  | - | Goes through all keygroups of the fred node and tries to retrieve data with a given key |
+| GET  | IP:5000/getLocation  | - | Returns a json with the following format: {x: &lt;number>, y: &lt;number>, z: &lt;number>} |
+| POST  | IP:5000/setLocation  | {x: &lt;number>, y: &lt;number>, z: &lt;number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
