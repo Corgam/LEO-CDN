@@ -160,6 +160,10 @@ def setLocation():
     add_data("manage", "positions", json.dumps(pos))
     return json.dumps(pos)
 
+@app.route('/positions')
+def positions():
+    return read_file_from_node("manage", "positions")
+
 if __name__ == '__main__':
     # Loading certificates
     with open("/cert/client.crt", "rb") as f:

@@ -58,3 +58,4 @@ HTTP Server for a satellite, provides following end-points:
 | GET  | IP:5000/getValue/&lt;key>  | - | Goes through all keygroups of the fred node and tries to retrieve data with a given key |
 | GET  | IP:5000/getLocation  | - | Returns a json with the following format: {x: &lt;number>, y: &lt;number>, z: &lt;number>} |
 | POST  | IP:5000/setLocation  | {x: &lt;number>, y: &lt;number>, z: &lt;number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
+| GET  | IP:5000/positions  | - | Returns the position from all nodes (keygroup: manage, key: positions) |
