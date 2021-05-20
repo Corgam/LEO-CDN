@@ -117,3 +117,10 @@ with open("./temp/nodes.json", "w") as f:
         f"node{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
     }
     json.dump(nodes_config, f, indent=4)
+
+for x in range(nodes):
+    with open(f"./temp/node{x}.json", "w") as f:
+        nodes_config = {
+            f"node{x}": {"host": f"172.26.{x + 7}.3", "port": 5000}
+        }
+        json.dump(nodes_config, f, indent=4)
