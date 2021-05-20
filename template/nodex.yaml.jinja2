@@ -69,6 +69,7 @@ services:
       - ../temp/{{ server_name }}.key:/cert/client.key
       - ../cert/ca.crt:/cert/ca.crt
       - ../proto:/proto
+      - ../temp/nodes.json:/info/nodes.json
       - ../temp/{{ server_name }}.json:/info/node.json
       - ../satellite_server.py:/satellite_server.py
     networks:

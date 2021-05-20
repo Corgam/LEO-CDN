@@ -18,26 +18,47 @@ ip = node_configs[name]['server']
 port = node_configs[name]['sport']
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
 
+# Loading node configurations
+with open("/info/nodes.json") as f:
+    node_configs = json.load(f)
+
+nodes = [key for key in node_configs.keys()]
+
 #########################
 ##### FRED Methods ######
 #########################
 
 # Initializes the keygroup
-def init_keygroup(kg, key, value):
+def init_keygroup(kg):
     print(f"Initializing {kg} at {name}...")
-    try:
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.CreateKeygroup(
-                client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
+    with grpc.secure_channel(target, credentials=creds) as channel:
+        stub = client_pb2_grpc.ClientStub(channel)
+        response = stub.CreateKeygroup(
+            client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
+        )
+        print(response)
+
+        # Add Stardust to write role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=kg,role="WriteKeygroup")
+        )
+        # Add Stardust to read role
+        response = stub.AddUser(
+            client_pb2.UserRequest(user="stardust",keygroup=kg,role="ReadKeygroup")
+        )
+
+        # Add all nodes to read&write role
+        print("Allowing all nodes to read&write")
+        for node_n in nodes:
+            print(node_n)
+            # Add Stardust to write role
+            response = stub.AddUser(
+                client_pb2.UserRequest(user=node_n,keygroup=kg,role="WriteKeygroup")
             )
-            print(response)
-            response = stub.Update(
-                client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
+            # Add Stardust to read role
+            response = stub.AddUser(
+                client_pb2.UserRequest(user=node_n,keygroup=kg,role="ReadKeygroup")
             )
-            print(response)
-    except Exception as e:
-        return
 
 # Adds data to a keygroup
 def add_data(kg, key, value):
@@ -114,9 +135,12 @@ def getKeygroups():
 @app.route('/initializeKeygroup', methods=['POST'])
 def initializeKeygroup():
     data = request.data.decode('UTF-8')
-    init_keygroup(data, "testid", "test_data")
-    keygroups.append(data)
-    return getKeygroups()
+    try:
+        init_keygroup(data)
+        keygroups.append(data)
+        return getKeygroups()
+    except Exception as e:
+        return 'already exists'
 
 # IP:Host/addKeygroup: adds the node to an existing keygroup
 @app.route('/addKeygroup', methods=['POST'])
@@ -149,7 +173,7 @@ def getValue(key):
 def getLocation():
     positions = read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
-    return pos[name]
+    return str(pos[name])
 
 @app.route('/setLocation', methods=['POST'])
 def setLocation():
@@ -158,11 +182,11 @@ def setLocation():
     pos = json.loads(positions.data)
     pos[name] = data
     add_data("manage", "positions", json.dumps(pos))
-    return json.dumps(pos)
+    return str(json.dumps(pos))
 
 @app.route('/positions')
 def positions():
-    return read_file_from_node("manage", "positions")
+    return str(read_file_from_node("manage", "positions"))
 
 if __name__ == '__main__':
     # Loading certificates
@@ -183,17 +207,24 @@ if __name__ == '__main__':
     exist = False
     try:
         # Keygroup doesn't exist yet
-        init_pos = {f'{name}': {'x': 1, 'y': 2, 'z': 3}}
-        init_keygroup("manage", "positions", json.dumps(init_pos))
+        init_keygroup("manage")
     except Exception as e:
         # Keygroup already exists
+        print("keygroup already exists")
         exist = True
+        pass
     
-    if(exist): 
+    if(exist):
         try:
             add_node_to_keygroup("manage")
         except Exception as e:
             # already inside
             pass
 
+    init_pos = {f"{name}": {"x": 1, "y": 2, "z": 3}}
+    try:
+        add_data("manage", "positions", json.dumps(init_pos))
+    except Exception as e:
+        print(f"{name} is not allowed to!")
+    
     app.run(debug=True, host=ip, port=port)
