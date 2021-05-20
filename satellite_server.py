@@ -40,11 +40,13 @@ def init_keygroup(kg):
 
         # Add Stardust to write role
         response = stub.AddUser(
-            client_pb2.UserRequest(user="stardust",keygroup=kg,role="WriteKeygroup")
+            client_pb2.UserRequest(
+                user="stardust", keygroup=kg, role="WriteKeygroup")
         )
         # Add Stardust to read role
         response = stub.AddUser(
-            client_pb2.UserRequest(user="stardust",keygroup=kg,role="ReadKeygroup")
+            client_pb2.UserRequest(
+                user="stardust", keygroup=kg, role="ReadKeygroup")
         )
 
         # Add all nodes to read&write role
@@ -53,11 +55,13 @@ def init_keygroup(kg):
             print(node_n)
             # Add Stardust to write role
             response = stub.AddUser(
-                client_pb2.UserRequest(user=node_n,keygroup=kg,role="WriteKeygroup")
+                client_pb2.UserRequest(
+                    user=node_n, keygroup=kg, role="WriteKeygroup")
             )
             # Add Stardust to read role
             response = stub.AddUser(
-                client_pb2.UserRequest(user=node_n,keygroup=kg,role="ReadKeygroup")
+                client_pb2.UserRequest(
+                    user=node_n, keygroup=kg, role="ReadKeygroup")
             )
 
 # Adds data to a keygroup
@@ -168,12 +172,22 @@ def getValueWithKeygroup(keygroup, key):
 def getValue(key):
     return read_file(key)
 
+# IP:host/addData/<keygroup>/<key>: reads data
+@app.route('/addData/<keygroup>/<key>', methods=['POST'])
+def addData(keygroup, key):
+    data = request.json
+    add_data(keygroup, key, json.dumps(data))
+    resp = read_file_from_node(keygroup, key)
+    return str(resp)
+
+
 # IP:host/getLocation: returns the satellite's location (?)
 @app.route('/getLocation')
 def getLocation():
     positions = read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
     return str(pos[name])
+
 
 @app.route('/setLocation', methods=['POST'])
 def setLocation():
@@ -184,9 +198,11 @@ def setLocation():
     add_data("manage", "positions", json.dumps(pos))
     return str(json.dumps(pos))
 
+
 @app.route('/positions')
 def positions():
     return str(read_file_from_node("manage", "positions"))
+
 
 if __name__ == '__main__':
     # Loading certificates
@@ -198,7 +214,7 @@ if __name__ == '__main__':
 
     with open("/cert/ca.crt", "rb") as f:
         ca_crt = f.read()
-    
+
     creds = grpc.ssl_channel_credentials(
         certificate_chain=client_crt,
         private_key=client_key,
@@ -213,7 +229,7 @@ if __name__ == '__main__':
         print("keygroup already exists")
         exist = True
         pass
-    
+
     if(exist):
         try:
             add_node_to_keygroup("manage")
@@ -226,5 +242,5 @@ if __name__ == '__main__':
         add_data("manage", "positions", json.dumps(init_pos))
     except Exception as e:
         print(f"{name} is not allowed to!")
-    
+
     app.run(debug=True, host=ip, port=port)
