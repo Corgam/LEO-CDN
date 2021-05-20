@@ -3,7 +3,8 @@ import requests
   
 # GET URL
 GET_URL = "http://172.26.8.3:5000/getKeygroups"  
-POST_URL = "http://172.26.8.3:5000/test/addKeygroup"  
+POST_URL = "http://172.26.8.3:5000/initializeKeygroup"  
+KEY_URL = "http://172.26.8.3:5000/getValue/test/testid"  
   
 # sending get request and saving the response as response object
 r = requests.get(url = GET_URL)
@@ -21,7 +22,7 @@ print('')
 print('-------------------------')
 
 # sending get request and saving the response as response object
-r = requests.get(url = GET_URL)
+r = requests.get(url = KEY_URL)
   
 # print response
 print(r.text)

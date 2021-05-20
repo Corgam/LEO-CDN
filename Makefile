@@ -29,8 +29,8 @@ run_server:
 	@docker build -f ./Dockerfile-serverTest -t nodeserver .
 	@docker run -it \
 		--name nodeserver \
-		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \
-		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \
+		-v $(CURDIR)/temp/server1.crt:/cert/client.crt \
+		-v $(CURDIR)/temp/server1.key:/cert/client.key \
 		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
     -v $(CURDIR)/temp/node1.json:/node.json \
 		-v $(CURDIR)/output/:/output \

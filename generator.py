@@ -121,6 +121,6 @@ with open("./temp/nodes.json", "w") as f:
 for x in range(nodes):
     with open(f"./temp/node{x}.json", "w") as f:
         nodes_config = {
-            f"node{x}": {"host": f"172.26.{x + 7}.3", "port": 5000}
+            f"node{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001}
         }
         json.dump(nodes_config, f, indent=4)

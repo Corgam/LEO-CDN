@@ -12,8 +12,6 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./temp/node1.json /node.json
 COPY ./satellite_server.py /satellite_server.py
-COPY ./keygroup_areas.py /keygroup_areas.py
-COPY ./keygroup_passer.py /keygroup_passer.py
 COPY ./proto /proto
 
 CMD ["python", "satellite_server.py"]
