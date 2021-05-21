@@ -7,7 +7,7 @@ BASE_URL = "http://172.26.8.3:5000"
 
 KEYGROUPS = BASE_URL + "/getKeygroups"
 INIT = BASE_URL + "/initializeKeygroup"
-ADD_DATA = BASE_URL + "/addData/manage/testid"
+ADD_DATA = BASE_URL + "/addData/test/testid"
 GETVALUE = BASE_URL + "/getValue/testid"
 
 LOCATION = BASE_URL + "/getLocation"
@@ -31,19 +31,19 @@ r = requests.post(url=INIT, data='test')
 print(r.text)
 print('-------------------------')
 
-# Get value
-print('Get value..')
-r = requests.get(url=GETVALUE)
-print(r.text)
-print('-------------------------')
-
-# Get value
+# Add data
 print('Add data..')
 headers = {'Content-type': 'application/json'}
 data = {
     'testx': '123'
 }
 r = requests.post(url=ADD_DATA, data=json.dumps(data), headers=headers)
+print(r.text)
+print('-------------------------')
+
+# Get value
+print('Get value..')
+r = requests.get(url=GETVALUE)
 print(r.text)
 print('-------------------------')
 
