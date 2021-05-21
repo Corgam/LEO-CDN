@@ -61,7 +61,7 @@ elif sys.platform.startswith("linux"):
 # Creating the yml files
 print(f"Generating yml file for {nodes} nodes...")
 
-with open("template/nodex.yaml.jinja2") as file_:
+with open("templates/nodex.yaml.jinja2") as file_:
     node_template = Template(file_.read())
 
 for x in range(nodes):
@@ -94,7 +94,7 @@ node_names = [f"node{x}" for x in range(nodes)]
 
 # Generate start script
 
-with open("template/run-nodes.sh.jinja2") as file_:
+with open("templates/run-nodes.sh.jinja2") as file_:
     run_script_template = Template(file_.read())
 
 run_script = run_script_template.render(node_names=node_names)
@@ -105,7 +105,7 @@ with open(f"./temp/run-nodes.sh", "w") as f:
 
 # Generate clean script
 
-with open("template/clean.sh.jinja2") as file_:
+with open("templates/clean.sh.jinja2") as file_:
     clean_script_template = Template(file_.read())
 
 clean_script = clean_script_template.render(node_names=node_names)
