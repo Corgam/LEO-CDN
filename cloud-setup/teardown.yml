@@ -1,0 +1,69 @@
+- name: Teardown
+  hosts: localhost
+  gather_facts: no
+  vars:
+      gcp_project: leo-cdn
+      gcp_cred_kind: serviceaccount
+      gcp_cred_file: gcp.json
+      zone: "europe-west3-c"
+      region: "europe-west3"
+
+  tasks:
+    - name: Destroy our instance
+      tags: [instance]
+      gcp_compute_instance:
+        state: absent
+        name: celestial-vm
+
+        zone: "{{ zone }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+      register: instance
+
+    - name: Delete our disk
+      gcp_compute_disk:
+        name: 'disk-dbuster-ans'
+        state: absent
+
+        zone: "{{ zone }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+    - name: Delete our image
+      gcp_compute_image:
+        name: "dbuster-nested-kvm-ans"
+        state: absent
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+    - name: Get address
+      tags: [instance]
+      gcp_compute_address:
+        name: 'address-instance'
+
+        region: "{{ region }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+      register: address
+
+    - name: Delete our address
+      gcp_compute_address:
+        name: 'address-instance'
+        state: absent
+
+        region: "{{ region }}"
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+    - name: Remove known_hosts entry
+      tags: [instance]
+      known_hosts:
+        name: "{{ address.address }}"
+        state: absent
+      when: instance is changed
