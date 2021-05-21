@@ -5,6 +5,7 @@ import time
 import json
 import sys
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -34,9 +35,12 @@ def init_keygroup(kg):
     print(f"Initializing {kg} at {name}...")
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.CreateKeygroup(
-            client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
-        )
+        try:
+            response = stub.CreateKeygroup(
+                client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
+            )
+        except:
+            pass
         # Add all nodes to read&write role
         print("Allowing all nodes to read&write")
         for node_n in nodes:
@@ -45,7 +49,7 @@ def init_keygroup(kg):
             give_user_permissions(node_n, kg, 4)
 
 # Adds data to a keygroup
-def add_data(kg, key, value):
+def set_data(kg, key, value):
     print(f"Adding {key}:{value} to {kg}...")
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
@@ -84,7 +88,7 @@ def read_file_from_node(keygroup, file_id):
                 client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
             )
             return response
-    except Exception as e:
+    except:
         # if file does not exist an error is raised
         print(f"doesn't exist on {name}")
         return ""
@@ -100,7 +104,7 @@ def read_file(file_id):
                     client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
                 return str(response)
-        except Exception as e:
+        except:
             # if file does not exist an error is raised
             continue
     print(f"doesn't exist on {name}")
@@ -114,9 +118,66 @@ def add_role(user, keygroup, role):
                 client_pb2.UserRequest(
                     user=user, keygroup=keygroup, role=role)
             )
-    except Exception as e:
+    except:
         # TODO
         print("Failed to give permissions")
+
+#########################
+## Internal functions  ##
+#########################
+
+
+def join_managing_keygroups():
+    try_joining = False
+
+    try:
+        init_keygroup("manage")
+    except Exception as e:
+        print('"manage" keygroup already exists. Trying to join...')
+        print(e.__doc__)
+        print(e.message)
+        print("Hello")
+        try_joining = True
+        pass
+    print("Hello")
+    if try_joining:
+        try:
+            add_node_to_keygroup("manage")
+        except:
+            print('node already part of "manage" keygroup.')
+            return
+        print('successfully joined "manage" keygroup.')
+
+        grpc_response = read_file_from_node("manage", "addresses")
+        addresses = json.loads(grpc_response.data)
+
+        # Try obtaining permissions
+        for address in addresses:
+            data = {
+                'node': name,
+                'level': 4
+            }
+            headers = {'Content-Type': "application/json"}
+            response = requests.post(
+                url=address + "/addRoles/manage",
+                json=data,
+                headers=headers
+            )
+            if response.status_code == 200:
+                print("successfully obtained permissions")
+                break
+
+    # TODO consider putting protocol in other location
+    try:
+        append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+    except:
+        try:
+            set_data("manage", "addresses", json.dumps([
+                     "http://" + ip + ":" + str(port) + "/"]))
+        except:
+            print("Even setting data failed. Something went wrong in the RPC connection")
+            raise
+
 
 def give_user_permissions(user, keygroup, level):
     permissions = []
@@ -133,11 +194,22 @@ def give_user_permissions(user, keygroup, level):
         permissions.append("ConfigureTrigger")
     if level >= 4:
         permissions.append("ConfigureKeygroups")
-    
+
     for permission in permissions:
         add_role(user, keygroup, permission)
 
 
+def append_data(keygroup, key, entry):
+    response = read_file_from_node(keygroup, key)
+
+    try:
+        cur_data = json.loads(response.data)
+        cur_data.append(entry)
+    except:
+        raise
+
+    set_data(keygroup, key, json.dumps(cur_data))
+    return json.dumps(cur_data)
 
 #########################
 ## HTTP Server Methods ##
@@ -156,7 +228,7 @@ def initializeKeygroup():
         init_keygroup(data)
         keygroups.append(data)
         return getKeygroups()
-    except Exception as e:
+    except:
         return 'already exists'
 
 # IP:Host/addKeygroup: adds the node to an existing keygroup
@@ -185,13 +257,25 @@ def getValueWithKeygroup(keygroup, key):
 def getValue(key):
     return read_file(key)
 
-# IP:host/addData/<keygroup>/<key>: adds data to the specified key
-@app.route('/addData/<keygroup>/<key>', methods=['POST'])
-def addData(keygroup, key):
+# IP:host/setData/<keygroup>/<key>: sets data to the specified key
+@app.route('/setData/<keygroup>/<key>', methods=['POST'])
+def setData(keygroup, key):
     data = request.json
-    add_data(keygroup, key, json.dumps(data)) # TODO maybe can just pass on data
+    set_data(keygroup, key, data) # TODO maybe can just pass on data
     resp = read_file_from_node(keygroup, key)
     return str(resp)
+
+# IP:host/appendData/<keygroup>/<key>: appends data to the specified key if it is
+# a list
+@app.route('/appendData/<keygroup>/<key>', methods=['POST'])
+def appendData(keygroup, key):
+    entry = request.json
+    try:
+        cur_data = append_data(keygroup, key, entry)
+    except:
+        return "Requested key does not hold list data", 500
+    
+    return cur_data, 200
 
 
 # IP:host/getLocation: returns the satellite's location (?)
@@ -208,7 +292,7 @@ def setLocation():
     positions = read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
     pos[name] = data
-    add_data("manage", "positions", json.dumps(pos))
+    set_data("manage", "positions", json.dumps(pos))
     return str(json.dumps(pos))
 
 
@@ -234,54 +318,11 @@ def addRoles(keygroup):
     
     try:
         give_user_permissions(node, keygroup, level)
-    except Exception as e:
+    except:
         return "Internal Server error", 500
     
     return "Successfully gave the specified user" 
     + node + " permission level " + str(level) + ".", 200
-
-
-#########################
-## Internal functions  ##
-#########################
-
-def join_managing_keygroups():
-    try_joining = False
-    try:
-        init_keygroup("manage")
-    except Exception as e:
-        print('"manage" keygroup already exists. Trying to join...')
-        try_joining = True
-    
-    if try_joining:
-        try:
-            add_node_to_keygroup("manage")
-        except Exception as e:
-            print('node already part of "manage" keygroup.')
-            return
-        
-        grpc_response = read_file_from_node("manage", "addresses")
-        addresses = json.loads(grpc_response.data)
-
-        # Try obtaining permissions
-        for address in addresses:
-            data = {
-                'node': name,
-                'level': 4
-            }
-            headers = {'Content-Type': "application/json"}
-            response = requests.post(
-                url=address + "/addRoles/manage",
-                json=data,
-                headers=headers
-            )
-            if response.status_code == 200:
-                break
-
-    # TODO consider putting protocol in other location
-    add_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-
-
 
 
 if __name__ == '__main__':
@@ -301,26 +342,16 @@ if __name__ == '__main__':
         root_certificates=ca_crt,
     )
     exist = False
+    
     try:
-        # Keygroup doesn't exist yet
-        init_keygroup("manage")
-    except Exception as e:
-        # Keygroup already exists
-        print("keygroup already exists")
-        exist = True
-        pass
-
-    if(exist):
-        try:
-            add_node_to_keygroup("manage")
-        except Exception as e:
-            # already inside
-            pass
+        join_managing_keygroups()
+    except:
+        print("failed to join managing keygroup")
 
     init_pos = {f"{name}": {"x": 1, "y": 2, "z": 3}}
     try:
-        add_data("manage", "positions", json.dumps(init_pos))
-    except Exception as e:
+        set_data("manage", "positions", json.dumps(init_pos))
+    except:
         print(f"{name} is not allowed to!")
 
     app.run(debug=True, host=ip, port=port)
