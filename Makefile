@@ -1,4 +1,4 @@
-.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester clean compile_grpc_python
+.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester stardust clean compile_grpc_python
 
 generate_nodes:
 	@python ./generator.py -node $(n)
