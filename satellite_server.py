@@ -4,6 +4,7 @@ from proto import client_pb2, client_pb2_grpc
 import time
 import json
 import sys
+import requests
 
 app = Flask(__name__)
 
@@ -36,7 +37,6 @@ def init_keygroup(kg):
         response = stub.CreateKeygroup(
             client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
         )
-        print(response)
 
         # Add Stardust to write role
         response = stub.AddUser(
@@ -53,16 +53,8 @@ def init_keygroup(kg):
         print("Allowing all nodes to read&write")
         for node_n in nodes:
             print(node_n)
-            # Add Stardust to write role
-            response = stub.AddUser(
-                client_pb2.UserRequest(
-                    user=node_n, keygroup=kg, role="WriteKeygroup")
-            )
-            # Add Stardust to read role
-            response = stub.AddUser(
-                client_pb2.UserRequest(
-                    user=node_n, keygroup=kg, role="ReadKeygroup")
-            )
+
+            give_user_permissions(node_n, kg, 4)
 
 # Adds data to a keygroup
 def add_data(kg, key, value):
@@ -126,6 +118,39 @@ def read_file(file_id):
     print(f"doesn't exist on {name}")
     return ""
 
+def add_role(user, keygroup, role):
+    try:
+        with grpc.secure_channel(target, credentials=creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            response = stub.AddUser(
+                client_pb2.UserRequest(
+                    user=user, keygroup=keygroup, role=role)
+            )
+    except Exception as e:
+        # TODO
+        print("Failed to give permissions")
+
+def give_user_permissions(user, keygroup, level):
+    permissions = []
+    if level < 0:
+        print("level too low")
+        return
+    if level >= 0:
+        permissions.append("ReadKeyGroup")
+    if level >= 1:
+        permissions.append("WriteKeyGroup")
+    if level >= 2:
+        permissions.append("ConfigureReplica")
+    if level >= 3:
+        permissions.append("ConfigureTrigger")
+    if level >= 4:
+        permissions.append("ConfigureKeygroups")
+    
+    for permission in permissions:
+        add_role(user, keygroup, permission)
+
+
+
 #########################
 ## HTTP Server Methods ##
 #########################
@@ -172,11 +197,11 @@ def getValueWithKeygroup(keygroup, key):
 def getValue(key):
     return read_file(key)
 
-# IP:host/addData/<keygroup>/<key>: reads data
+# IP:host/addData/<keygroup>/<key>: adds data to the specified key
 @app.route('/addData/<keygroup>/<key>', methods=['POST'])
 def addData(keygroup, key):
     data = request.json
-    add_data(keygroup, key, json.dumps(data))
+    add_data(keygroup, key, json.dumps(data)) # TODO maybe can just pass on data
     resp = read_file_from_node(keygroup, key)
     return str(resp)
 
@@ -202,6 +227,73 @@ def setLocation():
 @app.route('/positions')
 def positions():
     return str(read_file_from_node("manage", "positions"))
+
+
+@app.route('/addRoles/<keygroup>', methods=['POST'])
+def addRoles(keygroup):
+    try:
+        data = json.loads(request.json)
+        node = data['node']
+        level = int(data['level'])
+    except (ValueError, KeyError, TypeError):
+        return 
+        """ Please provide JSON body in the following form: 
+        {
+            "node": <node name>,
+            "level": <permission level between 0 and 4 (refer to FreD docs)>
+        }
+        """, 400
+    
+    try:
+        give_user_permissions(node, keygroup, level)
+    except Exception as e:
+        return "Internal Server error", 500
+    
+    return "Successfully gave the specified user" 
+    + node + " permission level " + str(level) + ".", 200
+
+
+#########################
+## Internal functions  ##
+#########################
+
+def join_managing_keygroups():
+    try_joining = False
+    try:
+        init_keygroup("manage")
+    except Exception as e:
+        print('"manage" keygroup already exists. Trying to join...')
+        try_joining = True
+    
+    if try_joining:
+        try:
+            add_node_to_keygroup("manage")
+        except Exception as e:
+            print('node already part of "manage" keygroup.')
+            return
+        
+        grpc_response = read_file_from_node("manage", "addresses")
+        addresses = json.loads(grpc_response.data)
+
+        # Try obtaining permissions
+        for address in addresses:
+            data = {
+                'node': name,
+                'level': 4
+            }
+            headers = {'Content-Type': "application/json"}
+            response = requests.post(
+                url=address + "/addRoles/manage",
+                json=data,
+                headers=headers
+            )
+            if response.status_code == 200:
+                break
+
+    # TODO consider putting protocol in other location
+    add_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+
+
 
 
 if __name__ == '__main__':
