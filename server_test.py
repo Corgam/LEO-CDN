@@ -18,7 +18,7 @@ POSITIONS = BASE_URL + "/positions"
 ## Keygroup tests ##
 ####################
 
-Get all keygroups of node 1
+# Get all keygroups of node 1
 print('Get all keygroups..')
 r = requests.get(url=KEYGROUPS)
 
@@ -51,36 +51,37 @@ print('-------------------------')
 ## Position test ##
 ###################
 
-Get latest position of node 1
+# Get latest position of node
 print('Get node1 location..')
- r = requests.get(url=LOCATION)
+r = requests.get(url=LOCATION)
 
-  position = None
-   if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
-        print(r.text)
-        # Change coordinates
-        position = json.loads(r.text.replace("'", '"'))
-        position["x"] += 1
-        position["y"] += 1
-        position["z"] += 1
+position = None
+if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
+    print(r.text)
+    # Change coordinates
+    position = json.loads(r.text.replace("'", '"'))
+    position["x"] += 1
+    position["y"] += 1
+    position["z"] += 1
 
-    else:
-        print('error')
+else:
+    print('error')
+    
+print('-------------------------')
+
+if not position == None:
+    # Changes position of node 1
+    print('Change position..')
+    r = requests.post(url=SETLOCATION, data=json.dumps(position))
+
+    # print response
+    print(r.text)
+    print('')
     print('-------------------------')
 
-    if not position == None:
-        # Changes position of node 1
-        print('Change position..')
-        r = requests.post(url=SETLOCATION, data=json.dumps(position))
+    # Get latest position of node 1
+    print('Get all positions..')
+    r = requests.get(url=POSITIONS)
 
-        # print response
-        print(r.text)
-        print('')
-        print('-------------------------')
-
-        # Get latest position of node 1
-        print('Get all positions..')
-        r = requests.get(url=POSITIONS)
-
-        # print response
-        print(r.text)
+    # print response
+    print(r.text)
