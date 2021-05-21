@@ -26,7 +26,7 @@ run_tester:
 		
 stardust:
 	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./Dockerfile-stardust -t stardust .
+	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
 	@docker run -it \
 		--name stardust \
 		--network=fredwork \
