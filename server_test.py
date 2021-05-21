@@ -31,7 +31,11 @@ r = requests.post(url=INIT, data='test')
 print(r.text)
 print('-------------------------')
 
+<<<<<<< HEAD
 # Add value
+=======
+# Add data
+>>>>>>> 18759908cc49a9ce0607cb5db0125d1b894d0773
 print('Add data..')
 headers = {'Content-type': 'application/json'}
 data = {
