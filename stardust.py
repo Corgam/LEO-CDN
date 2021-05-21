@@ -1,180 +1,91 @@
-import grpc
-from proto import client_pb2, client_pb2_grpc
+####################
+##    STARDUST    ##
+####################
+
+# importing the requests library
+import requests
 import json
 
-# Load node configurations
-# TODO: Load only the needed one, not all
-with open("./temp/nodes.json") as f:
-    node_configs = json.load(f)
+# GET URL
+BASE_URL = "http://172.26.8.3:5000"
 
-nodes = [key for key in node_configs.keys()]
+KEYGROUPS = BASE_URL + "/getKeygroups"
+INIT = BASE_URL + "/initializeKeygroup"
+ADD_DATA = BASE_URL + "/addData/test/testid"
+GETVALUE = BASE_URL + "/getValue/testid"
 
-# Loading certificates
-with open("./cert/stardust.crt", "rb") as f:
-    client_crt = f.read()
+LOCATION = BASE_URL + "/getLocation"
+SETLOCATION = BASE_URL + "/setLocation"
+POSITIONS = BASE_URL + "/positions"
 
-with open("./cert/stardust.key", "rb") as f:
-    client_key = f.read()
+####################
+## Keygroup tests ##
+####################
 
-with open("./cert/ca.crt", "rb") as f:
-    ca_crt = f.read()
+# Get all keygroups of node 1
+print('Get all keygroups..')
+r = requests.get(url=KEYGROUPS)
 
-creds = grpc.ssl_channel_credentials(
-    certificate_chain=client_crt,
-    private_key=client_key,
-    root_certificates=ca_crt,
-)
+print(r.text)
+print('-------------------------')
 
-# Looks for a node in a nodes list with specified IP and port
-def searchNode(ip, port):
-    for node in node_configs.items():
-        jsonIP = node[1].get("host")
-        jsonPort = node[1].get("port")
-        # Check the ip and port
-        if jsonIP == ip and jsonPort == int(port):
-            return nodes.index(node[0])
-    return None
+# Initialize keygroup test
+print('Initialize keygroup..')
+r = requests.post(url=INIT, data='test')
+print(r.text)
+print('-------------------------')
 
+# Add value
+print('Add data..')
+headers = {'Content-type': 'application/json'}
+data = {
+    'testx': '123'
+}
+r = requests.post(url=ADD_DATA, data=json.dumps(data), headers=headers)
+print(r.text)
+print('-------------------------')
 
-# Connects to specific satellite (Stores its index, IP and Port)
-def start():
-    # Search for the node in the list
-    nodeID = searchNode(current_IP, current_Port)
-    # If no found node return
-    if nodeID == None:
-        return False
-    # If node found return true
-    global current_Node
-    current_Node = nodes[nodeID]
-    return True
+# Get value
+print('Get value..')
+r = requests.get(url=GETVALUE)
+print(r.text)
+print('-------------------------')
 
+###################
+## Position test ##
+###################
 
-# Tries to get a file with given ID from currently connected satellite.
-def pull(keygroup, file_ID):
-    # Try to request the file
-    try:
-        # Create a secure grpc channel and use it to create stub
-        node_cfg = node_configs[current_Node]
-        target = f"{node_cfg['host']}:{node_cfg['port']}"
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            # Try to receive the file
-            response = stub.Read(client_pb2.ReadRequest(keygroup=keygroup, id=file_ID))
-            print(response)
-            # TODO: Save file under given path
-    except Exception as e:
-        # If file does not exist an error is raised
-        print("File with given file ID does not exist on currently connected satellite!")
+# Get latest position of node
+print('Get node1 location..')
+r = requests.get(url=LOCATION)
 
+position = None
+if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
+    print(r.text)
+    # Change coordinates
+    position = json.loads(r.text.replace("'", '"'))
+    position["x"] += 1
+    position["y"] += 1
+    position["z"] += 1
 
-# Adds a file to a keygroup of currently connected satellite.
-def push(keygroup, file_ID, file):
-    try:
-        # Create a secure grpc channel and use it to create stub
-        node_cfg = node_configs[current_Node]
-        target = f"{node_cfg['host']}:{node_cfg['port']}"
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            # Try to receive the file
-            response = stub.Update(
-                client_pb2.UpdateRequest(keygroup=keygroup, id=file_ID, data=file)
-            )
-            print(response)
-    except Exception as e:
-        # If file does not exist an error is raised
-        print("Error while uploading a file with given file ID to currently connected satellite!")
+else:
+    print('error')
+    
+print('-------------------------')
 
+if not position == None:
+    # Changes position of node 1
+    print('Change position..')
+    r = requests.post(url=SETLOCATION, data=json.dumps(position))
 
-# Global variables - currently connected satellite info
-current_IP = None
-current_Port = None
-current_Node = None
+    # print response
+    print(r.text)
+    print('')
+    print('-------------------------')
 
-# Print welcome msg
-print("\n")
-print("=====================================================================================")
-print("Welcome pionier! You are accessing the STARDUST,\nalso known as Satellite Transmitting and Receiving Data Utility Simplification Tool.")
-print("Type 'help' for list of all available commands and info.")
-print("=====================================================================================")
-print("\n")
-running = True
-# Constantly check for user input
-while running:
-    command = input()
-    # Prints all commands and their uses
-    if command == "help":
-        print("\n")
-        print("Stardust allows for easy access to data stored in selected satellite. After connecting to a satellite,\none can request a specified data or upload a new file.")
-        print("List of available commands and their usage:")
-        print("     'start <IP> <Port>' - Starts connection to a specified satellite.")
-        print("     'pull <fileID>' - Requests from the satellite a file with given file ID and prints its content.")
-        print("     'push <fileID> <data> ' - Sends a file to the satellite and saves it under given file ID.")
-        print("     'end' - Ends connection with currently connected satellite.")
-        print("     'exit' - Terminate SIP.")
-        print("\n")
-    # Exit the while loop
-    elif command == "exit":
-        running = False
-    elif command.startswith("start "):
-        # Split the command
-        args = command.rsplit(" ", 2)
-        # Check if usage was correct
-        if len(args) != 3:
-            print("Invalid usage of command. Type 'help' to see the usage.")
-            continue
-        current_IP = args[1]
-        current_Port = args[2]
-        # Try to connect to the node
-        if start():
-            # Connected to specified node
-            print(f"\nSuccessfully connected to the node with ID {current_IP} on Port {current_Port}.")
-        else:
-            # If no node with given ip and port is found reset variables
-            print(f"\nCannot connect to node with ID {current_IP} on Port {current_Port}.")
-            current_Port = None
-            current_IP = None
-            current_Node = None
-    # Disconnect with currently connected satellite
-    elif command.startswith("end"):
-        print(f"\nDisconnecting with the node with ID {current_IP} on Port {current_Port}.")
-        current_Port = None
-        current_IP = None
-        current_Node = None
-    # Trying to receive a file from the satellite
-    elif command.startswith("pull "):
-        # Check if we have connected with some satellite
-        if current_Node == None:
-            print("Before you pull data, you need to connect to a satellite. Type 'help' for more info.")
-            continue
-        # Split the command
-        args = command.rsplit(" ", 1)
-        # Check if usage was correct
-        if len(args) != 2:
-            print("Invalid usage of command. Type 'help' to see the usage.")
-            continue
-        fileID = args[1]
-        keygroup = "northernfiles"  # TODO - Use non static keygroup?
-        # Request the file
-        pull(keygroup, fileID)
-    # Sending a file to the satellite
-    elif command.startswith("push "):
-        # Check if we have connected with some satellite
-        if current_Node == None:
-            print("Before you push data, you need to connect to a satellite. Type 'help' for more info.")
-            continue
-        # Split the command
-        args = command.rsplit(" ", 2)
-        # Check if usage was correct
-        if len(args) != 3:
-            print("Invalid usage of command. Type 'help' to see the usage.")
-            continue
-        fileID = args[1]
-        file = args[2]
-        keygroup = "northernfiles"  # TODO - Use non static keygroup?
-        # Send the file
-        push(keygroup, fileID, file)
-    # If command is unknown, print a help msg
-    else:
-        print("\n")
-        print("Command unknown. Please use 'help' for a list of all available commands.")
-        print("\n")
+    # Get latest position of node 1
+    print('Get all positions..')
+    r = requests.get(url=POSITIONS)
+
+    # print response
+    print(r.text)

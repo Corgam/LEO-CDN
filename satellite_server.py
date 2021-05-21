@@ -37,18 +37,6 @@ def init_keygroup(kg):
         response = stub.CreateKeygroup(
             client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
         )
-
-        # Add Stardust to write role
-        response = stub.AddUser(
-            client_pb2.UserRequest(
-                user="stardust", keygroup=kg, role="WriteKeygroup")
-        )
-        # Add Stardust to read role
-        response = stub.AddUser(
-            client_pb2.UserRequest(
-                user="stardust", keygroup=kg, role="ReadKeygroup")
-        )
-
         # Add all nodes to read&write role
         print("Allowing all nodes to read&write")
         for node_n in nodes:

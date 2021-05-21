@@ -11,6 +11,5 @@ COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./stardust.py /stardust.py
-COPY ./proto /proto
 
 CMD ["python", "stardust.py"]
