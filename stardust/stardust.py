@@ -19,9 +19,77 @@ LOCATION = BASE_URL + "/getLocation"
 SETLOCATION = BASE_URL + "/setLocation"
 POSITIONS = BASE_URL + "/positions"
 
+class HTTPRequest:
+    """
+    This class holds all the information about a single HTTP Request.
+
+
+    Parameters
+    ----------
+    URL: str
+    heads: dict
+    """
+    def __init__(self, URL, heads):
+        self.URL = URL
+        self.heads = heads
+
+    @classmethod
+    def fromString(self, reqString):
+        """
+        Sets the URL and heads dic from given string.
+        There is no error check.
+
+        Parameters
+        ----------
+        reqString : string
+            string containing url and heads
+
+        Returns
+        -------
+
+        """
+        lines = str(reqString).split('\n')
+        # Prepare url
+        url = lines[0]
+        url = url.replace("GET ","")
+        url = url.replace(" HTTP/1.1","")
+        # Prepeare headers
+        heads = {}
+        for line in lines:
+            if line == lines[0] or line == "":
+                continue
+            else:
+                # Fill in the headers
+                parts = line.split(": ")
+                heads[parts[0]] = parts[1]
+        return HTTPRequest(url,heads)
+
+    def getURL(self):
+        """
+        Returns the URL of the HTTP Request
+
+        Returns
+        -------
+        URL: string
+
+        """
+        return self.URL
+
+    def getHeads(self):
+        """
+        Returns the dict of heads of the HTTP Request
+
+        Returns
+        -------
+        heads: dic
+
+        """
+        return self.heads
+
 #########################
 ## Internal functions  ##
 #########################
+
 
 # Read the requests from the txt file and save them in array
 def readRequests():
@@ -33,47 +101,43 @@ def readRequests():
             # If empty line is encountered
             if line == "\n":
                 #Create an string 
-                reqsList.append(req)
+                reqsList.append(HTTPRequest.fromString(req))
                 req = ""                
             else:
                 req = req + line;
         # Add the last request after EOF
-        reqsList.append(req)
+        reqsList.append(HTTPRequest.fromString(req))
         return reqsList
 
-# Send all requests 
-def sendRequests(reqsList, ip, port):
-    # Create a connection
-    conn = http.client.HTTPConnection(ip,port)
+
+# Choose the best satelitte to send the HTTP requests to
+def connectToTheBestSatellite():
+    # TODO: Communicate with the Coordinator to choose the best satellite.
+    ip = "172.26.8.3"
+    port = "5000"
+    return http.client.HTTPConnection(ip,port);
+
+
+# Send all requests to the best satellite
+def sendRequests(reqsList):
+    # Create a connection to the best satellite
+    conn = connectToTheBestSatellite()
     # Send all requests
     for req in reqsList:
-        lines = str(req).split('\n')
-        # Prepare url
-        url = lines[0]
-        url = url.replace("GET ","")
-        url = url.replace(" HTTP/1.1","")
-        # Prepeare headers
-        head = {}
-        for line in lines:
-            if line == lines[0] or line == "":
-                continue
-            else:
-                # Fill in the headers
-                parts = line.split(": ")
-                head[parts[0]] = parts[1]
         # Send the request
-        conn.request(method="GET",url=url,headers=head)
+        conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
         response = conn.getresponse()
         print(f"Status: {response.status} and reason: {response.reason}")
+
 
 # Main function, run on startup
 if __name__ == "__main__":
 
     # Read all requests from the file
     reqsList = readRequests()
-    print("Sending all HTTP requests...")
-    sendRequests(reqsList,"172.26.8.3","5000")
+    print(f"Sending all {len(reqsList)} HTTP requests...")
+    sendRequests(reqsList)
 
     # Old functionality, to test press enter
     input("\nPress ENTER to continue and start testing custom HTTP requests")
