@@ -2,7 +2,7 @@ output/
 
 # IDE
 .vscode/
-./idea
+.idea/
 
 # Binaries for programs and plugins
 *.exe
