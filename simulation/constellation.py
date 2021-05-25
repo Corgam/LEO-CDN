@@ -31,6 +31,38 @@ EARTH_ROTATION_AXIS = [0, 0, 1]  # this means the north pole is on the top and t
 
 
 class Constellation:
+    """
+    A class used to contain and manage a satellite constellation
+    ...
+    Attributes
+    ----------
+    number_of_planes : int
+        the number of planes in the constellation
+    nodes_per_plane : int
+        the number of satellites per plane
+    semi_major_axis : float
+        semi major axis of the orbits (radius, if orbits circular)
+    period : int
+        the period of the orbits in seconds
+    list_of_satellites: List[Satellites]
+        list of all the satellites in the system.
+    current_time : int
+        keeps track of the current simulation time
+
+    Methods
+    -------
+    init_satellites()
+        Creates kepler ellipse for each satellites and initialize its position at time 0.
+    update_position(time=0)
+        Updates all satellites to reflect the new time.
+    get_all_satellites()
+        Returns all the satellites as a list.
+        Each satellite contains information like position (x, y, z) and keygroup.
+    print_current_position()
+        Prints all the position of each satellite.
+    print_current_keygroups()
+        Print all satellites and their keygroup they currently belong to.
+    """
 
     def __init__(self,
                  number_of_planes,

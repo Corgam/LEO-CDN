@@ -24,10 +24,27 @@ class Satellite:
     This class holds all the information about a single satellite.
 
 
-    Parameters
+    Attributes
     ----------
     name: str
+        Name of the satellite as "satellite_{plane}_{number of node on plane}"
+    number: int
+        Like an ID. This one is unique and it comes from enumerating all the satellites in the system.
+        Can be used, e.g., to create the target node name, which has the structure "node{nodeId}" where nodeID is this
+        number.
     kepler_ellipse: KeplerEllipse
+        The kepler ellipse of this satellite.
+    offset: int
+        The offset of this satellite
+    current_time: int
+        The current time of the simulation in seconds.
+    x_position: int
+        The unrotated x position of the satellite.
+    y_position: int
+        The unrotated y position of the satellite.
+    z_position: int
+        The unrotated z position of the satellite.
+
     """
 
     def __init__(self, name, number, kepler_ellipse, offset):
