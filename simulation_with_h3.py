@@ -93,7 +93,7 @@ for step in range(0, steps):
     constellation.update_position(time=next_time)
     print(f"At step {step}. These are the current keygroups each satellite belongs to: ")
     constellation.print_current_keygroups()
-    plot_current_state(next_time, constellation.get_all_satellites())
+    # plot_current_state(next_time, constellation.get_all_satellites())
 
 
 
