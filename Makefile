@@ -38,3 +38,10 @@ clean:
 
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
+
+coordinator_node:
+	@! docker ps -a | grep coordinator || docker container rm coordinator -f
+	@docker build -f ./coordinator/Dockerfile -t coordinator .
+	@docker run --network host \
+				-p 5000:5000 \
+				coordinator
