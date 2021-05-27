@@ -18,6 +18,7 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 2. Run `make run_nodes`
 3. Run `make stardust` to see basic satellite communication
 4. Run `make run_tester`
+5. Run 'make coordinator_node'
 
 Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
 
