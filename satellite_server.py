@@ -204,8 +204,7 @@ def give_user_permissions(user, keygroup, level):
 
 def append_data(keygroup, key, entry):
     response = read_file_from_node(keygroup, key)
-    print(response)
-    if response == "":
+    if not response:
         cur_data = []
         cur_data.append(entry)
         set_data(keygroup, key, json.dumps(cur_data))
@@ -369,6 +368,7 @@ if __name__ == '__main__':
         print(e)
 
     init_pos = {f"{fred}": {"x": 1, "y": 2, "z": 3}}
-    #append_data("manage", "positions", init_pos) verursacht ein crash
+    
+    append_data("manage", "positions", init_pos)
 
     app.run(debug=True, host=ip, port=port)
