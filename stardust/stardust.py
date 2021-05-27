@@ -7,7 +7,10 @@ import requests
 import json
 import http.client
 
-# GET URL
+# Global variables
+GST_ID = "gst-0"
+
+# GET URLs
 BASE_URL = "http://172.26.8.3:5000"
 
 KEYGROUPS = BASE_URL + "/getKeygroups"
@@ -110,11 +113,17 @@ def readRequests():
         return reqsList
 
 
-# Choose the best satelitte to send the HTTP requests to
+# Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
 def connectToTheBestSatellite():
-    # TODO: Communicate with the Coordinator to choose the best satellite.
-    ip = "172.26.8.3"
-    port = "5000"
+    # Communicate with the Coordinator to choose the best satellite.
+    coordConn = http.client.HTTPConnection("172.26.5.1","9001")
+    coordConn.request(method="GET",url=f"/best_satellite/{GST_ID}")
+    # Get the response
+    res = coordConn.getresponse()
+    # Extract ip and port
+    data = repr(res.read())
+    ip,port = data.split(":")
+    # Return connection to the best satellite
     return http.client.HTTPConnection(ip,port);
 
 
