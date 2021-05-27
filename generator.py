@@ -68,9 +68,9 @@ for x in range(nodes):
     node_IP = f"172.26.{x+7}.1"
     store_IP = f"172.26.{x+7}.2"
     server_IP = f"172.26.{x+7}.3"
-    node_name = f"node{x}"
+    node_name = f"fred{x}"
     store_name = f"store{x}"
-    server_name = f"httpserver{x}"
+    server_name = f"satellite{x}"
     host_port = 9000 + x + 3
     nase_host = "https://172.26.6.1:2379"
 
@@ -118,13 +118,13 @@ with open(f"./temp/clean.sh", "w") as f:
 
 with open("./temp/nodes.json", "w") as f:
     nodes_config = {
-        f"node{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
+        f"fred{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
     }
     json.dump(nodes_config, f, indent=4)
 
 for x in range(nodes):
-    with open(f"./temp/httpserver{x}.json", "w") as f:
+    with open(f"./temp/satellite{x}.json", "w") as f:
         nodes_config = {
-            f"node{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001}
+            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001, "fred": f"fred{x}"}
         }
         json.dump(nodes_config, f, indent=4)

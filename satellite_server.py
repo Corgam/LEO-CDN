@@ -6,10 +6,11 @@ import json
 import sys
 import requests
 import os
+import logging
 
 app = Flask(__name__)
 
-keygroups = ['manage']
+keygroups = [] # Keygroups the satellite manages
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -18,6 +19,7 @@ with open("/info/node.json") as f:
 name = list(node_configs.keys())[0]
 ip = node_configs[name]['server']
 port = node_configs[name]['sport']
+fred = node_configs[name]['fred']
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
 
 # Loading node configurations
@@ -39,14 +41,13 @@ def init_keygroup(kg):
             response = stub.CreateKeygroup(
                 client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
             )
+            keygroups.append(kg)
+            print(f'giving {name} permission')
+            give_user_permissions(name, kg, 4)
+            print('gave permission')
+            return True
         except:
-            pass
-        # Add all nodes to read&write role
-        print("Allowing all nodes to read&write")
-        for node_n in nodes:
-            print(node_n)
-
-            give_user_permissions(node_n, kg, 4)
+            return False
 
 # Adds data to a keygroup
 def set_data(kg, key, value):
@@ -59,22 +60,42 @@ def set_data(kg, key, value):
         print(response)
 
 # Adds node to the keygroup
-def add_node_to_keygroup(kg):
-    print(f"Adding {name} to {kg}...")
-    with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.AddReplica(
-            client_pb2.AddReplicaRequest(keygroup=kg, nodeId=name)
-        )
-        print(response)
+def add_node_to_keygroup(kg, node, satellite):
+    print(f"Adding {node} to {kg}...")
+    try:
+        with grpc.secure_channel(target, credentials=creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            response = stub.AddReplica(
+                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
+            )
+            print(response)
+            give_user_permissions(node, kg, 4)
+            give_user_permissions(satellite, kg, 4)
+            return True
+    except Exception as e:
+        print(e)
+        return False
+
+def node_to_keygroup(kg, node):
+    print(f"Adding {node} to {kg}...")
+    try:
+        with grpc.secure_channel(target, credentials=creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            response = stub.AddReplica(
+                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
+            )
+            return str(response)
+    except Exception as e:
+        print(e)
+        return str(e)
 
 # Removes node from the keygroup
-def remove_node_from_keygroup(kg):
+def remove_node_from_keygroup(kg, node):
     print(f"Removing {name} from {kg}...")
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         response = stub.RemoveReplica(
-            client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=name)
+            client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=node)
         )
         print(response)
 
@@ -87,10 +108,11 @@ def read_file_from_node(keygroup, file_id):
             response = stub.Read(
                 client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
             )
+            print(response)
             return response
-    except:
+    except Exception as e:
         # if file does not exist an error is raised
-        print(f"doesn't exist on {name}")
+        # return str(e)
         return ""
 
 # Reads file
@@ -118,9 +140,9 @@ def add_role(user, keygroup, role):
                 client_pb2.UserRequest(
                     user=user, keygroup=keygroup, role=role)
             )
-    except:
-        # TODO
-        print("Failed to give permissions")
+        return str(response)
+    except Exception as e:
+        return str(e)
 
 #########################
 ## Internal functions  ##
@@ -130,70 +152,51 @@ def add_role(user, keygroup, role):
 def join_managing_keygroups():
     try_joining = False
 
-    try:
-        init_keygroup("manage")
-    except Exception as e:
+    success = init_keygroup("manage")
+    if not success:
         print('"manage" keygroup already exists. Trying to join...')
-        print(e.__doc__)
-        print(e.message)
-        print("Hello")
-        try_joining = True
-        pass
-    print("Hello")
-    if try_joining:
         try:
-            add_node_to_keygroup("manage")
+            append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
         except:
-            print('node already part of "manage" keygroup.')
-            return
-        print('successfully joined "manage" keygroup.')
-
-        grpc_response = read_file_from_node("manage", "addresses")
-        addresses = json.loads(grpc_response.data)
-
-        # Try obtaining permissions
-        for address in addresses:
-            data = {
-                'node': name,
-                'level': 4
-            }
-            headers = {'Content-Type': "application/json"}
-            response = requests.post(
-                url=address + "/addRoles/manage",
-                json=data,
-                headers=headers
-            )
-            if response.status_code == 200:
-                print("successfully obtained permissions")
-                break
-
-    # TODO consider putting protocol in other location
-    try:
-        append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-    except:
-        try:
-            set_data("manage", "addresses", json.dumps([
-                     "http://" + ip + ":" + str(port) + "/"]))
-        except:
-            print("Even setting data failed. Something went wrong in the RPC connection")
-            raise
+            print("Was not to the keygroup yet...")
+            for node in nodes:
+                print("Try to add to keygroup...")
+                curr = node_configs[node]
+                base_url = "http://" + curr['host'] + ":" + str(curr['port'])
+                print(f"Let me talk to {json.dumps(curr)}")
+                data = {
+                    'node': fred,
+                    'satellite' : name,
+                    'keygroup': 'manage'
+                }
+                r = requests.post(url=base_url+"/addToKeygroup/manage", data=json.dumps(data))
+                if r.status_code == 200:
+                    print("Should be done?")
+                    append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+                    break
+    else:
+        set_data("manage", "addresses", json.dumps(["http://" + ip + ":" + str(port) + "/"]))
+        print("Giving everyone in nodes permission to manage...")
+        for x in range(len(nodes)):
+                add_node_to_keygroup("manage", nodes[x], f"satellite{x}")
 
 
 def give_user_permissions(user, keygroup, level):
+    print(f'Giving {user} permissions for {keygroup} upto lvl {level}...')
     permissions = []
     if level < 0:
         print("level too low")
         return
     if level >= 0:
-        permissions.append("ReadKeyGroup")
+        permissions.append(0) #ReadKeygroup
     if level >= 1:
-        permissions.append("WriteKeyGroup")
+        permissions.append(1) #WriteKeyGroup
     if level >= 2:
-        permissions.append("ConfigureReplica")
+        permissions.append(2) #ConfigureReplica
     if level >= 3:
-        permissions.append("ConfigureTrigger")
+        permissions.append(3) #ConfigureTrigger
     if level >= 4:
-        permissions.append("ConfigureKeygroups")
+        permissions.append(4) #ConfigureKeygroups
 
     for permission in permissions:
         add_role(user, keygroup, permission)
@@ -201,15 +204,17 @@ def give_user_permissions(user, keygroup, level):
 
 def append_data(keygroup, key, entry):
     response = read_file_from_node(keygroup, key)
-
-    try:
+    print(response)
+    if response == "":
+        cur_data = []
+        cur_data.append(entry)
+        set_data(keygroup, key, json.dumps(cur_data))
+    else:
         cur_data = json.loads(response.data)
         cur_data.append(entry)
-    except:
-        raise
-
-    set_data(keygroup, key, json.dumps(cur_data))
+        set_data(keygroup, key, json.dumps(cur_data))
     return json.dumps(cur_data)
+    # return response
 
 #########################
 ## HTTP Server Methods ##
@@ -224,20 +229,24 @@ def getKeygroups():
 @app.route('/initializeKeygroup', methods=['POST'])
 def initializeKeygroup():
     data = request.data.decode('UTF-8')
-    try:
-        init_keygroup(data)
-        keygroups.append(data)
+    if(init_keygroup(data)):
         return getKeygroups()
-    except:
+    else:
         return 'already exists'
 
 # IP:Host/addKeygroup: adds the node to an existing keygroup
-@app.route('/addKeygroup', methods=['POST'])
+@app.route('/addToKeygroup', methods=['POST'])
 def addKeygroup():
-    data = request.data.decode('UTF-8')
-    add_node_to_keygroup(data)
-    keygroups.append(data)
-    return f'Keygroup added: {data}'
+    data = json.loads(request.json)
+    if add_node_to_keygroup(data['keygroup'], data['fred'], data['satellite']):
+        return "Added to keygroup"
+    else:
+        return "No permission for that", 500
+
+@app.route('/addKeygroup', methods=['POST'])
+def addKeygroup2():
+    data = json.loads(request.json)
+    return node_to_keygroup(data['keygroup'], data['fred'])
 
 # IP:Host/removeKeygroup: removes the node from a keygroup
 @app.route('/removeKeygroup', methods=['POST'])
@@ -250,7 +259,7 @@ def deleteKeygroup():
 # IP:host/getValue/<keygroup>/<key>: returns the value of a given key if possible
 @app.route('/getValue/<keygroup>/<key>')
 def getValueWithKeygroup(keygroup, key):
-    return read_file_from_node(keygroup, key)
+    return str(read_file_from_node(keygroup, key))
 
 # IP:host/getValue/<key>: goes through all keygroups to find the data
 @app.route('/getValue/<key>')
@@ -260,7 +269,7 @@ def getValue(key):
 # IP:host/setData/<keygroup>/<key>: sets data to the specified key
 @app.route('/setData/<keygroup>/<key>', methods=['POST'])
 def setData(keygroup, key):
-    data = request.json
+    data = request.data.decode('UTF-8')
     set_data(keygroup, key, data) # TODO maybe can just pass on data
     resp = read_file_from_node(keygroup, key)
     return str(resp)
@@ -269,11 +278,11 @@ def setData(keygroup, key):
 # a list
 @app.route('/appendData/<keygroup>/<key>', methods=['POST'])
 def appendData(keygroup, key):
-    entry = request.json
+    entry = request.data.decode('UTF-8')
     try:
         cur_data = append_data(keygroup, key, entry)
-    except:
-        return "Requested key does not hold list data", 500
+    except Exception as e:
+        return str(e), 500
     
     return cur_data, 200
 
@@ -300,15 +309,25 @@ def setLocation():
 def positions():
     return str(read_file_from_node("manage", "positions"))
 
-
+@app.route('/addRole/<keygroup>', methods=['POST'])
+def addSingleRole(keygroup):
+    data = json.loads(request.data)
+    node = data['node']
+    level = int(data['level'])
+    return add_role(node, keygroup, level)
+        
 @app.route('/addRoles/<keygroup>', methods=['POST'])
 def addRoles(keygroup):
     try:
-        data = json.loads(request.json)
+        data = json.loads(request.data)
         node = data['node']
         level = int(data['level'])
-    except (ValueError, KeyError, TypeError):
-        return 
+        give_user_permissions(node, keygroup, level)
+        return "Successfully gave the specified user" 
+        + node + " permission level " + str(level) + ".", 200
+    except Exception as e:
+
+        return str(e), 500
         """ Please provide JSON body in the following form: 
         {
             "node": <node name>,
@@ -316,14 +335,14 @@ def addRoles(keygroup):
         }
         """, 400
     
-    try:
-        give_user_permissions(node, keygroup, level)
-    except:
-        return "Internal Server error", 500
-    
-    return "Successfully gave the specified user" 
-    + node + " permission level " + str(level) + ".", 200
 
+@app.route('/addSatellite', methods=['POST'])
+def addSatellite():
+    data = json.loads(request.data.decode('UTF-8'))
+    nodes.append(data['node'])
+    for kg in keygroups:
+        add_node_to_keygroup(kg, data['node'], data['satellite'])
+    return str(True)
 
 if __name__ == '__main__':
     # Loading certificates
@@ -345,13 +364,11 @@ if __name__ == '__main__':
     
     try:
         join_managing_keygroups()
-    except:
+    except Exception as e:
         print("failed to join managing keygroup")
+        print(e)
 
-    init_pos = {f"{name}": {"x": 1, "y": 2, "z": 3}}
-    try:
-        set_data("manage", "positions", json.dumps(init_pos))
-    except:
-        print(f"{name} is not allowed to!")
+    init_pos = {f"{fred}": {"x": 1, "y": 2, "z": 3}}
+    #append_data("manage", "positions", init_pos) verursacht ein crash
 
     app.run(debug=True, host=ip, port=port)
