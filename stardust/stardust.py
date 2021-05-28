@@ -124,25 +124,30 @@ def connectToTheBestSatellite():
     data = res.read().decode()
     ip,port = data.split(':')
     # Return connection to the best satellite
+    print(f"Answer from coordinator received: {data}.")
     return http.client.HTTPConnection(ip,port);
 
 
 # Send all requests to the best satellite
 def sendRequests(reqsList):
     # Create a connection to the best satellite
+    print("Sending query to coordinator for the best satellite...")
     conn = connectToTheBestSatellite()
     # Send all requests
     for req in reqsList:
+        # For now do not send the real request. The satellite server will not respond right now.
+        print(f"Fake News: Sending HTTP request with URL: {req.getURL()}")
+
         # Send the request
-        conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
+        #conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
-        response = conn.getresponse()
-        print(f"Status: {response.status} and reason: {response.reason}")
+        #response = conn.getresponse()
+        #print(f"Status: {response.status} and reason: {response.reason}")
 
 
 # Main function, run on startup
 if __name__ == "__main__":
-
+    print("Starting STARDUST...")
     # Read all requests from the file
     reqsList = readRequests()
     print(f"Sending all {len(reqsList)} HTTP requests...")
