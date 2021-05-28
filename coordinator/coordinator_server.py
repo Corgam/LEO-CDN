@@ -9,9 +9,9 @@ app = Flask(__name__)
 
 #Hardcoded satellites' positions, should use coordinator_client.satellite_pos
 satellite_positions = {
-    "172.26.8.3:5000": [2, 3, 1],
-    "172.26.9.3:5000": [5, 4, 6],
-    "172.26.10.3:5000": [8, 7, 9]
+    "172.26.8.3:9001": [2, 3, 1],
+    "172.26.9.3:9001": [5, 4, 6],
+    "172.26.10.3:9001": [8, 7, 9]
 }
 
 ground_station_positions = {

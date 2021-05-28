@@ -16,9 +16,9 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 1. Run `make generate_nodes n=<int>` (e.g. `make generate_nodes n=3` for generating 3 nodes)
 2. Run `make run_nodes`
-3. Run `make stardust` to see basic satellite communication
-4. Run `make run_tester`
-5. Run `make coordinator_node`
+3. Run `make coordinator`
+4. Run `make stardust`
+5. Run `make run_tester`
 
 Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
 
@@ -38,7 +38,7 @@ Manages the communication between nodes. The first node initializes a keygroup a
 
 Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
-Work in progress
+Reads HTTP Requests from requests.txt file and sends them to the best satellite. The best satellite is chosen with the help of the coordinator.
 
 ## satellite_server.py
 

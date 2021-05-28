@@ -134,6 +134,7 @@ def sendRequests(reqsList):
     print("Sending query to coordinator for the best satellite...")
     conn = connectToTheBestSatellite()
     # Send all requests
+    print(f"Sending all {len(reqsList)} HTTP requests...")
     for req in reqsList:
         # For now do not send the real request. The satellite server will not respond right now.
         print(f"Fake News: Sending HTTP request with URL: {req.getURL()}")
@@ -150,7 +151,6 @@ if __name__ == "__main__":
     print("Starting STARDUST...")
     # Read all requests from the file
     reqsList = readRequests()
-    print(f"Sending all {len(reqsList)} HTTP requests...")
     sendRequests(reqsList)
 
     # Old functionality, to test press enter
