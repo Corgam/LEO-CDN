@@ -1,8 +1,12 @@
-FROM python:3.8-alpine
+FROM python:3.8
+
+RUN apt update && \
+    apt install -y libgrpc-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY ./coordinator/requirements.txt /requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r /requirements.txt
+
 COPY ./coordinator/coordinator_server.py /coordinator_server.py
-COPY ./coordinator/coordinator_client.py /coordinator_client.py
-ENV FLASK_APP=coordinator_server
-EXPOSE 5000
-CMD ["flask", "run"]
+
+CMD ["python", "coordinator_server.py"]

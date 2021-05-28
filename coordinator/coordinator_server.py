@@ -3,7 +3,6 @@
 ######################
 
 from flask import Flask, jsonify, request
-import coordinator_client
 import math
 
 app = Flask(__name__)
@@ -31,6 +30,7 @@ def positions():
 
 @app.route("/best_satellite/<ground_station_id>", methods = ["GET"])
 def best_satellite(ground_station_id):
+    print(f"Got a HTTP request from {str(ground_station_id)}")
     if request.method == "GET":
         if ground_station_id not in ground_station_positions:
             return "<p>Invalid GST ID</p>"
@@ -47,5 +47,6 @@ def best_satellite(ground_station_id):
     else:
         return "<p>Error - wrong method!</p>"
 
-
-
+# Main function
+if __name__ == '__main__':
+    app.run(host="172.26.5.1",port=9001)

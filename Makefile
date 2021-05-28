@@ -1,4 +1,4 @@
-.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester stardust clean compile_grpc_python
+.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester stardust clean compile_grpc_python coordinator
 
 generate_nodes:
 	@python ./generator.py -node $(n)
@@ -39,9 +39,11 @@ clean:
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
 
-coordinator_node:
+coordinator:
 	@! docker ps -a | grep coordinator || docker container rm coordinator -f
 	@docker build -f ./coordinator/Dockerfile -t coordinator .
-	@docker run --network host \
-				-p 5000:5000 \
-				coordinator
+	@docker run -it \
+		--name coordinator \
+		--network=fredwork \
+		--ip=172.26.5.1 \
+		coordinator

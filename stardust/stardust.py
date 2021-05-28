@@ -121,8 +121,8 @@ def connectToTheBestSatellite():
     # Get the response
     res = coordConn.getresponse()
     # Extract ip and port
-    data = repr(res.read())
-    ip,port = data.split(":")
+    data = res.read().decode()
+    ip,port = data.split(':')
     # Return connection to the best satellite
     return http.client.HTTPConnection(ip,port);
 
