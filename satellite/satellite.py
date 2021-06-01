@@ -16,22 +16,20 @@
 import math
 import numpy as np
 from h3 import h3
-import keygroup_passer
+from manage_keygroups import *
 
 
 class Satellite:
     """
     This class holds all the information about a single satellite.
+    Kepler Ellipse, offset are needed for our own simulation. For the integration into Celestial these two are not
+    needed hence, we do not need to use e.g. update position in Celestial.
 
 
     Attributes
     ----------
     name: str
-        Name of the satellite as "satellite_{plane}_{number of node on plane}"
-    number: int
-        Like an ID. This one is unique and it comes from enumerating all the satellites in the system.
-        Can be used, e.g., to create the target node name, which has the structure "node{nodeId}" where nodeID is this
-        number.
+        Name of the satellite as "satellite{id} of node on plane}"
     kepler_ellipse: KeplerEllipse
         The kepler ellipse of this satellite.
     offset: int
@@ -44,12 +42,17 @@ class Satellite:
         The unrotated y position of the satellite.
     z_position: int
         The unrotated z position of the satellite.
+    keygroup:
+        The current keygroup of the satellite.
+    host:
+        Host of the satellite.
+    port:
+        Port of the satellite.
 
     """
 
-    def __init__(self, name, number, kepler_ellipse, offset):
+    def __init__(self, name, server, sport, node, nport, fred, kepler_ellipse=None, offset=0):
         self.name = name
-        self.number = number
         self.kepler_ellipse = kepler_ellipse
         self.offset = offset
         self.current_time = 0
@@ -58,6 +61,11 @@ class Satellite:
         self.y_position = current_position[1]
         self.z_position = current_position[2]
         self.keygroup = self.init_keygroup()
+        self.server = server
+        self.sport = sport
+        self.node = node
+        self.nport = nport
+        self.fred = fred
 
     def set_new_position(self, current_time):
         """
@@ -82,6 +90,11 @@ class Satellite:
         self.z_position = np.int32(updated_position[2])
 
         self.check_keygroup()
+
+    def set_xyz_position(self, x, y, z):
+        self.x_position = x
+        self.y_position = y
+        self.z_position = z
 
     def get_current_position(self):
         """
@@ -177,24 +190,16 @@ class Satellite:
         lat, lon = self.get_current_geo_position()
         keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
 
-        print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.number}...")
-        target_node = f"node{self.number}"
+        print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
+        target_node = self.name
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
 
-        status_response = keygroup_passer.add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
+        status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
 
         if status_response.status == 1 or status_response == 2:
             print(f"Oh no. Something went wrong.")
             print(status_response.message)
-        #    print(f"Trying to add the satellite to the exisiting keygroup.")
-        #    print(f"Adding node {self.number} to keygroup {keygroup_name}...")
-
-        #    status_response = keygroup_passer.add_replica_node_to_keygroup(target_node=target_node,
-        #                                                               keygroup=keygroup_name)
-
-        # if status_response.status == 1:
-        #    print("Initializing keygroup did not work out...")
         return keygroup_name
 
     def check_keygroup(self, hex_resolution=0):
@@ -216,9 +221,9 @@ class Satellite:
         if new_keygroup_name == old_keygroup_name:
             return None
         else:
-            target_node = f"node{self.number}"
-            print(f"Changing keygroup for {self.number} from {old_keygroup_name} to {new_keygroup_name}...")
-            status_response_add = keygroup_passer.add_replica_node_to_keygroup(target_node=target_node,
+            target_node = self.name
+            print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
+            status_response_add = add_replica_node_to_keygroup(target_node=target_node,
                                                                                keygroup=f"{new_keygroup_name}")
             # If adding to a keygroup does not work out create the keygroup.
             print(f"[satellite.py]: Status response: {status_response_add}")
@@ -227,7 +232,7 @@ class Satellite:
                 print(status_response_add.message)
 
             # Removing satellite from keygroup
-            status_response_remove = keygroup_passer.remove_replica_node_from_keygroup(target_node=target_node,
+            status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
                                                                                        keygroup=f"{old_keygroup_name}")
 
             print(f"[satellite.py]: Status response: {status_response_remove}")
