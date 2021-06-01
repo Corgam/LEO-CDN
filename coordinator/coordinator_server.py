@@ -50,6 +50,11 @@ def best_satellite(ground_station_id):
         return "<p>Error - wrong method!</p>"
 
 
+def run_server():
+    app.run(host="172.26.5.1", port=9001)
+
+
 # Main function
 if __name__ == '__main__':
-    app.run(host="172.26.5.1", port=9001)
+    # app.run(host="172.26.5.1", port=9001)
+    run_server()
