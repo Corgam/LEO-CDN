@@ -1,4 +1,4 @@
-.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester clean compile_grpc_python
+.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester stardust clean compile_grpc_python coordinator
 
 generate_nodes:
 	@python ./generator.py -node $(n)
@@ -23,18 +23,14 @@ run_tester:
 		--network=fredwork \
 		--ip=172.26.4.1 \
 		leo-cdn-simulation
-
+		
 stardust:
 	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./Dockerfile-stardust -t stardust .
+	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
 	@docker run -it \
 		--name stardust \
-		-v $(CURDIR)/cert/stardust.crt:/cert/stardust.crt \
-		-v $(CURDIR)/cert/stardust.key:/cert/stardust.key \
-		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
-    -v $(CURDIR)/temp/nodes.json:/temp/nodes.json \
 		--network=fredwork \
-		--ip=172.26.5.1 \
+		--ip=172.26.8.4 \
 		stardust
 
 clean:
@@ -42,3 +38,12 @@ clean:
 
 compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
+
+coordinator:
+	@! docker ps -a | grep coordinator || docker container rm coordinator -f
+	@docker build -f ./coordinator/Dockerfile -t coordinator .
+	@docker run -it \
+		--name coordinator \
+		--network=fredwork \
+		--ip=172.26.5.1 \
+		coordinator

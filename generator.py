@@ -61,14 +61,16 @@ elif sys.platform.startswith("linux"):
 # Creating the yml files
 print(f"Generating yml file for {nodes} nodes...")
 
-with open("template/nodex.yaml.jinja2") as file_:
+with open("templates/nodex.yaml.jinja2") as file_:
     node_template = Template(file_.read())
 
 for x in range(nodes):
     node_IP = f"172.26.{x+7}.1"
     store_IP = f"172.26.{x+7}.2"
-    node_name = f"node{x}"
+    server_IP = f"172.26.{x+7}.3"
+    node_name = f"fred{x}"
     store_name = f"store{x}"
+    server_name = f"satellite{x}"
     host_port = 9000 + x + 3
     nase_host = "https://172.26.6.1:2379"
 
@@ -79,6 +81,8 @@ for x in range(nodes):
         store_name=store_name,
         host_port=host_port,
         nase_host=nase_host,
+        server_name=server_name,
+        server_IP=server_IP,
     )
     with open(f"./temp/node{x}.yml", "w") as f:
         f.write(nodex_yaml)
@@ -90,7 +94,7 @@ node_names = [f"node{x}" for x in range(nodes)]
 
 # Generate start script
 
-with open("template/run-nodes.sh.jinja2") as file_:
+with open("templates/run-nodes.sh.jinja2") as file_:
     run_script_template = Template(file_.read())
 
 run_script = run_script_template.render(node_names=node_names)
@@ -101,7 +105,7 @@ with open(f"./temp/run-nodes.sh", "w") as f:
 
 # Generate clean script
 
-with open("template/clean.sh.jinja2") as file_:
+with open("templates/clean.sh.jinja2") as file_:
     clean_script_template = Template(file_.read())
 
 clean_script = clean_script_template.render(node_names=node_names)
@@ -114,6 +118,13 @@ with open(f"./temp/clean.sh", "w") as f:
 
 with open("./temp/nodes.json", "w") as f:
     nodes_config = {
-        f"node{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
+        f"fred{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
     }
     json.dump(nodes_config, f, indent=4)
+
+for x in range(nodes):
+    with open(f"./temp/satellite{x}.json", "w") as f:
+        nodes_config = {
+            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001, "fred": f"fred{x}"}
+        }
+        json.dump(nodes_config, f, indent=4)

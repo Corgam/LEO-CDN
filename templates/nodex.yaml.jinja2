@@ -55,6 +55,27 @@ services:
     networks:
       fredwork:
         ipv4_address: {{ store_IP }}
+
+  {{ server_name }}:
+    build:
+      context: ../
+      dockerfile: httpserver.Dockerfile
+    depends_on:
+    - {{ node_name }}
+    image: httpserver:local
+    container_name: {{ server_name }}
+    volumes:
+      - ../temp/{{ server_name }}.crt:/cert/client.crt
+      - ../temp/{{ server_name }}.key:/cert/client.key
+      - ../cert/ca.crt:/cert/ca.crt
+      - ../proto:/proto
+      - ../temp/nodes.json:/info/nodes.json
+      - ../temp/{{ server_name }}.json:/info/node.json
+      - ../satellite_server.py:/satellite_server.py
+    networks:
+      fredwork:
+        ipv4_address: {{ server_IP }}
+
 networks:
   fredwork:
     external: true

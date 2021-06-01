@@ -4,13 +4,12 @@ RUN apt update && \
     apt install -y libgrpc-dev && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./requirements-stardust.txt /requirements.txt
+COPY ./requirements-container.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
-
-COPY ./stardust.py /stardust.py
+COPY ./satellite_server.py /satellite_server.py
 COPY ./proto /proto
 
-CMD ["python", "stardust.py"]
+CMD ["python", "satellite_server.py"]
