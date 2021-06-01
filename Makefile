@@ -1,12 +1,12 @@
-.PHONY: generate_nodes run_nodes setup stardust clean compile_grpc_python coordinator
+.PHONY: generate run setup stardust clean compile_grpc_python coordinator
 
-generate_nodes:
+generate:
 	@python ./generator.py
 
-run_nodes:
+run:
 	@sh ./temp/run-nodes.sh
 
-setup: generate_nodes run_nodes
+setup: generate run
 		
 stardust:
 	@! docker ps -a | grep stardust || docker container rm stardust -f

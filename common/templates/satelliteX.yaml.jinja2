@@ -30,7 +30,7 @@ services:
     volumes:
       - ../temp/{{ node_name }}.crt:/cert/{{ node_name }}.crt
       - ../temp/{{ node_name }}.key:/cert/{{ node_name }}.key
-      - ../cert/ca.crt:/cert/ca.crt
+      - ../common/cert/ca.crt:/cert/ca.crt
     ports:
       - {{ host_port }}:9001
     networks:
@@ -51,7 +51,7 @@ services:
     volumes:
       - ../temp/{{ store_name }}.crt:/cert/cert.crt
       - ../temp/{{ store_name }}.key:/cert/key.key
-      - ../cert/ca.crt:/cert/ca.crt
+      - ../common/cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
         ipv4_address: {{ store_IP }}
@@ -67,11 +67,11 @@ services:
     volumes:
       - ../temp/{{ server_name }}.crt:/cert/client.crt
       - ../temp/{{ server_name }}.key:/cert/client.key
-      - ../cert/ca.crt:/cert/ca.crt
-      - ../proto:/proto
+      - ../common/cert/ca.crt:/cert/ca.crt
+      - ../common/proto:/proto
       - ../temp/nodes.json:/info/nodes.json
       - ../temp/{{ server_name }}.json:/info/node.json
-      - ../satellite_server.py:/satellite_server.py
+      - ../satellite/satellite_server.py:/satellite_server.py
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

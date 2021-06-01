@@ -122,7 +122,7 @@ with open(f"./temp/clean.sh", "w") as f:
 ###############
 
 # Generate JSON with node data
-with open("./temp/satellites.json", "w") as f:
+with open("./temp/freds.json", "w") as f:
     nodes_config = {
         f"fred{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
     }
