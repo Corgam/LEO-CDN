@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   {{ node_name }}:
-    build: ../FReD
+    build: ../../FReD
     depends_on:
       - {{ store_name }}
     image: fred/fred:local
@@ -28,9 +28,9 @@ services:
     environment:
       - LOG_LEVEL
     volumes:
-      - ../temp/{{ node_name }}.crt:/cert/{{ node_name }}.crt
-      - ../temp/{{ node_name }}.key:/cert/{{ node_name }}.key
-      - ../common/cert/ca.crt:/cert/ca.crt
+      - ../../temp/{{ node_name }}.crt:/cert/{{ node_name }}.crt
+      - ../../temp/{{ node_name }}.key:/cert/{{ node_name }}.key
+      - ../../common/cert/ca.crt:/cert/ca.crt
     ports:
       - {{ host_port }}:9001
     networks:
@@ -39,7 +39,7 @@ services:
 
   {{ store_name }}:
     build:
-      context: ../FReD
+      context: ../../FReD
       dockerfile: storage.Dockerfile
     image: fred/store:local
     container_name: {{ store_name }}
@@ -49,20 +49,20 @@ services:
     --key /cert/key.key \
     --ca-file /cert/ca.crt"
     volumes:
-      - ../temp/{{ store_name }}.crt:/cert/cert.crt
-      - ../temp/{{ store_name }}.key:/cert/key.key
-      - ../common/cert/ca.crt:/cert/ca.crt
+      - ../../temp/{{ store_name }}.crt:/cert/cert.crt
+      - ../../temp/{{ store_name }}.key:/cert/key.key
+      - ../../common/cert/ca.crt:/cert/ca.crt
     networks:
       fredwork:
         ipv4_address: {{ store_IP }}
 
   {{ server_name }}:
     build:
-      context: ../
-      dockerfile: httpserver.Dockerfile
+      context: ../../satellite/
+      dockerfile: satellite.Dockerfile
     depends_on:
     - {{ node_name }}
-    image: httpserver:local
+    image: satellite:local
     container_name: {{ server_name }}
     volumes:
       - ../temp/{{ server_name }}.crt:/cert/client.crt
@@ -71,7 +71,7 @@ services:
       - ../common/proto:/proto
       - ../temp/nodes.json:/info/nodes.json
       - ../temp/{{ server_name }}.json:/info/node.json
-      - ../satellite/satellite_server.py:/satellite_server.py
+      - /satellite_server.py:/satellite_server.py
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

@@ -21,7 +21,7 @@ clean:
 	@sh temp/clean.sh
 
 compile_grpc_python:
-	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
+	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./satellite/proto/client.proto
 
 coordinator:
 # Run the coordinator

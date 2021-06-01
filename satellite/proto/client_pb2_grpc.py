@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from proto import client_pb2 as proto_dot_client__pb2
+from satellite.proto import client_pb2 as satellite_dot_proto_dot_client__pb2
 
 
 class ClientStub(object):
@@ -17,83 +17,83 @@ class ClientStub(object):
         """
         self.CreateKeygroup = channel.unary_unary(
                 '/mcc.fred.client.Client/CreateKeygroup',
-                request_serializer=proto_dot_client__pb2.CreateKeygroupRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.CreateKeygroupRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.DeleteKeygroup = channel.unary_unary(
                 '/mcc.fred.client.Client/DeleteKeygroup',
-                request_serializer=proto_dot_client__pb2.DeleteKeygroupRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.DeleteKeygroupRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.Read = channel.unary_unary(
                 '/mcc.fred.client.Client/Read',
-                request_serializer=proto_dot_client__pb2.ReadRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.ReadResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.ReadRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.ReadResponse.FromString,
                 )
         self.Update = channel.unary_unary(
                 '/mcc.fred.client.Client/Update',
-                request_serializer=proto_dot_client__pb2.UpdateRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.UpdateRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.Delete = channel.unary_unary(
                 '/mcc.fred.client.Client/Delete',
-                request_serializer=proto_dot_client__pb2.DeleteRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.DeleteRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.Append = channel.unary_unary(
                 '/mcc.fred.client.Client/Append',
-                request_serializer=proto_dot_client__pb2.AppendRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.AppendResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.AppendRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.AppendResponse.FromString,
                 )
         self.AddReplica = channel.unary_unary(
                 '/mcc.fred.client.Client/AddReplica',
-                request_serializer=proto_dot_client__pb2.AddReplicaRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.AddReplicaRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.GetKeygroupReplica = channel.unary_unary(
                 '/mcc.fred.client.Client/GetKeygroupReplica',
-                request_serializer=proto_dot_client__pb2.GetKeygroupReplicaRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.GetKeygroupReplicaResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaResponse.FromString,
                 )
         self.RemoveReplica = channel.unary_unary(
                 '/mcc.fred.client.Client/RemoveReplica',
-                request_serializer=proto_dot_client__pb2.RemoveReplicaRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.RemoveReplicaRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.GetReplica = channel.unary_unary(
                 '/mcc.fred.client.Client/GetReplica',
-                request_serializer=proto_dot_client__pb2.GetReplicaRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.GetReplicaResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.GetReplicaRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.GetReplicaResponse.FromString,
                 )
         self.GetAllReplica = channel.unary_unary(
                 '/mcc.fred.client.Client/GetAllReplica',
-                request_serializer=proto_dot_client__pb2.GetAllReplicaRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.GetAllReplicaResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.GetAllReplicaRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.GetAllReplicaResponse.FromString,
                 )
         self.GetKeygroupTriggers = channel.unary_unary(
                 '/mcc.fred.client.Client/GetKeygroupTriggers',
-                request_serializer=proto_dot_client__pb2.GetKeygroupTriggerRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.GetKeygroupTriggerResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerResponse.FromString,
                 )
         self.AddTrigger = channel.unary_unary(
                 '/mcc.fred.client.Client/AddTrigger',
-                request_serializer=proto_dot_client__pb2.AddTriggerRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.AddTriggerRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.RemoveTrigger = channel.unary_unary(
                 '/mcc.fred.client.Client/RemoveTrigger',
-                request_serializer=proto_dot_client__pb2.RemoveTriggerRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.RemoveTriggerRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.AddUser = channel.unary_unary(
                 '/mcc.fred.client.Client/AddUser',
-                request_serializer=proto_dot_client__pb2.UserRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.UserRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
         self.RemoveUser = channel.unary_unary(
                 '/mcc.fred.client.Client/RemoveUser',
-                request_serializer=proto_dot_client__pb2.UserRequest.SerializeToString,
-                response_deserializer=proto_dot_client__pb2.StatusResponse.FromString,
+                request_serializer=satellite_dot_proto_dot_client__pb2.UserRequest.SerializeToString,
+                response_deserializer=satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
                 )
 
 
@@ -202,83 +202,83 @@ def add_ClientServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateKeygroup': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateKeygroup,
-                    request_deserializer=proto_dot_client__pb2.CreateKeygroupRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.CreateKeygroupRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'DeleteKeygroup': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteKeygroup,
-                    request_deserializer=proto_dot_client__pb2.DeleteKeygroupRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.DeleteKeygroupRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'Read': grpc.unary_unary_rpc_method_handler(
                     servicer.Read,
-                    request_deserializer=proto_dot_client__pb2.ReadRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.ReadResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.ReadRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.ReadResponse.SerializeToString,
             ),
             'Update': grpc.unary_unary_rpc_method_handler(
                     servicer.Update,
-                    request_deserializer=proto_dot_client__pb2.UpdateRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.UpdateRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'Delete': grpc.unary_unary_rpc_method_handler(
                     servicer.Delete,
-                    request_deserializer=proto_dot_client__pb2.DeleteRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.DeleteRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'Append': grpc.unary_unary_rpc_method_handler(
                     servicer.Append,
-                    request_deserializer=proto_dot_client__pb2.AppendRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.AppendResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.AppendRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.AppendResponse.SerializeToString,
             ),
             'AddReplica': grpc.unary_unary_rpc_method_handler(
                     servicer.AddReplica,
-                    request_deserializer=proto_dot_client__pb2.AddReplicaRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.AddReplicaRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'GetKeygroupReplica': grpc.unary_unary_rpc_method_handler(
                     servicer.GetKeygroupReplica,
-                    request_deserializer=proto_dot_client__pb2.GetKeygroupReplicaRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.GetKeygroupReplicaResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaResponse.SerializeToString,
             ),
             'RemoveReplica': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveReplica,
-                    request_deserializer=proto_dot_client__pb2.RemoveReplicaRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.RemoveReplicaRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'GetReplica': grpc.unary_unary_rpc_method_handler(
                     servicer.GetReplica,
-                    request_deserializer=proto_dot_client__pb2.GetReplicaRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.GetReplicaResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.GetReplicaRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.GetReplicaResponse.SerializeToString,
             ),
             'GetAllReplica': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllReplica,
-                    request_deserializer=proto_dot_client__pb2.GetAllReplicaRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.GetAllReplicaResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.GetAllReplicaRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.GetAllReplicaResponse.SerializeToString,
             ),
             'GetKeygroupTriggers': grpc.unary_unary_rpc_method_handler(
                     servicer.GetKeygroupTriggers,
-                    request_deserializer=proto_dot_client__pb2.GetKeygroupTriggerRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.GetKeygroupTriggerResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerResponse.SerializeToString,
             ),
             'AddTrigger': grpc.unary_unary_rpc_method_handler(
                     servicer.AddTrigger,
-                    request_deserializer=proto_dot_client__pb2.AddTriggerRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.AddTriggerRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'RemoveTrigger': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveTrigger,
-                    request_deserializer=proto_dot_client__pb2.RemoveTriggerRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.RemoveTriggerRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'AddUser': grpc.unary_unary_rpc_method_handler(
                     servicer.AddUser,
-                    request_deserializer=proto_dot_client__pb2.UserRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.UserRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
             'RemoveUser': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveUser,
-                    request_deserializer=proto_dot_client__pb2.UserRequest.FromString,
-                    response_serializer=proto_dot_client__pb2.StatusResponse.SerializeToString,
+                    request_deserializer=satellite_dot_proto_dot_client__pb2.UserRequest.FromString,
+                    response_serializer=satellite_dot_proto_dot_client__pb2.StatusResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -303,8 +303,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/CreateKeygroup',
-            proto_dot_client__pb2.CreateKeygroupRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.CreateKeygroupRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -320,8 +320,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/DeleteKeygroup',
-            proto_dot_client__pb2.DeleteKeygroupRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.DeleteKeygroupRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -337,8 +337,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/Read',
-            proto_dot_client__pb2.ReadRequest.SerializeToString,
-            proto_dot_client__pb2.ReadResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.ReadRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.ReadResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -354,8 +354,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/Update',
-            proto_dot_client__pb2.UpdateRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.UpdateRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -371,8 +371,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/Delete',
-            proto_dot_client__pb2.DeleteRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.DeleteRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -388,8 +388,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/Append',
-            proto_dot_client__pb2.AppendRequest.SerializeToString,
-            proto_dot_client__pb2.AppendResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.AppendRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.AppendResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -405,8 +405,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/AddReplica',
-            proto_dot_client__pb2.AddReplicaRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.AddReplicaRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -422,8 +422,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/GetKeygroupReplica',
-            proto_dot_client__pb2.GetKeygroupReplicaRequest.SerializeToString,
-            proto_dot_client__pb2.GetKeygroupReplicaResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.GetKeygroupReplicaResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -439,8 +439,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/RemoveReplica',
-            proto_dot_client__pb2.RemoveReplicaRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.RemoveReplicaRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -456,8 +456,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/GetReplica',
-            proto_dot_client__pb2.GetReplicaRequest.SerializeToString,
-            proto_dot_client__pb2.GetReplicaResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.GetReplicaRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.GetReplicaResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -473,8 +473,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/GetAllReplica',
-            proto_dot_client__pb2.GetAllReplicaRequest.SerializeToString,
-            proto_dot_client__pb2.GetAllReplicaResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.GetAllReplicaRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.GetAllReplicaResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -490,8 +490,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/GetKeygroupTriggers',
-            proto_dot_client__pb2.GetKeygroupTriggerRequest.SerializeToString,
-            proto_dot_client__pb2.GetKeygroupTriggerResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.GetKeygroupTriggerResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -507,8 +507,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/AddTrigger',
-            proto_dot_client__pb2.AddTriggerRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.AddTriggerRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -524,8 +524,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/RemoveTrigger',
-            proto_dot_client__pb2.RemoveTriggerRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.RemoveTriggerRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -541,8 +541,8 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/AddUser',
-            proto_dot_client__pb2.UserRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.UserRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -558,7 +558,7 @@ class Client(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/mcc.fred.client.Client/RemoveUser',
-            proto_dot_client__pb2.UserRequest.SerializeToString,
-            proto_dot_client__pb2.StatusResponse.FromString,
+            satellite_dot_proto_dot_client__pb2.UserRequest.SerializeToString,
+            satellite_dot_proto_dot_client__pb2.StatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
