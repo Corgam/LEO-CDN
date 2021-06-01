@@ -1,4 +1,8 @@
-# Number of planes
-...
-# Number of satellties in each plane
-...
+# Main config for LEO-CDN Project
+# Change this file before you run `make setup`
+
+title = "LEO-CDN Config"
+
+[satellites]
+amount = 8
+
