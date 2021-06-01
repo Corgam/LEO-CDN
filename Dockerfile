@@ -12,9 +12,8 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./simulation /simulation
 
-COPY ./simulation.py /simulation.py
-COPY ./keygroup_areas.py /keygroup_areas.py
+COPY ./simulation_with_h3.py /simulation_with_h3.py
 COPY ./keygroup_passer.py /keygroup_passer.py
 COPY ./proto /proto
 
-CMD ["python", "simulation.py"]
+CMD ["python", "simulation_with_h3.py"]
