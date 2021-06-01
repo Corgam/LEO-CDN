@@ -4,17 +4,16 @@ RUN apt update && \
     apt install -y libgrpc-dev && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./requirements-coordinator.txt /requirements-coordinator.txt
+COPY ./coordinator/requirements-coordinator.txt /requirements-coordinator.txt
 RUN pip install -r /requirements-coordinator.txt
 
-COPY ./coordinator_server.py /coordinator_server.py
+COPY ./coordinator /coordinator
 
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
-COPY ./simulation /simulation
+COPY ./satellite /satellite
+COPY ./satellite/manage_keygroups.py /manage_keygroups.py
+COPY ./common/cert/ /common/cert/
 
-COPY ./simulation_with_h3.py /simulation_with_h3.py
-COPY ./proto /proto
-
-CMD ["python", "coordinator_server.py", "simulation_with_h3.py"]
+CMD ["python", "coordinator/coordinator_server.py", "coordinator/simulation_with_h3.py"]

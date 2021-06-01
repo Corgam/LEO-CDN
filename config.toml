@@ -4,5 +4,5 @@
 title = "LEO-CDN Config"
 
 [satellites]
-amount = 8
-
+planes = 1
+satellites_per_plane = 8

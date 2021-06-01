@@ -14,7 +14,10 @@ import toml
 with open("./config.toml") as f:
     config = toml.load(f)
 # Number of nodes to generate
-nodes = config["satellites"]["amount"]
+planes = config["satellites"]["planes"]
+satellite_per_planes = config["satellites"]["satellites_per_plane"]
+# TODO: this +1 is for the simulation because atm it requires to init all keygroups in the beginning -> change this
+nodes = planes * satellite_per_planes + 1
 
 # Create temp directory
 print("Creating temp directory...")
@@ -67,9 +70,9 @@ with open("common/templates/satelliteX.yaml.jinja2") as file_:
     node_template = Template(file_.read())
 
 for x in range(nodes):
-    node_IP = f"172.26.{x+7}.1"
-    store_IP = f"172.26.{x+7}.2"
-    server_IP = f"172.26.{x+7}.3"
+    node_IP = f"172.26.{x + 7}.1"
+    store_IP = f"172.26.{x + 7}.2"
+    server_IP = f"172.26.{x + 7}.3"
     node_name = f"fred{x}"
     store_name = f"store{x}"
     server_name = f"satellite{x}"
@@ -96,7 +99,6 @@ for x in range(nodes):
 # Create a list of node names
 node_names = [f"satellite{x}" for x in range(nodes)]
 
-
 # Generate start script
 with open("common/templates/run-nodes.sh.jinja2") as file_:
     run_script_template = Template(file_.read())
@@ -106,7 +108,6 @@ run_script = run_script_template.render(node_names=node_names)
 with open(f"./temp/run-nodes.sh", "w") as f:
     f.write(run_script)
 
-
 # Generate clean script
 with open("common/templates/clean.sh.jinja2") as file_:
     clean_script_template = Template(file_.read())
@@ -115,7 +116,6 @@ clean_script = clean_script_template.render(node_names=node_names)
 
 with open(f"./temp/clean.sh", "w") as f:
     f.write(clean_script)
-
 
 ###############
 ## JSON file ##
@@ -131,6 +131,7 @@ with open("./temp/freds.json", "w") as f:
 for x in range(nodes):
     with open(f"./temp/satellite{x}.json", "w") as f:
         nodes_config = {
-            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001, "fred": f"fred{x}"}
+            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001,
+                              "fred": f"fred{x}"}
         }
         json.dump(nodes_config, f, indent=4)

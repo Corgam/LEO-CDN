@@ -2,24 +2,23 @@ import json
 import h3
 import matplotlib.pyplot as plt
 import numpy as np
+import toml
 
-import keygroup_passer
-from simulation.constellation import Constellation
+from satellite.manage_keygroups import *
+from constellation import Constellation
 
 EARTH_RADIUS = 6371000  # in meter
 ALTITUDE = 550  # Orbit Altitude (Km)
 
 semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
-number_of_planes = 1
-nodes_per_plane = 8
+# Load the config
+with open("./config.toml") as f:
+    config = toml.load(f)
+
+number_of_planes = config["satellites"]["planes"]
+nodes_per_plane = config["satellites"]["satellites_per_plane"]
 
 last_node = number_of_planes * nodes_per_plane  # for node that creates all keygroups
-
-# Loading node configurations
-with open("./nodes.json") as f:
-    node_configs = json.load(f)
-
-nodes = [key for key in node_configs.keys()]
 
 print(f"Initialize all keygroups:")
 h3_center_address = h3.geo_to_h3(0, 0, 0) # lat, lng, hex resolution
@@ -32,7 +31,7 @@ for ring in all_keygroup_areas_as_ring:
     ring_as_dict_for_color_code = {k: v for v, k in enumerate(ring)}
     keygroups_color_codes.update(ring_as_dict_for_color_code)
     for area in ring:
-        keygroup_passer.create_keygroup(f"node{last_node}", area)
+        create_keygroup(f"satellite{last_node}", area)
 
 print(f"[simulation_with_h3]: Initialize simulation")
 constellation = Constellation(number_of_planes=number_of_planes,

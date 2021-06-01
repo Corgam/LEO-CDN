@@ -1,12 +1,8 @@
 # Loading node configurations
 import json
+
 from satellite.proto import client_pb2, client_pb2_grpc
 import grpc
-
-with open("./common/cert/nodes.json") as f:
-    node_configs = json.load(f)
-
-nodes = [key for key in node_configs.keys()]
 
 # Loading certificates
 with open("./common/cert/client.crt", "rb") as f:
@@ -48,8 +44,11 @@ def create_keygroup(target_node, keygroup, mutable=True, expiry=0):
         1 means error and 0 means OK.
     """
     print(f"Initializing {keygroup=} at {target_node=}...")
+    with open(f"/{target_node}.json") as f:
+        node_configs = json.load(f)
+
     node_cfg = node_configs[target_node]
-    target = f"{node_cfg['host']}:{node_cfg['port']}"
+    target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         status_response = stub.CreateKeygroup(
@@ -76,8 +75,11 @@ def add_replica_node_to_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Adding {target_node=} to {keygroup=}...")
+    with open(f"/{target_node}.json") as f:
+        node_configs = json.load(f)
+
     node_cfg = node_configs[target_node]
-    target = f"{node_cfg['host']}:{node_cfg['port']}"
+    target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         status_response = stub.AddReplica(
@@ -104,8 +106,11 @@ def remove_replica_node_from_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Removing {target_node=} from {keygroup=}...")
+    with open(f"/{target_node}.json") as f:
+        node_configs = json.load(f)
+
     node_cfg = node_configs[target_node]
-    target = f"{node_cfg['host']}:{node_cfg['port']}"
+    target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
         status_response = stub.RemoveReplica(
