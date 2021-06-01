@@ -51,7 +51,7 @@ def best_satellite(ground_station_id):
 
 
 def run_server():
-    app.run(host="172.26.5.1", port=9001)
+    app.run(host="172.26.4.1 ", port=9001)
 
 
 # Main function

@@ -24,15 +24,7 @@ compile_grpc_python:
 	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./satellite/proto/client.proto
 
 coordinator:
-# Run the coordinator
-	@! docker ps -a | grep coordinator || docker container rm coordinator -f
-	@docker build -f ./coordinator/coordinator.Dockerfile -t coordinator .
-	@docker run -it \
-		--name coordinator \
-		--network=fredwork \
-		--ip=172.26.5.1 \
-		coordinator
-# Run the simulation
+# Run the coordinator and the simulation
 	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
 	@mkdir -p output/frames
 	@rm -rf output/frames/*
