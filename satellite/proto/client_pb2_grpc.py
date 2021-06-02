@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from satellite.proto import client_pb2 as satellite_dot_proto_dot_client__pb2
+from proto import client_pb2 as satellite_dot_proto_dot_client__pb2
 
 
 class ClientStub(object):

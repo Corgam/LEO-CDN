@@ -65,13 +65,11 @@ services:
     image: satellite:local
     container_name: {{ server_name }}
     volumes:
-      - ../temp/{{ server_name }}.crt:/cert/client.crt
-      - ../temp/{{ server_name }}.key:/cert/client.key
-      - ../common/cert/ca.crt:/cert/ca.crt
-      - ../common/proto:/proto
-      - ../temp/nodes.json:/info/nodes.json
-      - ../temp/{{ server_name }}.json:/info/node.json
-      - /satellite_server.py:/satellite_server.py
+      - ../../temp/{{ server_name }}.crt:/cert/client.crt
+      - ../../temp/{{ server_name }}.key:/cert/client.key
+      - ../../common/cert/ca.crt:/cert/ca.crt
+      - ../../temp/freds.json:/info/nodes.json
+      - ../../temp/{{ server_name }}.json:/info/node.json
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

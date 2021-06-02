@@ -15,12 +15,14 @@ BASE_URL = "http://172.26.8.3:5000"
 
 KEYGROUPS = BASE_URL + "/getKeygroups"
 INIT = BASE_URL + "/initializeKeygroup"
-ADD_DATA = BASE_URL + "/addData/test/testid"
+ADD_DATA = BASE_URL + "/setData/test/testid"
 GETVALUE = BASE_URL + "/getValue/testid"
+GETVALUE2 = BASE_URL + "/getValue/manage/addresses"
 
 LOCATION = BASE_URL + "/getLocation"
 SETLOCATION = BASE_URL + "/setLocation"
 POSITIONS = BASE_URL + "/positions"
+TESTURL = BASE_URL + "/flask/example/19420/catch-all-route"
 
 class HTTPRequest:
     """
@@ -193,33 +195,48 @@ if __name__ == "__main__":
     print('Get node1 location..')
     r = requests.get(url=LOCATION)
 
-    position = None
-    if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
-        print(r.text)
-        # Change coordinates
-        position = json.loads(r.text.replace("'", '"'))
-        position["x"] += 1
-        position["y"] += 1
-        position["z"] += 1
+    # position = None
+    # if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
+    #     print(r.text)
+    #     # Change coordinates
+    #     position = json.loads(r.text.replace("'", '"'))
+    #     position["x"] += 1
+    #     position["y"] += 1
+    #     position["z"] += 1
 
-    else:
-        print('error')
+    # else:
+    #     print('error')
         
+    # print('-------------------------')
+
+    # if not position == None:
+    #     # Changes position of node 1
+    #     print('Change position..')
+    #     r = requests.post(url=SETLOCATION, data=json.dumps(position))
+
+    #     # print response
+    #     print(r.text)
+    #     print('')
+    #     print('-------------------------')
+
+    #     # Get latest position of node 1
+    #     print('Get all positions..')
+    #     r = requests.get(url=POSITIONS)
+
+    #     # print response
+    #     print(r.text)
+
+    ###################
+    ##  Random test  ##
+    ###################
+
+    headers = {'host': 'http://riptutorial.com'}
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
     print('-------------------------')
 
-    if not position == None:
-        # Changes position of node 1
-        print('Change position..')
-        r = requests.post(url=SETLOCATION, data=json.dumps(position))
-
-        # print response
-        print(r.text)
-        print('')
-        print('-------------------------')
-
-        # Get latest position of node 1
-        print('Get all positions..')
-        r = requests.get(url=POSITIONS)
-
-        # print response
-        print(r.text)
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
+    print('-------------------------')
