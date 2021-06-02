@@ -7,10 +7,11 @@ import sys
 import requests
 import os
 import logging
+import hashlib
 
 app = Flask(__name__)
 
-keygroups = [] # Keygroups the satellite manages
+keygroups = ["manage"] # Keygroups the satellite manages
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -35,43 +36,47 @@ nodes = [key for key in node_configs.keys()]
 # Initializes the keygroup
 def init_keygroup(kg):
     print(f"Initializing {kg} at {name}...")
-    with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = client_pb2_grpc.ClientStub(channel)
-        try:
-            response = stub.CreateKeygroup(
-                client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
-            )
-            keygroups.append(kg)
-            print(f'giving {name} permission')
-            give_user_permissions(name, kg, 4)
-            print('gave permission')
-            return True
-        except:
-            return False
+    stub = client_pb2_grpc.ClientStub(channel)
+    try:
+        response = stub.CreateKeygroup(
+            client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
+        )
+        keygroups.append(kg)
+        print(f'giving {name} permission')
+        give_user_permissions(name, kg, 4)
+        print('gave permission')
+        return True
+    except:
+        return False
 
 # Adds data to a keygroup
 def set_data(kg, key, value):
     print(f"Adding {key}:{value} to {kg}...")
-    with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = client_pb2_grpc.ClientStub(channel)
+    stub = client_pb2_grpc.ClientStub(channel)
+    try:
         response = stub.Update(
             client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
         )
         print(response)
+    except Exception as e:
+        response = read_file_from_node(kg, key)
+        if response:
+            cur_data = json.loads(response.data)
+            cur_data.append(value)
+            set_data(kg, key, json.dumps(cur_data))
 
 # Adds node to the keygroup
 def add_node_to_keygroup(kg, node, satellite):
     print(f"Adding {node} to {kg}...")
     try:
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-            )
-            print(response)
-            give_user_permissions(node, kg, 4)
-            give_user_permissions(satellite, kg, 4)
-            return True
+        stub = client_pb2_grpc.ClientStub(channel)
+        response = stub.AddReplica(
+            client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
+        )
+        print(response)
+        give_user_permissions(node, kg, 4)
+        give_user_permissions(satellite, kg, 4)
+        return True
     except Exception as e:
         print(e)
         return False
@@ -79,12 +84,11 @@ def add_node_to_keygroup(kg, node, satellite):
 def node_to_keygroup(kg, node):
     print(f"Adding {node} to {kg}...")
     try:
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-            )
-            return str(response)
+        stub = client_pb2_grpc.ClientStub(channel)
+        response = stub.AddReplica(
+            client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
+        )
+        return str(response)
     except Exception as e:
         print(e)
         return str(e)
@@ -92,24 +96,22 @@ def node_to_keygroup(kg, node):
 # Removes node from the keygroup
 def remove_node_from_keygroup(kg, node):
     print(f"Removing {name} from {kg}...")
-    with grpc.secure_channel(target, credentials=creds) as channel:
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.RemoveReplica(
-            client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=node)
-        )
-        print(response)
+    stub = client_pb2_grpc.ClientStub(channel)
+    response = stub.RemoveReplica(
+        client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=node)
+    )
+    print(response)
 
 # Reads file
 def read_file_from_node(keygroup, file_id):
     try:
         print(f"Reading {file_id=} in {keygroup=} from {name=}...")
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.Read(
-                client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-            )
-            print(response)
-            return response
+        stub = client_pb2_grpc.ClientStub(channel)
+        response = stub.Read(
+            client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+        )
+        print(response)
+        return response
     except Exception as e:
         # if file does not exist an error is raised
         # return str(e)
@@ -120,12 +122,11 @@ def read_file(file_id):
     for keygroup in keygroups:
         try:
             print(f"Reading {file_id=} in {keygroup=} from {name=}...")
-            with grpc.secure_channel(target, credentials=creds) as channel:
-                stub = client_pb2_grpc.ClientStub(channel)
-                response = stub.Read(
-                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-                )
-                return str(response)
+            stub = client_pb2_grpc.ClientStub(channel)
+            response = stub.Read(
+                client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+            )
+            return str(response)
         except:
             # if file does not exist an error is raised
             continue
@@ -134,12 +135,11 @@ def read_file(file_id):
 
 def add_role(user, keygroup, role):
     try:
-        with grpc.secure_channel(target, credentials=creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.AddUser(
-                client_pb2.UserRequest(
-                    user=user, keygroup=keygroup, role=role)
-            )
+        stub = client_pb2_grpc.ClientStub(channel)
+        response = stub.AddUser(
+            client_pb2.UserRequest(
+                user=user, keygroup=keygroup, role=role)
+        )
         return str(response)
     except Exception as e:
         return str(e)
@@ -156,9 +156,10 @@ def join_managing_keygroups():
     if not success:
         print('"manage" keygroup already exists. Trying to join...')
         try:
+            node_to_keygroup("manage", fred)
             append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
         except:
-            print("Was not to the keygroup yet...")
+            print("Was not in the keygroup yet...")
             for node in nodes:
                 print("Try to add to keygroup...")
                 curr = node_configs[node]
@@ -172,6 +173,7 @@ def join_managing_keygroups():
                 r = requests.post(url=base_url+"/addToKeygroup/manage", data=json.dumps(data))
                 if r.status_code == 200:
                     print("Should be done?")
+                    node_to_keygroup("manage", fred)
                     append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
                     break
     else:
@@ -291,7 +293,10 @@ def appendData(keygroup, key):
 def getLocation():
     positions = read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
-    return str(pos[name])
+    for entry in pos:
+        if list(entry.keys())[0] == fred:
+            return json.dumps(entry)
+    
 
 
 @app.route('/setLocation', methods=['POST'])
@@ -343,7 +348,24 @@ def addSatellite():
         add_node_to_keygroup(kg, data['node'], data['satellite'])
     return str(True)
 
+
+@app.route('/', defaults={'u_path': ''})
+@app.route('/<path:u_path>')
+def catch_all(u_path):
+    link = request.headers.get('host') + "/" + u_path
+    md5 = hashlib.md5(link.encode()).hexdigest()
+    saved = read_file(md5)
+    if saved == "":
+        r = requests.get(url=link)
+        set_data("manage", md5, r.text)
+        print(f"added new key: {md5}")
+        return r.text
+    else:
+        print(f"key: {md5} in keygroup manage found")
+        return saved
+
 if __name__ == '__main__':
+
     # Loading certificates
     with open("/cert/client.crt", "rb") as f:
         client_crt = f.read()
@@ -359,6 +381,8 @@ if __name__ == '__main__':
         private_key=client_key,
         root_certificates=ca_crt,
     )
+
+    channel = grpc.secure_channel(target, credentials=creds)
     exist = False
     
     try:
