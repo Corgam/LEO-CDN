@@ -3,7 +3,7 @@
 ######################
 
 from flask import Flask, jsonify, request
-
+import toml
 from coordinator import Constellation
 
 app = Flask(__name__)
@@ -14,8 +14,12 @@ ground_stations = {
     "gst-2": [7, 8, 9]
 }
 
-number_of_planes = 1
-nodes_per_plane = 8
+# Load the config
+with open("./config.toml") as f:
+    config = toml.load(f)
+# Number of nodes to generate
+number_of_planes = config["satellites"]["planes"]
+nodes_per_plane = config["satellites"]["satellites_per_plane"]
 constellation = Constellation(number_of_planes=number_of_planes, nodes_per_plane=nodes_per_plane)
 
 for key in ground_stations:
@@ -50,11 +54,6 @@ def best_satellite(ground_station_id):
         return "<p>Error - wrong method!</p>"
 
 
-def run_server():
-    app.run(host="172.26.4.1 ", port=9001)
-
-
 # Main function
 if __name__ == '__main__':
-    # app.run(host="172.26.5.1", port=9001)
-    run_server()
+    app.run(debug=True, host="172.26.4.1", port=9001)

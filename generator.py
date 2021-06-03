@@ -17,7 +17,7 @@ with open("./config.toml") as f:
 planes = config["satellites"]["planes"]
 satellite_per_planes = config["satellites"]["satellites_per_plane"]
 # TODO: this +1 is for the simulation because atm it requires to init all keygroups in the beginning -> change this
-nodes = planes * satellite_per_planes + 1
+nodes = planes * satellite_per_planes +1
 
 # Create temp directory
 print("Creating temp directory...")

@@ -195,7 +195,7 @@ class Satellite:
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
 
-        status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
+        status_response = create_keygroup(target_node=target_node, keygroup=keygroup_name)
 
         if status_response.status == 1 or status_response == 2:
             print(f"Oh no. Something went wrong.")

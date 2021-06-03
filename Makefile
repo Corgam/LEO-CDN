@@ -31,11 +31,14 @@ coordinator:
 	@docker build -f ./coordinator/coordinator.Dockerfile -t leo-cdn-simulation .
 	@docker run -it \
 		--name leo-cdn-simulation \
-		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \
-		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \
-		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
-    -v $(CURDIR)/temp/nodes.json:/nodes.json \
+		-v $(CURDIR)/common/cert/keygroupPasser.crt:/common/cert/client.crt \
+		-v $(CURDIR)/common/cert/keygroupPasser.key:/common/cert/client.key \
+		-v $(CURDIR)/common/cert/ca.crt:/cert/ca.crt \
+    	-v $(CURDIR)/temp/freds.json:/nodes.json \
 		-v $(CURDIR)/output/:/output \
+		-v $(CURDIR)/satellite/proto:/proto \
+		-v $(CURDIR)/temp/:/temp \
+		-v $(CURDIR)/config.toml:/config.toml \
 		--network=fredwork \
 		--ip=172.26.4.1 \
 		leo-cdn-simulation

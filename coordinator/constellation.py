@@ -14,7 +14,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 import json
 import math
-
+import toml
 import numpy as np
 from PyAstronomy import pyasl
 
@@ -121,13 +121,14 @@ class Constellation:
             )
             list_of_kepler_ellipse.append(ellipse)
 
+
         for plane in range(0, self.number_of_planes):
             for node in range(0, self.nodes_per_plane):
                 ellipse = list_of_kepler_ellipse[plane]
                 # calculate the KE solver time offset
                 offset = time_offsets[node] + phase_offsets[plane]
                 satellite_number = (plane * self.nodes_per_plane) + node
-                with open(f"./temp/satellite{satellite_number}") as f:
+                with open(f"./temp/satellite{satellite_number}.json") as f:
                     node_configs = json.load(f)
                 node_configs = node_configs[f"satellite{satellite_number}"]
                 new_satellite = Satellite(
@@ -311,8 +312,13 @@ if __name__ == "__main__":
     This was just for testing purposes to check whether the satellites move correctly.
     """
     semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
-    number_of_planes = 1
-    nodes_per_plane = 4
+    # Load the config
+    with open("./config.toml") as f:
+        config = toml.load(f)
+    # Number of nodes to generate
+    number_of_planes = config["satellites"]["planes"]
+    nodes_per_plane = config["satellites"]["satellites_per_plane"]
+
     constellation = Constellation(number_of_planes=number_of_planes,
                                   nodes_per_plane=nodes_per_plane,
                                   semi_major_axis=semi_major_axis)

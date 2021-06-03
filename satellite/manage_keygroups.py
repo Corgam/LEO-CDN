@@ -44,7 +44,7 @@ def create_keygroup(target_node, keygroup, mutable=True, expiry=0):
         1 means error and 0 means OK.
     """
     print(f"Initializing {keygroup=} at {target_node=}...")
-    with open(f"/{target_node}.json") as f:
+    with open(f"/temp/{target_node}.json") as f:
         node_configs = json.load(f)
 
     node_cfg = node_configs[target_node]
@@ -75,7 +75,7 @@ def add_replica_node_to_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Adding {target_node=} to {keygroup=}...")
-    with open(f"/{target_node}.json") as f:
+    with open(f"/temp/{target_node}.json") as f:
         node_configs = json.load(f)
 
     node_cfg = node_configs[target_node]
@@ -106,7 +106,7 @@ def remove_replica_node_from_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Removing {target_node=} from {keygroup=}...")
-    with open(f"/{target_node}.json") as f:
+    with open(f"/temp/{target_node}.json") as f:
         node_configs = json.load(f)
 
     node_cfg = node_configs[target_node]
