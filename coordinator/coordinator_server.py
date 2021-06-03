@@ -56,4 +56,4 @@ def best_satellite(ground_station_id):
 
 # Main function
 if __name__ == '__main__':
-    app.run(debug=True, host="172.26.4.1", port=9001)
+    app.run(debug=True, host="172.26.4.1", port=9001, use_reloader=False)
