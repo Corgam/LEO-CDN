@@ -53,6 +53,11 @@ class Satellite:
 
     def __init__(self, name, server, sport, node, nport, fred, kepler_ellipse=None, offset=0):
         self.name = name
+        self.server = server
+        self.sport = sport
+        self.node = node
+        self.nport = nport
+        self.fred = fred
         self.kepler_ellipse = kepler_ellipse
         self.offset = offset
         self.current_time = 0
@@ -61,11 +66,7 @@ class Satellite:
         self.y_position = current_position[1]
         self.z_position = current_position[2]
         self.keygroup = self.init_keygroup()
-        self.server = server
-        self.sport = sport
-        self.node = node
-        self.nport = nport
-        self.fred = fred
+
 
     def set_new_position(self, current_time):
         """
@@ -177,6 +178,7 @@ class Satellite:
 
     def init_keygroup(self, hex_resolution=0):
         """
+        Sets the satellite in the correct initial keygroup.
 
         Parameters
         ----------
@@ -191,11 +193,11 @@ class Satellite:
         keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
 
         print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
-        target_node = self.name
+        target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
 
-        status_response = create_keygroup(target_node=target_node, keygroup=keygroup_name)
+        status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
 
         if status_response.status == 1 or status_response == 2:
             print(f"Oh no. Something went wrong.")
@@ -221,7 +223,7 @@ class Satellite:
         if new_keygroup_name == old_keygroup_name:
             return None
         else:
-            target_node = self.name
+            target_node = self.fred
             print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
             status_response_add = add_replica_node_to_keygroup(target_node=target_node,
                                                                                keygroup=f"{new_keygroup_name}")

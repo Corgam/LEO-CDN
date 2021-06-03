@@ -284,18 +284,12 @@ class Constellation:
 
         """
         for sat in self.list_of_satellites:
-            print(f"{sat.number}: {sat.name}")
+            print(f"{sat.name}")
             print(sat.get_current_position())
 
     def print_current_keygroups(self):
         for sat in self.list_of_satellites:
-            splitted_satellite_name = sat.name.split("_")
-
-            # 0 is the word "satellite"
-            plane = splitted_satellite_name[1]
-            node_number = splitted_satellite_name[2]
-            print(f"{sat.number}: satellite number {node_number} of plane {plane}")
-            print(sat.keygroup)
+            print(f"{sat.name} is in {sat.keygroup}")
 
     def get_all_satellites(self):
         """
@@ -305,34 +299,3 @@ class Constellation:
 
         """
         return self.list_of_satellites
-
-
-if __name__ == "__main__":
-    """
-    This was just for testing purposes to check whether the satellites move correctly.
-    """
-    semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
-    # Load the config
-    with open("./config.toml") as f:
-        config = toml.load(f)
-    # Number of nodes to generate
-    number_of_planes = config["satellites"]["planes"]
-    nodes_per_plane = config["satellites"]["satellites_per_plane"]
-
-    constellation = Constellation(number_of_planes=number_of_planes,
-                                  nodes_per_plane=nodes_per_plane,
-                                  semi_major_axis=semi_major_axis)
-
-    print("======== initialized position =======")
-    constellation.print_current_position()
-
-    steps = 5
-    step_length = 1
-
-    for step in range(1, steps):
-        next_time = step * step_length
-
-        constellation.update_position(time=next_time)
-        all_satellites = constellation.get_all_satellites()
-        print(f"======= updated position {step} =======")
-        constellation.print_current_position()

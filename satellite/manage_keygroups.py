@@ -1,5 +1,6 @@
 # Loading node configurations
 import json
+import toml
 
 from satellite.proto import client_pb2, client_pb2_grpc
 import grpc
@@ -20,7 +21,36 @@ creds = grpc.ssl_channel_credentials(
     root_certificates=ca_crt,
 )
 
-# TODO connect this pls with the server and change in satellite.py the calls accordingly
+# Load the config
+with open("./config.toml") as f:
+    config = toml.load(f)
+
+# Number of nodes to generate
+number_of_planes = config["satellites"]["planes"]
+nodes_per_plane = config["satellites"]["satellites_per_plane"]
+
+last_node = number_of_planes * nodes_per_plane  # for node that creates all keygroups
+
+keygroup_manager = f"satellite{last_node}"
+with open(f"/temp/{keygroup_manager}.json") as f:
+    node_configs = json.load(f)
+
+# node configs of the keygroup manager
+#  we currently only have one keygroup manager
+node_cfg = node_configs[keygroup_manager]
+
+
+# TODO: connect this pls with the server and change in satellite.py the calls accordingly
+def get_all_existing_replica_nodes():
+    print("Retrieving all replica nodes: ")
+    target = f"{node_cfg['node']}:{node_cfg['nport']}"
+    with grpc.secure_channel(target, credentials=creds) as channel:
+        stub = client_pb2_grpc.ClientStub(channel)
+        status_response = stub.GetAllReplica(
+            client_pb2.GetAllReplicaRequest()
+        )
+    print(status_response)
+
 
 def create_keygroup(target_node, keygroup, mutable=True, expiry=0):
     """
@@ -44,10 +74,6 @@ def create_keygroup(target_node, keygroup, mutable=True, expiry=0):
         1 means error and 0 means OK.
     """
     print(f"Initializing {keygroup=} at {target_node=}...")
-    with open(f"/temp/{target_node}.json") as f:
-        node_configs = json.load(f)
-
-    node_cfg = node_configs[target_node]
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
@@ -75,10 +101,6 @@ def add_replica_node_to_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Adding {target_node=} to {keygroup=}...")
-    with open(f"/temp/{target_node}.json") as f:
-        node_configs = json.load(f)
-
-    node_cfg = node_configs[target_node]
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
@@ -106,10 +128,6 @@ def remove_replica_node_from_keygroup(target_node, keygroup):
         1 means error and 0 means OK.
     """
     print(f"Removing {target_node=} from {keygroup=}...")
-    with open(f"/temp/{target_node}.json") as f:
-        node_configs = json.load(f)
-
-    node_cfg = node_configs[target_node]
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
