@@ -24,7 +24,8 @@ services:
     --remote-storage-cert /cert/{{ node_name }}.crt \
     --remote-storage-key /cert/{{ node_name }}.key  \
     --trigger-cert /cert/{{ node_name }}.crt \
-    --trigger-key /cert/{{ node_name }}.key"
+    --trigger-key /cert/{{ node_name }}.key \
+    --auth-disable-rbac true"
     environment:
       - LOG_LEVEL
     volumes:
