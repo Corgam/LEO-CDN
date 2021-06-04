@@ -192,7 +192,7 @@ class Satellite:
         lat, lon = self.get_current_geo_position()
         keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
 
-        print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
+        # print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
         target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
@@ -224,11 +224,11 @@ class Satellite:
             return None
         else:
             target_node = self.fred
-            print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
+            # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
             status_response_add = add_replica_node_to_keygroup(target_node=target_node,
                                                                                keygroup=f"{new_keygroup_name}")
             # If adding to a keygroup does not work out create the keygroup.
-            print(f"[satellite.py]: Status response: {status_response_add}")
+            # print(f"[satellite.py]: Status response: {status_response_add}")
             if status_response_add.status == 1 or status_response_add.status == 2:
                 print("Cannot add to keygroup.")
                 print(status_response_add.message)
@@ -237,7 +237,7 @@ class Satellite:
             status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
                                                                                        keygroup=f"{old_keygroup_name}")
 
-            print(f"[satellite.py]: Status response: {status_response_remove}")
+            # print(f"[satellite.py]: Status response: {status_response_remove}")
             # If the satellite cannot be removed from the keygroup
             if status_response_remove.status == 1:
                 print("Cannot remove to keygroup.")

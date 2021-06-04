@@ -16,6 +16,4 @@ COPY ./satellite /satellite
 COPY ./satellite/manage_keygroups.py /manage_keygroups.py
 COPY ./common/cert/ /common/cert/
 
-RUN chmod +x coordinator/execute-coordinator.sh
-
-ENTRYPOINT ["coordinator/execute-coordinator.sh"]
+CMD ["python", "coordinator/setup_simulation.py"]

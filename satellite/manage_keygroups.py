@@ -73,7 +73,7 @@ def create_keygroup(target_node, keygroup, mutable=True, expiry=0):
         It consists of an status and a message if the status is 1.
         1 means error and 0 means OK.
     """
-    print(f"Initializing {keygroup=} at {target_node=}...")
+    # print(f"Initializing {keygroup=} at {target_node=}...")
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
@@ -100,7 +100,7 @@ def add_replica_node_to_keygroup(target_node, keygroup):
         It consists of an status and a message if the status is 1.
         1 means error and 0 means OK.
     """
-    print(f"Adding {target_node=} to {keygroup=}...")
+    # print(f"Adding {target_node=} to {keygroup=}...")
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)
@@ -127,7 +127,7 @@ def remove_replica_node_from_keygroup(target_node, keygroup):
         It consists of an status and a message if the status is 1.
         1 means error and 0 means OK.
     """
-    print(f"Removing {target_node=} from {keygroup=}...")
+    # print(f"Removing {target_node=} from {keygroup=}...")
     target = f"{node_cfg['node']}:{node_cfg['nport']}"
     with grpc.secure_channel(target, credentials=creds) as channel:
         stub = client_pb2_grpc.ClientStub(channel)

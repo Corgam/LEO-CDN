@@ -6,9 +6,8 @@ from flask import Flask, jsonify, request
 import toml
 import simulation_with_h3
 
-print("Server running")
-
 app = Flask(__name__)
+
 
 #########################
 ## HTTP Server Methods ##
@@ -25,7 +24,7 @@ def positions():
 def best_satellite(ground_station_id):
     print(f"Got a HTTP request from {str(ground_station_id)}")
     if request.method == "GET":
-        if ground_station_id not in ground_stations:
+        if ground_station_id not in simulation_with_h3.ground_stations:
             return "Invalid GST ID"
         else:
             satellite = simulation_with_h3.constellation.get_best_satellite(ground_station_id=ground_station_id)
@@ -34,6 +33,6 @@ def best_satellite(ground_station_id):
         return "Error - wrong method!"
 
 
-# Main function
-if __name__ == '__main__':
-    app.run(debug=True, host="172.26.4.1", port=9001)
+def run_server():
+    print("Coordinator server now running")
+    app.run(debug=True, host="172.26.4.1", port=9001, use_reloader=False)

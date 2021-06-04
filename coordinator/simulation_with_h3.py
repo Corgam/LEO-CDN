@@ -1,15 +1,9 @@
 import json
 import h3
-import matplotlib.pyplot as plt
-import numpy as np
 import toml
 
 from satellite.manage_keygroups import *
 from constellation import Constellation
-
-global constellation
-
-print("simulation running")
 
 ground_stations = {
     "gst-0": [1, 2, 3],
@@ -34,8 +28,9 @@ nodes_per_plane = config["satellites"]["satellites_per_plane"]
 
 last_node = number_of_planes * nodes_per_plane  # for node that creates all keygroups
 
-if __name__ == '__main__':
-    print(f"Initialize all keygroups:")
+
+def init():
+    print("[simulation_with_h3]: Initialize all keygroups")
     h3_center_address = h3.geo_to_h3(0, 0, 0)  # lat, lng, hex resolution
     all_keygroup_areas_as_ring = h3.k_ring_distances(h3_center_address, 10)
 
@@ -44,7 +39,8 @@ if __name__ == '__main__':
         for area in ring:
             create_keygroup(f"satellite{last_node}", area)
 
-    print(f"[simulation_with_h3]: Initialize simulation")
+    print("[simulation_with_h3]: Initialize simulation")
+    global constellation
     constellation = Constellation(number_of_planes=number_of_planes,
                                   nodes_per_plane=nodes_per_plane,
                                   semi_major_axis=semi_major_axis)
@@ -56,10 +52,14 @@ if __name__ == '__main__':
                                                  y=position[1],
                                                  z=position[2])
 
+    print("finish initializing")
+
+
+def run_simulation():
     # starting from time step 0
     for step in range(0, steps):
         next_time = step * step_length
 
         constellation.update_position(time=next_time)
-        print(f"At step {step}. These are the current keygroups each satellite belongs to: ")
-        constellation.print_current_keygroups()
+        # print(f"At step {step}. These are the current keygroups each satellite belongs to: ")
+        # constellation.print_current_keygroups()

@@ -118,7 +118,7 @@ def readRequests():
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
 def connectToTheBestSatellite():
     # Communicate with the Coordinator to choose the best satellite.
-    coordConn = http.client.HTTPConnection("172.26.5.1","9001")
+    coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
     coordConn.request(method="GET",url=f"/best_satellite/{GST_ID}")
     # Get the response
     res = coordConn.getresponse()
