@@ -1,3 +1,4 @@
+
 [submodule "FReD"]
 	path = FReD
-	url = https://github.com/OpenFogStack/FReD
+	url = https://github.com/yolibernal/FReD
