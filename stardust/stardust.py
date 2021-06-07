@@ -158,6 +158,10 @@ if __name__ == "__main__":
     # Old functionality, to test press enter
     input("\nPress ENTER to continue and start testing custom HTTP requests")
 
+    r = requests.get(url=GETVALUE2)
+    print(r.text)
+    print('-------------------------')
+
     # Get all keygroups of node 1
     print('Get all keygroups..')
     r = requests.get(url=KEYGROUPS)
@@ -194,37 +198,8 @@ if __name__ == "__main__":
     # Get latest position of node
     print('Get node1 location..')
     r = requests.get(url=LOCATION)
-
-    # position = None
-    # if not r.text.startswith("<!DOCTYPE HTML PUBLIC "):
-    #     print(r.text)
-    #     # Change coordinates
-    #     position = json.loads(r.text.replace("'", '"'))
-    #     position["x"] += 1
-    #     position["y"] += 1
-    #     position["z"] += 1
-
-    # else:
-    #     print('error')
-        
-    # print('-------------------------')
-
-    # if not position == None:
-    #     # Changes position of node 1
-    #     print('Change position..')
-    #     r = requests.post(url=SETLOCATION, data=json.dumps(position))
-
-    #     # print response
-    #     print(r.text)
-    #     print('')
-    #     print('-------------------------')
-
-    #     # Get latest position of node 1
-    #     print('Get all positions..')
-    #     r = requests.get(url=POSITIONS)
-
-    #     # print response
-    #     print(r.text)
+    print(r.text)
+    print('-------------------------')
 
     ###################
     ##  Random test  ##
