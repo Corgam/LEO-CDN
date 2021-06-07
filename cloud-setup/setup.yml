@@ -112,13 +112,9 @@
     - name: Wait for SSH to come up
       wait_for: host={{ address.address }} port=22 delay=10 timeout=60
 
-    - name: Add host to groupname
+    - name: Add host to group
       tags: [ celestial ]
       add_host: hostname={{ address.address }} groupname=new_instances
-
-
-
-
 
 
 - name: Setup our GCP instance
@@ -171,10 +167,13 @@
         delay: 5
         timeout: 300
       when: systemd is changed
-
-    TODO: add permissions for "/celestial/"
-
-
+    
+    - name: Create /celestial directory
+      file:
+        path: /celestial
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "nogroup"
 
 
 - name: Setup Celestial
@@ -192,7 +191,7 @@
         dest: "~"
         rsync_opts:
           - "--exclude=.git"
-
+    
     - name: Copy rootfs
       ansible.posix.synchronize:
         src: microvm/rootfs.ext4
@@ -203,10 +202,10 @@
         src: microvm/hello-vmlinux.bin
         dest: "/celestial/"
 
- #   - name: Copy Celestial to our instance
- #     ansible.builtin.copy:
- #       src: ../celestial
- #       dest: ~/celestial
+#   - name: Copy Celestial to our instance
+#     ansible.builtin.copy:
+#       src: ../celestial
+#       dest: ~/celestial
 
 #    - name: Build Celestial server
 #      community.general.make:
