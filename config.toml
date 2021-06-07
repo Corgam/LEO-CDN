@@ -1,0 +1,8 @@
+# Main config for LEO-CDN Project
+# Change this file before you run `make setup`
+
+title = "LEO-CDN Config"
+
+[satellites]
+planes = 1
+satellites_per_plane = 3
