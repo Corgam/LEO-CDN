@@ -162,3 +162,7 @@ FReD
 temp/
 
 gcp.json
+
+*.ext4
+*.bin
+*.tar.xz

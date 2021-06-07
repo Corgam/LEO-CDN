@@ -55,6 +55,26 @@
 
       register: address
     
+    - name: setup firewall
+      google.cloud.gcp_compute_firewall:
+        name: celestial
+        state: present
+
+        allowed:
+        - ip_protocol: tcp
+          ports:
+          - '1969'
+          - '1970'
+        
+        target_tags:
+        - celestial
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: firewall
+
     - name: Create our instance
       gcp_compute_instance:
         name: celestial-vm
@@ -62,6 +82,10 @@
         
         min_cpu_platform: "Intel Haswell"
         machine_type: "n1-standard-1"
+
+        tags:
+          items:
+          - celestial
 
         disks:
           - auto_delete: true
@@ -93,6 +117,10 @@
       add_host: hostname={{ address.address }} groupname=new_instances
 
 
+
+
+
+
 - name: Setup our GCP instance
   hosts: new_instances
   connection: ssh
@@ -112,6 +140,7 @@
           - acl
           - rsync
           - git
+          - ufw
         state: latest
       
     - name: Give user access to kvm
@@ -143,6 +172,11 @@
         timeout: 300
       when: systemd is changed
 
+    TODO: add permissions for "/celestial/"
+
+
+
+
 - name: Setup Celestial
   hosts: new_instances
   connection: ssh
@@ -158,6 +192,16 @@
         dest: "~"
         rsync_opts:
           - "--exclude=.git"
+
+    - name: Copy rootfs
+      ansible.posix.synchronize:
+        src: microvm/rootfs.ext4
+        dest: "/celestial/"
+
+    - name: Copy kernel
+      ansible.posix.synchronize:
+        src: microvm/hello-vmlinux.bin
+        dest: "/celestial/"
 
  #   - name: Copy Celestial to our instance
  #     ansible.builtin.copy:
