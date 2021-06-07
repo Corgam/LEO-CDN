@@ -14,13 +14,10 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 ## Run Simulation
 
-1. Run `make generate_nodes n=<int>` (e.g. `make generate_nodes n=3` for generating 3 nodes)
-2. Run `make run_nodes`
+1. (Optional) Change the config file to your liking
+2. Run `make setup`
 3. Run `make coordinator`
 4. Run `make stardust`
-5. Run `make run_tester`
-
-Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
 
 ## Generator.py
 
