@@ -1,2 +1,5 @@
 GET /flask/example/19420/catch-all-route HTTP/1.1
 Host: http://riptutorial.com
+
+GET /quaternions HTTP/1.1
+Host: http://eater.net/

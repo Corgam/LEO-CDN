@@ -3,9 +3,9 @@
 ####################
 
 # importing the requests library
-import requests
-import json
+import numpy
 import http.client
+import time
 
 # Global variables
 GST_ID = "gst-0"
@@ -99,8 +99,12 @@ class HTTPRequest:
 # Generates the requests instead of reading them from a file
 def generateRequests():
     reqsList = list()
-    req = "GET /flask/example/19420/catch-all-route HTTP/1.1\nHost: http://riptutorial.com"
-    for i in NUMBER_OF_REQUESTS:
+    # Create the random geometric distribution
+    dis = numpy.random.geometric(0.01,NUMBER_OF_REQUESTS)
+    # Generate the requests 
+    for i in range(0, NUMBER_OF_REQUESTS):
+        number = dis[i]
+        req = f"GET / HTTP/1.1\nHost: http://domain{number}.com"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
 
@@ -135,6 +139,7 @@ def connectToTheBestSatellite():
     ip,port = data.split(':')
     # Return connection to the best satellite
     print(f"Answer from coordinator received: {data}.")
+    coordConn.close()
     return http.client.HTTPConnection(ip,port);
 
 
@@ -149,14 +154,20 @@ def sendRequests(reqsList):
         # Send the request
         conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
+        time.sleep(1)
         response = conn.getresponse()
         print(f"Status: {response.status} and reason: {response.reason}")
+    conn.close()
 
 
 # Main function, run on startup
 if __name__ == "__main__":
     print("Starting STARDUST...")
-    # Load all requests
-    #reqsList = readRequests()
+    # Read requests from file
+    reqsList = readRequests()
+    sendRequests(reqsList)
+
+    input("\nPress ENTER to continue and start testing the generation of requests")
+    # Generate requests
     reqsList = generateRequests()
     sendRequests(reqsList)
