@@ -9,6 +9,7 @@ import http.client
 
 # Global variables
 GST_ID = "gst-0"
+NUMBER_OF_REQUESTS = 5
 
 # GET URLs
 BASE_URL = "http://172.26.8.3:5000"
@@ -95,6 +96,13 @@ class HTTPRequest:
 ## Internal functions  ##
 #########################
 
+# Generates the requests instead of reading them from a file
+def generateRequests():
+    reqsList = list()
+    req = "GET /flask/example/19420/catch-all-route HTTP/1.1\nHost: http://riptutorial.com"
+    for i in NUMBER_OF_REQUESTS:
+        reqsList.append(HTTPRequest.fromString(req))
+    return reqsList
 
 # Read the requests from the txt file and save them in array
 def readRequests():
@@ -138,80 +146,17 @@ def sendRequests(reqsList):
     # Send all requests
     print(f"Sending all {len(reqsList)} HTTP requests...")
     for req in reqsList:
-        # For now do not send the real request. The satellite server will not respond right now.
-        print(f"Fake News: Sending HTTP request with URL: {req.getURL()}")
-
         # Send the request
-        #conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
+        conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
-        #response = conn.getresponse()
-        #print(f"Status: {response.status} and reason: {response.reason}")
+        response = conn.getresponse()
+        print(f"Status: {response.status} and reason: {response.reason}")
 
 
 # Main function, run on startup
 if __name__ == "__main__":
     print("Starting STARDUST...")
-    # Read all requests from the file
-    reqsList = readRequests()
+    # Load all requests
+    #reqsList = readRequests()
+    reqsList = generateRequests()
     sendRequests(reqsList)
-
-    # Old functionality, to test press enter
-    input("\nPress ENTER to continue and start testing custom HTTP requests")
-
-    r = requests.get(url=GETVALUE2)
-    print(r.text)
-    print('-------------------------')
-
-    # Get all keygroups of node 1
-    print('Get all keygroups..')
-    r = requests.get(url=KEYGROUPS)
-
-    print(r.text)
-    print('-------------------------')
-
-    # Initialize keygroup test
-    print('Initialize keygroup..')
-    r = requests.post(url=INIT, data='test')
-    print(r.text)
-    print('-------------------------')
-
-    # Add value
-    print('Add data..')
-    headers = {'Content-type': 'application/json'}
-    data = {
-        'testx': '123'
-    }
-    r = requests.post(url=ADD_DATA, data=json.dumps(data), headers=headers)
-    print(r.text)
-    print('-------------------------')
-
-    # Get value
-    print('Get value..')
-    r = requests.get(url=GETVALUE)
-    print(r.text)
-    print('-------------------------')
-
-    ###################
-    ## Position test ##
-    ###################
-
-    # Get latest position of node
-    print('Get node1 location..')
-    r = requests.get(url=LOCATION)
-    print(r.text)
-    print('-------------------------')
-
-    ###################
-    ##  Random test  ##
-    ###################
-
-    headers = {'host': 'http://riptutorial.com'}
-    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
-    r = requests.get(url=TESTURL, headers=headers)
-    print(r.text)
-    print('-------------------------')
-
-    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
-    r = requests.get(url=TESTURL, headers=headers)
-    print(r.text)
-    print('-------------------------')

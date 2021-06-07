@@ -1,18 +1,2 @@
-GET /hello.htm HTTP/1.1
-User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)
-Host: www.tutorialspoint.com
-Accept-Language: en-us
-Accept-Encoding: gzip, deflate
-Connection: Keep-Alive
-
-GET /echo HTTP/1.1
-Host: reqbin.com
-Accept: text/html
-
-GET /echo/get/json HTTP/1.1
-Host: reqbin.com
-Accept: application/json
-
-GET /echo/get/xml HTTP/1.1
-Host: reqbin.com
-Accept: application/xml
+GET /flask/example/19420/catch-all-route HTTP/1.1
+Host: http://riptutorial.com
