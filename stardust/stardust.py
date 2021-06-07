@@ -5,11 +5,16 @@
 # importing the requests library
 import numpy
 import http.client
-import time
+import toml
+
+# Load config
+# Load the config
+with open("./config.toml") as f:
+    config = toml.load(f)
 
 # Global variables
 GST_ID = "gst-0"
-NUMBER_OF_REQUESTS = 5
+NUMBER_OF_REQUESTS = config["stardust"]["numberOfRequests"]
 
 # GET URLs
 BASE_URL = "http://172.26.8.3:5000"
@@ -154,7 +159,6 @@ def sendRequests(reqsList):
         # Send the request
         conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
-        time.sleep(1)
         response = conn.getresponse()
         print(f"Status: {response.status} and reason: {response.reason}")
     conn.close()
