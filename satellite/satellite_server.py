@@ -356,10 +356,12 @@ def catch_all(u_path):
     md5 = hashlib.md5(link.encode()).hexdigest()
     saved = read_file(md5)
     if saved == "":
-        r = requests.get(url=link)
-        set_data("manage", md5, r.text)
+        # r = requests.get(url=link)
+        # set_data("manage", md5, r.text)
+        set_data("manage", md5, md5)
         print(f"added new key: {md5}")
-        return r.text
+        # return r.text
+        return md5
     else:
         print(f"key: {md5} in keygroup manage found")
         return saved
