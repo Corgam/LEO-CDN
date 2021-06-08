@@ -1,0 +1,20 @@
+version: "3.7"
+services:
+  {{ stardust_name }}:
+    build:
+      context: ../../stardust/
+      dockerfile: stardust.Dockerfile
+    image: stardust:local
+    container_name: {{ stardust_name }}
+    volumes:
+      - ../../temp/{{ stardust_name }}.crt:/cert/client.crt
+      - ../../temp/{{ stardust_name }}.key:/cert/client.key
+      - ../../common/cert/ca.crt:/cert/ca.crt
+      - ../../temp/{{ stardust_name }}.toml:/info/config.toml
+    networks:
+      fredwork:
+        ipv4_address: {{ stardust_IP }}
+
+networks:
+  fredwork:
+    external: true

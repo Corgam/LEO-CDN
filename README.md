@@ -17,7 +17,15 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically.
 
-- Usage `make generate_nodes n=<int>` whereas `n` indicates the number of nodes
+- Usage `make generate`.
+
+## Coordinator
+
+Runs the simulation inside and keeps track of the positions of all satellites and groundstations at any given time.
+Moreover, listens on port 9001 for any groundstation related HTTP Requests and responds with the best satellite that the sender can currently connect to.
+
+IP: 172.26.4.1
+Port: 9001
 
 ## Stardust (Ground Stations)
 
