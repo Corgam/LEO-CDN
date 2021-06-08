@@ -215,3 +215,23 @@ if __name__ == "__main__":
     r = requests.get(url=TESTURL, headers=headers)
     print(r.text)
     print('-------------------------')
+
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
+    print('-------------------------')
+
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
+    print('-------------------------')
+
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
+    print('-------------------------')
+
+    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    r = requests.get(url=TESTURL, headers=headers)
+    print(r.text)
+    print('-------------------------')

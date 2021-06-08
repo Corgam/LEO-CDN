@@ -126,7 +126,7 @@ def read_file(file_id):
             response = stub.Read(
                 client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
             )
-            return str(response)
+            return response
         except:
             # if file does not exist an error is raised
             continue
@@ -265,7 +265,7 @@ def getValueWithKeygroup(keygroup, key):
 # IP:host/getValue/<key>: goes through all keygroups to find the data
 @app.route('/getValue/<key>')
 def getValue(key):
-    return read_file(key)
+    return str(read_file(key))
 
 # IP:host/setData/<keygroup>/<key>: sets data to the specified key
 @app.route('/setData/<keygroup>/<key>', methods=['POST'])
@@ -358,12 +358,16 @@ def catch_all(u_path):
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        set_data("manage", md5, md5)
+        set_data("manage", md5, "0")
         print(f"added new key: {md5}")
         # return r.text
-        return md5
+        return "0"
     else:
-        print(f"key: {md5} in keygroup manage found")
+        print(f"key: {md5} in keygroup manage found: {saved}")
+        counter = int(saved.data)
+        counter += 1
+        saved = str(counter)
+        set_data("manage", md5, saved)
         return saved
 
 if __name__ == '__main__':
