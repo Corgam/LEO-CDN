@@ -25,12 +25,12 @@ compile_grpc_python:
 
 coordinator:
 # Run the coordinator and the simulation
-	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
+	@! docker ps -a | grep coordinator || docker container rm coordinator -f
 	@mkdir -p output/frames
 	@rm -rf output/frames/*
-	@docker build -f ./coordinator/coordinator.Dockerfile -t leo-cdn-simulation .
+	@docker build -f ./coordinator/coordinator.Dockerfile -t coordinator .
 	@docker run -it \
-		--name leo-cdn-simulation \
+		--name coordinator \
 		-v $(CURDIR)/common/cert/keygroupPasser.crt:/common/cert/client.crt \
 		-v $(CURDIR)/common/cert/keygroupPasser.key:/common/cert/client.key \
 		-v $(CURDIR)/common/cert/ca.crt:/cert/ca.crt \
@@ -41,4 +41,4 @@ coordinator:
 		-v $(CURDIR)/config.toml:/config.toml \
 		--network=fredwork \
 		--ip=172.26.4.1 \
-		leo-cdn-simulation
+		coordinator
