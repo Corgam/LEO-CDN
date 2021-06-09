@@ -72,7 +72,7 @@ class Stardust:
 def loadStardustsInfo():
     stardustsList = list()
     # Treat each line as new object
-    with open("C:\\uni\\LEO-CDN\\temp\\stardusts.txt") as f:
+    with open("./stardusts.txt") as f:
         for line in f:
             line = line.replace("\n","")
             id, latitude, longitude, country, numberOfRequests = line.split('|')
