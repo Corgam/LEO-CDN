@@ -8,5 +8,4 @@ planes = 1
 satellites_per_plane = 3
 
 [stardust]
-groundstations = 2
-requests_per_stardust = 10
+numberOfRequests = 10

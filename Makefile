@@ -9,7 +9,13 @@ run:
 setup: generate run
 		
 stardust:
-	@sh ./temp/run-stardusts.sh
+	@! docker ps -a | grep stardust || docker container rm stardust -f
+	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
+	@docker run -it \
+		--name stardust \
+		--network=fredwork \
+		--ip=172.26.8.4 \
+		stardust
 
 clean:
 	@sh temp/clean.sh
@@ -19,12 +25,12 @@ compile_grpc_python:
 
 coordinator:
 # Run the coordinator and the simulation
-	@! docker ps -a | grep coordinator || docker container rm coordinator -f
+	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
 	@mkdir -p output/frames
 	@rm -rf output/frames/*
-	@docker build -f ./coordinator/coordinator.Dockerfile -t coordinator .
+	@docker build -f ./coordinator/coordinator.Dockerfile -t leo-cdn-simulation .
 	@docker run -it \
-		--name coordinator \
+		--name leo-cdn-simulation \
 		-v $(CURDIR)/common/cert/keygroupPasser.crt:/common/cert/client.crt \
 		-v $(CURDIR)/common/cert/keygroupPasser.key:/common/cert/client.key \
 		-v $(CURDIR)/common/cert/ca.crt:/cert/ca.crt \
@@ -35,4 +41,4 @@ coordinator:
 		-v $(CURDIR)/config.toml:/config.toml \
 		--network=fredwork \
 		--ip=172.26.4.1 \
-		coordinator
+		leo-cdn-simulation

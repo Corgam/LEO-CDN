@@ -2,19 +2,19 @@
 ##    STARDUST    ##
 ####################
 
-# Importing libraries
+# importing the requests library
 import numpy
 import http.client
 import toml
 
+# Load config
 # Load the config
-with open("/info/config.toml") as f:
+with open("./config.toml") as f:
     config = toml.load(f)
 
 # Global variables
-STARDUST_ID = config["stardust_name"]
-print(f"Starting {STARDUST_ID}...")
-NUMBER_OF_REQUESTS = config["requests_per_stardust"]
+GST_ID = "gst-0"
+NUMBER_OF_REQUESTS = config["stardust"]["numberOfRequests"]
 
 # GET URLs
 BASE_URL = "http://172.26.8.3:5000"
@@ -136,7 +136,7 @@ def readRequests():
 def connectToTheBestSatellite():
     # Communicate with the Coordinator to choose the best satellite.
     coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
-    coordConn.request(method="GET",url=f"/best_satellite/{STARDUST_ID}")
+    coordConn.request(method="GET",url=f"/best_satellite/{GST_ID}")
     # Get the response
     res = coordConn.getresponse()
     # Extract ip and port

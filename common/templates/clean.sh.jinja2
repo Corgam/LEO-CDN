@@ -9,14 +9,9 @@ docker-compose \
   {%- endfor %}
   down
 
-docker-compose \
-  -f common/docker/etcd.yml \
-  {%- for name in stardust_names %}
-  -f temp/{{name}}.yml \
-  {%- endfor %}
-  down
-
-docker stop coordinator
-docker rm coordinator
+docker stop stardust
+docker rm stardust
+docker stop leo-cdn-simulation
+docker rm leo-cdn-simulation
 
 rm -rf ./temp
