@@ -12,6 +12,6 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./stardust/stardust.py /stardust.py
 COPY ./stardust/requests.txt /requests.txt
-COPY ./config.toml /config.toml
+COPY ./temp/stardusts.txt /stardusts.txt
 
 CMD ["python", "stardust.py"]

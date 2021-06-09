@@ -2,63 +2,20 @@
 ##    STARDUST    ##
 ####################
 
-# importing the requests library
+# Importing needed libraries
 import numpy
 import http.client
-import toml
+import threading
 
-# Load config
-# Load the config
-with open("./config.toml") as f:
-    config = toml.load(f)
-
-# Global variables
-GST_ID = "gst-0"
-NUMBER_OF_REQUESTS = config["stardust"]["numberOfRequests"]
-
-# GET URLs
-BASE_URL = "http://172.26.8.3:5000"
-
-KEYGROUPS = BASE_URL + "/getKeygroups"
-INIT = BASE_URL + "/initializeKeygroup"
-ADD_DATA = BASE_URL + "/setData/test/testid"
-GETVALUE = BASE_URL + "/getValue/testid"
-GETVALUE2 = BASE_URL + "/getValue/manage/addresses"
-
-LOCATION = BASE_URL + "/getLocation"
-SETLOCATION = BASE_URL + "/setLocation"
-POSITIONS = BASE_URL + "/positions"
-TESTURL = BASE_URL + "/flask/example/19420/catch-all-route"
-
+# This class holds all the information about a single HTTP Request.
 class HTTPRequest:
-    """
-    This class holds all the information about a single HTTP Request.
-
-
-    Parameters
-    ----------
-    URL: str
-    heads: dict
-    """
     def __init__(self, URL, heads):
         self.URL = URL
         self.heads = heads
 
+    # Sets the URL and heads dic from given string. No error check.
     @classmethod
     def fromString(self, reqString):
-        """
-        Sets the URL and heads dic from given string.
-        There is no error check.
-
-        Parameters
-        ----------
-        reqString : string
-            string containing url and heads
-
-        Returns
-        -------
-
-        """
         lines = str(reqString).split('\n')
         # Prepare url
         url = lines[0]
@@ -75,68 +32,81 @@ class HTTPRequest:
                 heads[parts[0]] = parts[1]
         return HTTPRequest(url,heads)
 
+    #Returns the URL of the HTTP Request
     def getURL(self):
-        """
-        Returns the URL of the HTTP Request
-
-        Returns
-        -------
-        URL: string
-
-        """
         return self.URL
-
+    
+    #Returns the dict of heads of the HTTP Request
     def getHeads(self):
-        """
-        Returns the dict of heads of the HTTP Request
-
-        Returns
-        -------
-        heads: dic
-
-        """
         return self.heads
+
+# This class holds information about one groundstation
+class Stardust:
+    def __init__(self, id, latitude, longitude, country, numberOfRequests):
+        self.id = id
+        self.latitude = latitude
+        self.longitude = longitude
+        self.country = country
+        self.numberOfRequests = numberOfRequests
+    # Returns the ID of the stardust
+    def getID(self):
+        return self.id
+    # Returns the latitude of the stardust
+    def getLatitude(self):
+        return self.latitude
+    # Returns the longitude of the stardust
+    def getLongitude(self):
+        return self.longitude
+    # Returns the country of the stardust
+    def getCountry(self):
+        return self.country
+    # Returns the numberOfRequests the stardust will send
+    def getNumberOfRequests(self):
+        return self.numberOfRequests
 
 #########################
 ## Internal functions  ##
 #########################
 
+# Load the stardusts info into a list
+def loadStardustsInfo():
+    stardustsList = list()
+    # Treat each line as new object
+    with open("C:\\uni\\LEO-CDN\\temp\\stardusts.txt") as f:
+        for line in f:
+            line = line.replace("\n","")
+            id, latitude, longitude, country, numberOfRequests = line.split('|')
+            stardustsList.append(Stardust(id, float(latitude), float(longitude), country, int(numberOfRequests)))
+    return stardustsList
+
+# Creates a new thread for each stardust
+def createStardusts(stardustsList):
+    threads = list()
+    # Create threads
+    for stardust in stardustsList:
+        threads.append(threading.Thread(target=sendRequests, args=(stardust,)))
+    # Start threads
+    for thread in threads:
+        thread.start()
+
+
 # Generates the requests instead of reading them from a file
-def generateRequests():
+def generateRequests(numberOfRequests):
     reqsList = list()
     # Create the random geometric distribution
-    dis = numpy.random.geometric(0.01,NUMBER_OF_REQUESTS)
+    dis = numpy.random.geometric(0.01,numberOfRequests)
     # Generate the requests 
-    for i in range(0, NUMBER_OF_REQUESTS):
+    for i in range(0, numberOfRequests):
         number = dis[i]
         req = f"GET / HTTP/1.1\nHost: http://domain{number}.com"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
 
-# Read the requests from the txt file and save them in array
-def readRequests():
-    reqsList = list()
-    req = ""
-    # Open the requests file and read lines
-    with open("./requests.txt","r") as f:
-        for line in f:
-            # If empty line is encountered
-            if line == "\n":
-                #Create an string 
-                reqsList.append(HTTPRequest.fromString(req))
-                req = ""                
-            else:
-                req = req + line;
-        # Add the last request after EOF
-        reqsList.append(HTTPRequest.fromString(req))
-        return reqsList
-
-
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
-def connectToTheBestSatellite():
+def connectToTheBestSatellite(id):
     # Communicate with the Coordinator to choose the best satellite.
     coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
-    coordConn.request(method="GET",url=f"/best_satellite/{GST_ID}")
+    coordConn.request(method="GET",url=f"/best_satellite/{id}")
     # Get the response
     res = coordConn.getresponse()
     # Extract ip and port
@@ -147,12 +117,13 @@ def connectToTheBestSatellite():
     coordConn.close()
     return http.client.HTTPConnection(ip,port);
 
-
 # Send all requests to the best satellite
-def sendRequests(reqsList):
+def sendRequests(stardust):
+    # Generate the requests
+    reqsList = generateRequests(stardust.getNumberOfRequests())
     # Create a connection to the best satellite
     print("Sending query to coordinator for the best satellite...")
-    conn = connectToTheBestSatellite()
+    conn = connectToTheBestSatellite(stardust.getID())
     # Send all requests
     print(f"Sending all {len(reqsList)} HTTP requests...")
     for req in reqsList:
@@ -167,11 +138,9 @@ def sendRequests(reqsList):
 # Main function, run on startup
 if __name__ == "__main__":
     print("Starting STARDUST...")
-    # Read requests from file
-    reqsList = readRequests()
-    sendRequests(reqsList)
+    # Read the list of the stardusts
+    stardustsList = loadStardustsInfo()
+    # Create stardusts threads
+    print(f"Creating {len(stardustsList)} threads...")
+    createStardusts(stardustsList)
 
-    input("\nPress ENTER to continue and start testing the generation of requests")
-    # Generate requests
-    reqsList = generateRequests()
-    sendRequests(reqsList)
