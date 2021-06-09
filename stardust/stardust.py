@@ -111,27 +111,34 @@ def connectToTheBestSatellite(id):
     res = coordConn.getresponse()
     # Extract ip and port
     data = res.read().decode()
-    ip,port = data.split(':')
-    # Return connection to the best satellite
-    print(f"Answer from coordinator received: {data}.")
-    coordConn.close()
-    return http.client.HTTPConnection(ip,port);
+    if(data != "Invalid GST ID"):
+        ip,port = data.split(':')
+        # Return connection to the best satellite
+        print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.")
+        coordConn.close()
+        return http.client.HTTPConnection(ip,port);
+    else:
+        return -1; 
+
 
 # Send all requests to the best satellite
 def sendRequests(stardust):
     # Generate the requests
     reqsList = generateRequests(stardust.getNumberOfRequests())
     # Create a connection to the best satellite
-    print("Sending query to coordinator for the best satellite...")
+    print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...")
     conn = connectToTheBestSatellite(stardust.getID())
+    if(conn == -1):
+        print(f"[{threading.current_thread().name}]Invalid Stardust ID...")
+        return
     # Send all requests
-    print(f"Sending all {len(reqsList)} HTTP requests...")
+    print(f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...")
     for req in reqsList:
         # Send the request
         conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
         # Get response
         response = conn.getresponse()
-        print(f"Status: {response.status} and reason: {response.reason}")
+        print(f"[{threading.current_thread().name}]Status: {response.status} and reason: {response.reason}")
     conn.close()
 
 
