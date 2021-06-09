@@ -8,6 +8,7 @@ COPY requirements-satellite.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 COPY satellite_server.py /satellite_server.py
+COPY fred_client.py /fred_client.py
 COPY proto /proto
 
 CMD ["python", "satellite_server.py"]
