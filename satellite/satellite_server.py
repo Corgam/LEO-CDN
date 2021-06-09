@@ -1,6 +1,4 @@
 from flask import *
-import grpc
-from proto import client_pb2, client_pb2_grpc
 import time
 import json
 import sys
@@ -8,10 +6,11 @@ import requests
 import os
 import logging
 import hashlib
+from fred_client import FredClient
 
 app = Flask(__name__)
 
-keygroups = ["manage"] # Keygroups the satellite manages
+# keygroups = ["manage"] # Keygroups the satellite manages
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -29,120 +28,6 @@ with open("/info/nodes.json") as f:
 
 nodes = [key for key in node_configs.keys()]
 
-#########################
-##### FRED Methods ######
-#########################
-
-# Initializes the keygroup
-def init_keygroup(kg):
-    print(f"Initializing {kg} at {name}...")
-    stub = client_pb2_grpc.ClientStub(channel)
-    try:
-        response = stub.CreateKeygroup(
-            client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
-        )
-        keygroups.append(kg)
-        print(f'giving {name} permission')
-        give_user_permissions(name, kg, 4)
-        print('gave permission')
-        return True
-    except:
-        return False
-
-# Adds data to a keygroup
-def set_data(kg, key, value):
-    print(f"Adding {key}:{value} to {kg}...")
-    stub = client_pb2_grpc.ClientStub(channel)
-    try:
-        response = stub.Update(
-            client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
-        )
-        print(response)
-    except Exception as e:
-        response = read_file_from_node(kg, key)
-        if response:
-            cur_data = json.loads(response.data)
-            cur_data.append(value)
-            set_data(kg, key, json.dumps(cur_data))
-
-# Adds node to the keygroup
-def add_node_to_keygroup(kg, node, satellite):
-    print(f"Adding {node} to {kg}...")
-    try:
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.AddReplica(
-            client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-        )
-        print(response)
-        give_user_permissions(node, kg, 4)
-        give_user_permissions(satellite, kg, 4)
-        return True
-    except Exception as e:
-        print(e)
-        return False
-
-def node_to_keygroup(kg, node):
-    print(f"Adding {node} to {kg}...")
-    try:
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.AddReplica(
-            client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-        )
-        return str(response)
-    except Exception as e:
-        print(e)
-        return str(e)
-
-# Removes node from the keygroup
-def remove_node_from_keygroup(kg, node):
-    print(f"Removing {name} from {kg}...")
-    stub = client_pb2_grpc.ClientStub(channel)
-    response = stub.RemoveReplica(
-        client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=node)
-    )
-    print(response)
-
-# Reads file
-def read_file_from_node(keygroup, file_id):
-    try:
-        print(f"Reading {file_id=} in {keygroup=} from {name=}...")
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.Read(
-            client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-        )
-        print(response)
-        return response
-    except Exception as e:
-        # if file does not exist an error is raised
-        # return str(e)
-        return ""
-
-# Reads file
-def read_file(file_id):
-    for keygroup in keygroups:
-        try:
-            print(f"Reading {file_id=} in {keygroup=} from {name=}...")
-            stub = client_pb2_grpc.ClientStub(channel)
-            response = stub.Read(
-                client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-            )
-            return response
-        except:
-            # if file does not exist an error is raised
-            continue
-    print(f"doesn't exist on {name}")
-    return ""
-
-def add_role(user, keygroup, role):
-    try:
-        stub = client_pb2_grpc.ClientStub(channel)
-        response = stub.AddUser(
-            client_pb2.UserRequest(
-                user=user, keygroup=keygroup, role=role)
-        )
-        return str(response)
-    except Exception as e:
-        return str(e)
 
 #########################
 ## Internal functions  ##
@@ -152,11 +37,11 @@ def add_role(user, keygroup, role):
 def join_managing_keygroups():
     try_joining = False
 
-    success = init_keygroup("manage")
+    success = fred_client.init_keygroup("manage")
     if not success:
         print('"manage" keygroup already exists. Trying to join...')
         try:
-            node_to_keygroup("manage", fred)
+            fred_client.node_to_keygroup("manage", fred)
             append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
         except:
             print("Was not in the keygroup yet...")
@@ -173,14 +58,15 @@ def join_managing_keygroups():
                 r = requests.post(url=base_url+"/addToKeygroup/manage", data=json.dumps(data))
                 if r.status_code == 200:
                     print("Should be done?")
-                    node_to_keygroup("manage", fred)
+                    fred_client.node_to_keygroup("manage", fred)
                     append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
                     break
     else:
-        set_data("manage", "addresses", json.dumps(["http://" + ip + ":" + str(port) + "/"]))
+        fred_client.set_data("manage", "addresses", json.dumps(
+            ["http://" + ip + ":" + str(port) + "/"]))
         print("Giving everyone in nodes permission to manage...")
         for x in range(len(nodes)):
-                add_node_to_keygroup("manage", nodes[x], f"satellite{x}")
+                fred_client.add_node_to_keygroup("manage", nodes[x], f"satellite{x}")
 
 
 def give_user_permissions(user, keygroup, level):
@@ -201,19 +87,19 @@ def give_user_permissions(user, keygroup, level):
         permissions.append(4) #ConfigureKeygroups
 
     for permission in permissions:
-        add_role(user, keygroup, permission)
+        fred_client.add_role(user, keygroup, permission)
 
 
 def append_data(keygroup, key, entry):
-    response = read_file_from_node(keygroup, key)
+    response = fred_client.read_file_from_node(keygroup, key)
     if not response:
         cur_data = []
         cur_data.append(entry)
-        set_data(keygroup, key, json.dumps(cur_data))
+        fred_client.set_data(keygroup, key, json.dumps(cur_data))
     else:
         cur_data = json.loads(response.data)
         cur_data.append(entry)
-        set_data(keygroup, key, json.dumps(cur_data))
+        fred_client.set_data(keygroup, key, json.dumps(cur_data))
     return json.dumps(cur_data)
     # return response
 
@@ -224,13 +110,13 @@ def append_data(keygroup, key, entry):
 # IP:Host/getKeygroups: returns a json of all keygroups the node is in
 @app.route('/getKeygroups')
 def getKeygroups():
-    return jsonify({"keygroups": keygroups})
+    return jsonify({"keygroups": fred_client.get_keygroups()})
 
 # IP:Host/initializeKeygroup: initializes a keygroup with testing data
 @app.route('/initializeKeygroup', methods=['POST'])
 def initializeKeygroup():
     data = request.data.decode('UTF-8')
-    if(init_keygroup(data)):
+    if(fred_client.init_keygroup(data)):
         return getKeygroups()
     else:
         return 'already exists'
@@ -239,7 +125,7 @@ def initializeKeygroup():
 @app.route('/addToKeygroup', methods=['POST'])
 def addKeygroup():
     data = json.loads(request.json)
-    if add_node_to_keygroup(data['keygroup'], data['fred'], data['satellite']):
+    if fred_client.add_node_to_keygroup(data['keygroup'], data['fred'], data['satellite']):
         return "Added to keygroup"
     else:
         return "No permission for that", 500
@@ -247,32 +133,33 @@ def addKeygroup():
 @app.route('/addKeygroup', methods=['POST'])
 def addKeygroup2():
     data = json.loads(request.json)
-    return node_to_keygroup(data['keygroup'], data['fred'])
+    return fred_client.node_to_keygroup(data['keygroup'], data['fred'])
 
 # IP:Host/removeKeygroup: removes the node from a keygroup
 @app.route('/removeKeygroup', methods=['POST'])
 def deleteKeygroup():
     data = request.data.decode('UTF-8')
-    remove_node_from_keygroup(data)
-    keygroups.remove(data)
+    fred_client.remove_node_from_keygroup(data)
+    fred_client.remove_keygroup(data)
     return f'Keygroup removed: {data}'
 
 # IP:host/getValue/<keygroup>/<key>: returns the value of a given key if possible
 @app.route('/getValue/<keygroup>/<key>')
 def getValueWithKeygroup(keygroup, key):
-    return str(read_file_from_node(keygroup, key))
+    return str(fred_client.read_file_from_node(keygroup, key))
 
 # IP:host/getValue/<key>: goes through all keygroups to find the data
 @app.route('/getValue/<key>')
 def getValue(key):
-    return str(read_file(key))
+    return str(fred_client.read_file(key))
 
 # IP:host/setData/<keygroup>/<key>: sets data to the specified key
 @app.route('/setData/<keygroup>/<key>', methods=['POST'])
 def setData(keygroup, key):
     data = request.data.decode('UTF-8')
-    set_data(keygroup, key, data) # TODO maybe can just pass on data
-    resp = read_file_from_node(keygroup, key)
+    # TODO maybe can just pass on data
+    fred_client.set_data(keygroup, key, data)
+    resp = fred_client.read_file_from_node(keygroup, key)
     return str(resp)
 
 # IP:host/appendData/<keygroup>/<key>: appends data to the specified key if it is
@@ -291,7 +178,7 @@ def appendData(keygroup, key):
 # IP:host/getLocation: returns the satellite's location (?)
 @app.route('/getLocation')
 def getLocation():
-    positions = read_file_from_node("manage", "positions")
+    positions = fred_client.read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
     for entry in pos:
         if list(entry.keys())[0] == fred:
@@ -302,23 +189,23 @@ def getLocation():
 @app.route('/setLocation', methods=['POST'])
 def setLocation():
     data = request.data.decode('UTF-8')
-    positions = read_file_from_node("manage", "positions")
+    positions = fred_client.read_file_from_node("manage", "positions")
     pos = json.loads(positions.data)
     pos[name] = data
-    set_data("manage", "positions", json.dumps(pos))
+    fred_client.set_data("manage", "positions", json.dumps(pos))
     return str(json.dumps(pos))
 
 
 @app.route('/positions')
 def positions():
-    return str(read_file_from_node("manage", "positions"))
+    return str(fred_client.read_file_from_node("manage", "positions"))
 
 @app.route('/addRole/<keygroup>', methods=['POST'])
 def addSingleRole(keygroup):
     data = json.loads(request.data)
     node = data['node']
     level = int(data['level'])
-    return add_role(node, keygroup, level)
+    return fred_client.add_role(node, keygroup, level)
         
 @app.route('/addRoles/<keygroup>', methods=['POST'])
 def addRoles(keygroup):
@@ -344,8 +231,8 @@ def addRoles(keygroup):
 def addSatellite():
     data = json.loads(request.data.decode('UTF-8'))
     nodes.append(data['node'])
-    for kg in keygroups:
-        add_node_to_keygroup(kg, data['node'], data['satellite'])
+    for kg in fred_client.get_keygroups():
+        fred_client.add_node_to_keygroup(kg, data['node'], data['satellite'])
     return str(True)
 
 
@@ -354,11 +241,11 @@ def addSatellite():
 def catch_all(u_path):
     link = request.headers.get('host') + "/" + u_path
     md5 = hashlib.md5(link.encode()).hexdigest()
-    saved = read_file(md5)
+    saved = fred_client.read_file(md5)
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        set_data("manage", md5, "0")
+        fred_client.set_data("manage", md5, "0")
         print(f"added new key: {md5}")
         # return r.text
         return "0"
@@ -367,7 +254,7 @@ def catch_all(u_path):
         counter = int(saved.data)
         counter += 1
         saved = str(counter)
-        set_data("manage", md5, saved)
+        fred_client.set_data("manage", md5, saved)
         return saved
 
 if __name__ == '__main__':
@@ -382,13 +269,8 @@ if __name__ == '__main__':
     with open("/cert/ca.crt", "rb") as f:
         ca_crt = f.read()
 
-    creds = grpc.ssl_channel_credentials(
-        certificate_chain=client_crt,
-        private_key=client_key,
-        root_certificates=ca_crt,
-    )
+    fred_client = FredClient(name, target, client_crt, client_key, ca_crt)
 
-    channel = grpc.secure_channel(target, credentials=creds)
     exist = False
     
     try:
