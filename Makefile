@@ -1,44 +1,44 @@
-.PHONY: generate_nodes run_nodes generate_and_run_nodes run_tester clean compile_grpc_python
+.PHONY: generate run setup stardust clean compile_grpc_python coordinator
 
-generate_nodes:
-	@python ./generator.py -node $(n)
+generate:
+	@python ./generator.py
 
-run_nodes:
+run:
 	@sh ./temp/run-nodes.sh
 
-generate_and_run_nodes: generate_nodes run_nodes
-
-run_tester:
-	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
-	@mkdir -p output/frames
-	@rm -rf output/frames/*
-	@docker build -f ./Dockerfile -t leo-cdn-simulation .
-	@docker run -it \
-		--name leo-cdn-simulation \
-		-v $(CURDIR)/cert/keygroupPasser.crt:/cert/client.crt \
-		-v $(CURDIR)/cert/keygroupPasser.key:/cert/client.key \
-		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
-    -v $(CURDIR)/temp/nodes.json:/nodes.json \
-		-v $(CURDIR)/output/:/output \
-		--network=fredwork \
-		--ip=172.26.4.1 \
-		leo-cdn-simulation
-
+setup: generate run
+		
 stardust:
 	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./Dockerfile-stardust -t stardust .
+	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
 	@docker run -it \
 		--name stardust \
-		-v $(CURDIR)/cert/stardust.crt:/cert/stardust.crt \
-		-v $(CURDIR)/cert/stardust.key:/cert/stardust.key \
-		-v $(CURDIR)/cert/ca.crt:/cert/ca.crt \
-    -v $(CURDIR)/temp/nodes.json:/temp/nodes.json \
 		--network=fredwork \
-		--ip=172.26.5.1 \
+		--ip=172.26.8.4 \
 		stardust
 
 clean:
 	@sh temp/clean.sh
 
 compile_grpc_python:
-	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./proto/client.proto
+	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./satellite/proto/client.proto
+
+coordinator:
+# Run the coordinator and the simulation
+	@! docker ps -a | grep leo-cdn-simulation || docker container rm leo-cdn-simulation -f
+	@mkdir -p output/frames
+	@rm -rf output/frames/*
+	@docker build -f ./coordinator/coordinator.Dockerfile -t leo-cdn-simulation .
+	@docker run -it \
+		--name leo-cdn-simulation \
+		-v $(CURDIR)/common/cert/keygroupPasser.crt:/common/cert/client.crt \
+		-v $(CURDIR)/common/cert/keygroupPasser.key:/common/cert/client.key \
+		-v $(CURDIR)/common/cert/ca.crt:/cert/ca.crt \
+    	-v $(CURDIR)/temp/freds.json:/nodes.json \
+		-v $(CURDIR)/output/:/output \
+		-v $(CURDIR)/satellite/proto:/proto \
+		-v $(CURDIR)/temp/:/temp \
+		-v $(CURDIR)/config.toml:/config.toml \
+		--network=fredwork \
+		--ip=172.26.4.1 \
+		leo-cdn-simulation

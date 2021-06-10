@@ -14,12 +14,10 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 ## Run Simulation
 
-1. Run `make generate_nodes n=<int>` (e.g. `make generate_nodes n=3` for generating 3 nodes)
-2. Run `make run_nodes`
-3. Run `make run_tester`
-4. Run `make stardust` to pull/push satellite's data
-
-Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
+1. (Optional) Change the config file to your liking
+2. Run `make setup`
+3. Run `make coordinator`
+4. Run `make stardust`
 
 ## Generator.py
 
@@ -37,8 +35,20 @@ Manages the communication between nodes. The first node initializes a keygroup a
 
 Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
-First version of the GST-Satellite interface. Can connect to a chosen satellite and pull/push data from/to it.
+Reads HTTP Requests from requests.txt file and sends them to the best satellite. The best satellite is chosen with the help of the coordinator.
 
-- Usage `make stardust`
+## satellite_server.py
 
-Note: `make run_tester` needs to be run first to create a keygroup.
+HTTP Server for a satellite, provides following end-points:
+
+| Method | Route                                   | Body                                             | Description                                                                                |
+| ------ | --------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| GET    | IP:5000/getKeygroups                    | -                                                | Retrieves all keygroups of a fred node                                                     |
+| POST   | IP:5000/initializeKeygroup              | keygroup (string)                                | Initializes a keygroup                                                                     |
+| POST   | IP:5000/addKeygroup                     | keygroup (string)                                | Adds the fred node to a keygroup                                                           |
+| POST   | IP:5000/removeKeygroup                  | keygroup (string)                                | Removes the fred node from a keygroup                                                      |
+| GET    | IP:5000/getValue/&lt;keygroup>/&lt;key> | -                                                | Retrieves data from a specific keygroup with a given key                                   |
+| GET    | IP:5000/getValue/&lt;key>               | -                                                | Goes through all keygroups of the fred node and tries to retrieve data with a given key    |
+| GET    | IP:5000/getLocation                     | -                                                | Returns a json with the following format: {x: &lt;number>, y: &lt;number>, z: &lt;number>} |
+| POST   | IP:5000/setLocation                     | {x: &lt;number>, y: &lt;number>, z: &lt;number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
+| GET    | IP:5000/positions                       | -                                                | Returns the position from all nodes (keygroup: manage, key: positions)                     |
