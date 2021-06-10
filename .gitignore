@@ -161,3 +161,9 @@ cython_debug/
 # LEO-CDN
 FReD
 temp/
+
+gcp.json
+
+*.ext4
+*.bin
+*.tar.xz

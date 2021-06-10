@@ -1,0 +1,213 @@
+- name: Create and start our GCP instance
+  hosts: localhost
+  gather_facts: no
+  tags: [ gcp ]
+  vars:
+      gcp_project: leo-cdn
+      gcp_cred_kind: serviceaccount
+      gcp_cred_file: gcp.json
+      zone: "europe-west3-c"
+      region: "europe-west3"
+
+  tasks:
+    - name: Create our disk using Debian Buster
+      gcp_compute_disk:
+        name: 'disk-dbuster-ans'
+        state: present
+
+        size_gb: 10
+        source_image: 'projects/debian-cloud/global/images/family/debian-10'
+
+        zone: "{{ zone }}"
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: disk
+
+    - name: Create our image with nested KVM enabled
+      gcp_compute_image:
+        name: "dbuster-nested-kvm-ans"
+        state: present
+
+        source_disk: "{{ disk }}"
+        licenses:
+          - "https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: image
+    
+    - name: Create our address
+      tags: [ celestial ]
+      gcp_compute_address:
+        name: 'address-instance'
+        state: present
+
+        region: "{{ region }}"
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: address
+    
+    - name: setup firewall
+      google.cloud.gcp_compute_firewall:
+        name: celestial
+        state: present
+
+        allowed:
+        - ip_protocol: tcp
+          ports:
+          - '1969'
+          - '1970'
+        
+        target_tags:
+        - celestial
+
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: firewall
+
+    - name: Create our instance
+      gcp_compute_instance:
+        name: celestial-vm
+        state: present
+        
+        min_cpu_platform: "Intel Haswell"
+        machine_type: "n1-standard-1"
+
+        tags:
+          items:
+          - celestial
+
+        disks:
+          - auto_delete: true
+            boot: true
+            initialize_params:
+              disk_size_gb: 10
+              image: "{{ image.selfLink }}"
+        
+        network_interfaces:
+            - network: null
+              access_configs:
+                - name: 'External NAT'
+                  nat_ip: "{{ address }}"
+                  type: 'ONE_TO_ONE_NAT'
+
+        zone: "{{ zone }}"
+         
+        project: "{{ gcp_project }}"
+        auth_kind: "{{ gcp_cred_kind }}"
+        service_account_file: "{{ gcp_cred_file }}"
+
+      register: instance
+
+    - name: Wait for SSH to come up
+      wait_for: host={{ address.address }} port=22 delay=10 timeout=60
+
+    - name: Add host to group
+      tags: [ celestial ]
+      add_host: hostname={{ address.address }} groupname=new_instances
+
+
+- name: Setup our GCP instance
+  hosts: new_instances
+  connection: ssh
+  become: yes
+
+  tasks:
+    - name: Update package list and upgrade packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    
+    - name: Installing packages
+      apt:
+        name:
+          - wireguard
+          - acl
+          - rsync
+          - git
+          - ufw
+        state: latest
+      
+    - name: Give user access to kvm
+      ansible.posix.acl:
+        path: /dev/kvm
+        entity: "{{ lookup('env', 'USER') }}"
+        etype: user
+        permissions: rw
+        state: present
+    
+    - name: Upgrade systemd
+      apt:
+        name: systemd
+        default_release: buster-backports
+        state: latest
+      register: systemd
+    
+    - name: Reboot if required
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
+      when: systemd is changed
+
+    - name: Wait for ssh to come up
+      wait_for_connection:
+        connect_timeout: 20
+        sleep: 5
+        delay: 5
+        timeout: 300
+      when: systemd is changed
+    
+    - name: Create /celestial directory
+      file:
+        path: /celestial
+        state: directory
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "nogroup"
+
+
+- name: Setup Celestial
+  hosts: new_instances
+  connection: ssh
+  tags: [ celestial ]
+
+  roles:
+     - role: gantsign.golang
+
+  tasks:
+    - name: Copy Celestial to our instance
+      ansible.posix.synchronize:
+        src: ../celestial
+        dest: "~"
+        rsync_opts:
+          - "--exclude=.git"
+    
+    - name: Copy rootfs
+      ansible.posix.synchronize:
+        src: microvm/rootfs.ext4
+        dest: "/celestial/"
+
+    - name: Copy kernel
+      ansible.posix.synchronize:
+        src: microvm/hello-vmlinux.bin
+        dest: "/celestial/"
+
+#   - name: Copy Celestial to our instance
+#     ansible.builtin.copy:
+#       src: ../celestial
+#       dest: ~/celestial
+
+#    - name: Build Celestial server
+#      community.general.make:
+#        chdir: ~/celestial
+#        target: binary
