@@ -17,7 +17,7 @@ animation = false
 
 # endpoints of machines running firecracker and
 # our api
-hosts = ["35.234.77.0:1969"]
+hosts = ["34.89.212.29:1969"]
 # hosts = ["35.246.247.15:1969", "34.107.74.168:1969"]
 # peer addresses of our hosts so they can talk
 # to each other
@@ -111,6 +111,8 @@ kernel = "hello-vmlinux.bin"
 # name of the rootfs (must be in the "/celestial" folder of
 # the hosts)
 rootfs = "rootfs.ext4"
+
+bootparams = ""
 
 # # arbitrary number of shells can be used
 # [[shell]]
