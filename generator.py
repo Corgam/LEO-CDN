@@ -28,6 +28,15 @@ else:
     shutil.rmtree("./temp")
     os.makedirs("./temp")
 
+##########
+## Data ##
+##########
+
+# Copy the file containing all groundstations information
+stardusts_list = config["general"]["stardusts_list"]
+print("Selecting all data files...")
+shutil.copyfile("./data/"+stardusts_list, "./temp/stardusts.txt")
+
 ##################
 ## Certificates ##
 ##################

@@ -2,36 +2,24 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
-## Setup
+## Requirements and setup
 
 `pip install -r requirements.txt`
 
-## Requirements
-
-- Docker
-- Python
-- Jinja2
-
 ## Run Simulation
 
-1. (Optional) Change the config file to your liking
-2. Run `make setup`
-3. Run `make coordinator`
-4. Run `make stardust`
+1. (Optional) Customize the config file.
+2. Run `make setup` command.
+3. Run `make coordinator` command.
+4. Run `make stardust` command.
 
 ## Generator.py
 
-Generates certificates and a .yml file for each node. Creates a Makerfile and then runs docker-compose to start all storage and FReD nodes automatically.
+Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically.
 
 - Usage `make generate_nodes n=<int>` whereas `n` indicates the number of nodes
 
-## keygroup_passer.py
-
-Manages the communication between nodes. The first node initializes a keygroup and adds data into the keygroup. Afterwards the keygroup gets passed between all nodes.
-
-- Usage `make run_tester`
-
-## Stardust v1.0
+## Stardust (Ground Stations)
 
 Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
