@@ -35,6 +35,22 @@ You can also just run the celestial setup using `ansible-playbook --tags celesti
 
 To do the full teardown, you need to run `ansible-playbook teardown.yml`. If you just want to delte the instance, you can run `ansible-playbook --tags instance teardown.yml`. This is useful to test changes in the playbook or if something got messed up on the instance. As Ansible operations are idempotent, you can just run the setup again after running the partial teardown and it will skip the other steps.
 
+## Starting celestial
+
+The celestial server needs to be started manually for now.
+
+To do so, log in via ssh:
+
+`ssh 34.89.212.29`
+
+and start celestial:
+
+`cd celestial`
+
+`make binary`
+
+`make runserver`
+
 ## gcloud
 Some useful commands are listed below:
 
