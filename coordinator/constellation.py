@@ -318,11 +318,14 @@ class Constellation:
         -------
 
         """
+        satellite = None
         for sat in self.list_of_satellites:
             if sat.name == satellite_id:
-                return sat
-            else:
-                raise NoSuchSatelliteError
+                satellite = sat
+        if satellite is None:
+            raise NoSuchSatelliteError
+        else:
+            return satellite
 
     def get_satellite_position(self, satellite_id):
         """
