@@ -1,0 +1,3 @@
+brokerId;lat;lon;function;leader;p1x;p1y;p2x;p2y;p3x;p3y;p4x;p4y;p5x;p5y;p6x;p6y;
+null;null;null;BrokerField;null;-15;10;-25;27;-15;44;12;44;22;27;12;10;
+null;null;null;BrokerField;null;-45;10;-55;27;-45;44;-28;44;-8;27;-18;10;
