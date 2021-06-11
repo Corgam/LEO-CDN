@@ -11,7 +11,7 @@ ground_stations = {
 }
 
 ground_stations = dict()
-with open("./temp/stardusts.txt") as f:
+with open("./stardusts.txt") as f:
     for line in f:
         line = line.replace("\n","")
         id, latitude, longitude, country, numberOfRequests = line.split('|')
