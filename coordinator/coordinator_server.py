@@ -27,7 +27,7 @@ def best_satellite(ground_station_id):
         return "Error - wrong method!"
 
 
-@app.route("/satellite/<satellite_id>/position", methods=["GET"])
+@app.route("/position/<satellite_id>", methods=["GET"])
 def get_satellite_position(satellite_id):
     print(f"Received Request to return the position of satellite {satellite_id}")
     x, y, z = simulation_with_h3.constellation.get_satellite_position(satellite_id)
