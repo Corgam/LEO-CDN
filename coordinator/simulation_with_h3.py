@@ -2,7 +2,6 @@ import json
 import h3
 import toml
 
-from satellite.manage_keygroups import *
 from constellation import Constellation
 
 ground_stations = {
@@ -10,6 +9,14 @@ ground_stations = {
     "gst-1": [4, 5, 6],
     "gst-2": [7, 8, 9]
 }
+
+ground_stations = dict()
+with open("./temp/stardusts.txt") as f:
+    for line in f:
+        line = line.replace("\n","")
+        id, latitude, longitude, country, numberOfRequests = line.split('|')
+        ground_stations[id] = {"latitude": latitude,
+                               "longitude": longitude}
 
 EARTH_RADIUS = 6371000  # in meter
 ALTITUDE = 550  # Orbit Altitude (Km)
@@ -45,12 +52,12 @@ def init():
                                   nodes_per_plane=nodes_per_plane,
                                   semi_major_axis=semi_major_axis)
 
+    # add ground station to simulation
     for key in ground_stations:
-        position = ground_stations[key]
-        constellation.add_new_ground_station_xyz(ground_station_id=key,
-                                                 x=position[0],
-                                                 y=position[1],
-                                                 z=position[2])
+        ground_station_data = ground_stations[key]
+        constellation.add_new_ground_station(ground_station_id=key,
+                                             lat=float(ground_station_data["latitude"]),
+                                             lon=float(ground_station_data["longitude"]))
 
     print("finish initializing")
 

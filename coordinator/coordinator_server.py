@@ -45,7 +45,7 @@ def get_satellite_position(satellite_id):
     return jsonify(response_dict)
 
 
-@app.route("satellite/<satellite_id>/keygroup", methods=["GET"])
+@app.route("/satellite/<satellite_id>/keygroup", methods=["GET"])
 def get_satellite_keygroup(satellite_id):
     print(f"Received Request to return the keygroup of satellite {satellite_id}")
     keygroup = simulation_with_h3.constellation.get_satellite_keygroup(satellite_id)
