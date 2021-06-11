@@ -15,15 +15,15 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 ## Generator.py
 
-Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically.
+Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically. Furthermore, creates all necessary files to run the project.
 
-- Usage `make generate_nodes n=<int>` whereas `n` indicates the number of nodes
+- Usage: `make generate` 
 
 ## Stardust (Ground Stations)
 
 Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
-Reads HTTP Requests from requests.txt file and sends them to the best satellite. The best satellite is chosen with the help of the coordinator.
+Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests ( specified in the Config file) to the best satellite (received from the Coordinator).
 
 ## satellite_server.py
 
