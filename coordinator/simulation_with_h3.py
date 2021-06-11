@@ -1,5 +1,3 @@
-import json
-import h3
 import toml
 
 from constellation import Constellation
@@ -37,15 +35,6 @@ last_node = number_of_planes * nodes_per_plane  # for node that creates all keyg
 
 
 def init():
-    print("[simulation_with_h3]: Initialize all keygroups")
-    # h3_center_address = h3.geo_to_h3(0, 0, 0)  # lat, lng, hex resolution
-    # all_keygroup_areas_as_ring = h3.k_ring_distances(h3_center_address, 10)
-
-    # for ring in all_keygroup_areas_as_ring:
-    #     ring = list(ring)  # transform {area1, area2} to a list
-    #     for area in ring:
-    #         create_keygroup(f"satellite{last_node}", area)
-
     print("[simulation_with_h3]: Initialize simulation")
     global constellation
     constellation = Constellation(number_of_planes=number_of_planes,

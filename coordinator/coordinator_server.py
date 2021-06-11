@@ -39,25 +39,6 @@ def get_satellite_position(satellite_id):
     return jsonify(response_dict)
 
 
-@app.route("/satellite/<satellite_id>/keygroup", methods=["GET"])
-def get_satellite_keygroup(satellite_id):
-    print(f"Received Request to return the keygroup of satellite {satellite_id}")
-    keygroup = simulation_with_h3.constellation.get_satellite_keygroup(satellite_id)
-    return keygroup
-
-
-@app.route("/ground_station/<ground_station_id>/position", methods=["GET"])
-def get_ground_station_position(ground_station_id):
-    print(f"Received Request to return the position of ground station {ground_station_id}")
-    x, y, z = simulation_with_h3.constellation.get_ground_station_position(ground_station_id)
-    response_dict = {
-        'x': x,
-        'y': y,
-        'z': z
-    }
-    return jsonify(response_dict)
-
-
 def run_server():
     print("Coordinator server now running")
     app.run(debug=True, host="172.26.4.1", port=9001, use_reloader=False)
