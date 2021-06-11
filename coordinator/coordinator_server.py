@@ -13,12 +13,6 @@ app = Flask(__name__)
 ## HTTP Server Methods ##
 #########################
 
-@app.route("/positions", methods=["GET"])
-def positions():
-    satellites_as_list = simulation_with_h3.constellation.get_all_satellites()
-    converted_satellites_list = [satellite.__dict__ for satellite in satellites_as_list]
-    return jsonify(converted_satellites_list)
-
 
 @app.route("/best_satellite/<ground_station_id>", methods=["GET"])
 def best_satellite(ground_station_id):
