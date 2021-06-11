@@ -51,6 +51,22 @@ and start celestial:
 
 `make runserver`
 
+## building the rootfs and kernel
+
+Rootfs and kernel can be downloaded using the `dl-microvm.sh` script.
+
+The rootfs can also be built using the builder in the `microvm` directory.
+
+### state of the rootfs
+
+The current rootfs is way too large.
+
+We need to create a smaller file system and maybe also reduce the size of the image content.
+
+For now, the image needs some free space to store data at microvm runtime though.
+
+Tobias mentioned that it may be possible at some point to mount a separate image for the data to each microvm and even use images with dynamic size.
+
 ## gcloud
 Some useful commands are listed below:
 
