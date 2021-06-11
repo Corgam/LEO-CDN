@@ -379,15 +379,3 @@ class Constellation:
         """
         ground_station = self.dict_of_ground_stations[ground_station_id]
         return ground_station["lat"], ground_station["lon"]
-
-    def get_linked_satellites(self, satellite_id):
-        # TODO
-        return []
-
-    def get_connected_ground_stations(self, satellite_id):
-        # TODO
-        return []
-
-    def get_connected_satellites(self, ground_station_id):
-        # TODO
-        pass

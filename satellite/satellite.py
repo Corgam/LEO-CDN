@@ -67,7 +67,6 @@ class Satellite:
         self.z_position = current_position[2]
         self.keygroup = self.init_keygroup()
 
-
     def set_new_position(self, current_time):
         """
         Sets the new position of a satellite.
@@ -193,15 +192,15 @@ class Satellite:
         keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
 
         # print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
-        target_node = self.fred
+        # target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
 
-        status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
+        # status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
 
-        if status_response.status == 1 or status_response == 2:
-            print(f"Oh no. Something went wrong.")
-            print(status_response.message)
+        # if status_response.status == 1 or status_response == 2:
+            # print(f"Oh no. Something went wrong.")
+            # print(status_response.message)
         return keygroup_name
 
     def check_keygroup(self, hex_resolution=0):
@@ -223,24 +222,24 @@ class Satellite:
         if new_keygroup_name == old_keygroup_name:
             return None
         else:
-            target_node = self.fred
+            # target_node = self.fred
             # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
-            status_response_add = add_replica_node_to_keygroup(target_node=target_node,
-                                                                               keygroup=f"{new_keygroup_name}")
+            # status_response_add = add_replica_node_to_keygroup(target_node=target_node,
+            #                                                                    keygroup=f"{new_keygroup_name}")
             # If adding to a keygroup does not work out create the keygroup.
             # print(f"[satellite.py]: Status response: {status_response_add}")
-            if status_response_add.status == 1 or status_response_add.status == 2:
-                print("Cannot add to keygroup.")
-                print(status_response_add.message)
+            # if status_response_add.status == 1 or status_response_add.status == 2:
+            # print("Cannot add to keygroup.")
+            # print(status_response_add.message)
 
             # Removing satellite from keygroup
-            status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
-                                                                                       keygroup=f"{old_keygroup_name}")
+            # status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
+            #                                                                            keygroup=f"{old_keygroup_name}")
 
             # print(f"[satellite.py]: Status response: {status_response_remove}")
             # If the satellite cannot be removed from the keygroup
-            if status_response_remove.status == 1:
-                print("Cannot remove to keygroup.")
-                print(status_response_remove.message)
+            # if status_response_remove.status == 1:
+            #     print("Cannot remove to keygroup.")
+            #    print(status_response_remove.message)
             self.keygroup = new_keygroup_name
             return new_keygroup_name
