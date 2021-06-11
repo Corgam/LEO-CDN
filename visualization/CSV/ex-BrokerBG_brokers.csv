@@ -1,0 +1,5 @@
+brokerId;lat;lon;function;leader;boxMinX;boxMinY;boxMaxX;boxMaxY
+Paris-1250015082;48.8566;2.3522;Broker;Paris-1250015082;null;null;null;null
+Paris-1250015082;32.99999999999995;2.99999999999995;BrokerField;null;0.0;30.0;5.9999999999999;35.9999999999999
+Providence-1840003289;41.823;-71.4187;Broker;Providence-1840003289;null;null;null;null
+null;null;null;BrokerField;null;-25.0;10.0;12.0000000000001;43.9999999999999
