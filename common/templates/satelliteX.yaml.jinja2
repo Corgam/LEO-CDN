@@ -66,11 +66,12 @@ services:
     image: satellite:local
     container_name: {{ server_name }}
     volumes:
-      - ../../temp/{{ server_name }}.crt:/cert/client.crt
-      - ../../temp/{{ server_name }}.key:/cert/client.key
-      - ../../common/cert/ca.crt:/cert/ca.crt
+      - ../../temp/{{ server_name }}.crt:/common/cert/client.crt
+      - ../../temp/{{ server_name }}.key:/common/cert/client.key
+      - ../../common/cert/ca.crt:/common/cert/ca.crt
       - ../../temp/freds.json:/info/nodes.json
       - ../../temp/{{ server_name }}.json:/info/node.json
+      - ../../config.toml:/config.toml
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

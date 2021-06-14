@@ -1,8 +1,12 @@
 import grpc
 import json
+import math
 from proto import client_pb2, client_pb2_grpc
 
+STD_GRAVITATIONAL_PARAMETER_EARTH = 3.986004418e14
+
 class FredClient:
+
     def __init__(self, name, target, client_crt, client_key, ca_crt):
         self.name = name
 
@@ -132,3 +136,21 @@ class FredClient:
     
     def remove_keygroup(self, kg):
         self.keygroups.remove(kg)
+
+    def calculate_orbit_period(self, semi_major_axis=0.0):
+        """
+        Calculates the period of a orbit for Earth.
+
+        Parameters
+        ----------
+        semi_major_axis : float
+            semi major axis of the orbit in meters
+
+        Returns
+        -------
+        Period : int
+            the period of the orbit in seconds (rounded to whole seconds)
+        """
+
+        tmp = math.pow(semi_major_axis, 3) / STD_GRAVITATIONAL_PARAMETER_EARTH
+        return int(2.0 * math.pi * math.sqrt(tmp))

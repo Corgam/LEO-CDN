@@ -196,8 +196,7 @@ class Satellite:
         target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
-
-        status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
+        status_response = add_replica_node_to_keygroup(node=target_node, keygroup=keygroup_name)
 
         if status_response.status == 1 or status_response == 2:
             print(f"Oh no. Something went wrong.")
@@ -225,7 +224,7 @@ class Satellite:
         else:
             target_node = self.fred
             # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
-            status_response_add = add_replica_node_to_keygroup(target_node=target_node,
+            status_response_add = add_replica_node_to_keygroup(node=target_node,
                                                                                keygroup=f"{new_keygroup_name}")
             # If adding to a keygroup does not work out create the keygroup.
             # print(f"[satellite.py]: Status response: {status_response_add}")
@@ -244,3 +243,19 @@ class Satellite:
                 print(status_response_remove.message)
             self.keygroup = new_keygroup_name
             return new_keygroup_name
+
+    # Reads file
+    def read_file(self, file_id):
+        for keygroup in self.keygroups:
+            try:
+                print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
+                stub = client_pb2_grpc.ClientStub(self.channel)
+                response = stub.Read(
+                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+                )
+                return response
+            except:
+                # if file does not exist an error is raised
+                continue
+        print(f"doesn't exist on {self.name}")
+        return ""
