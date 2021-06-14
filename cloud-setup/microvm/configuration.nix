@@ -21,6 +21,9 @@
     };
   };
 
+  services.nginx.enable = true;
+  networking.firewall.allowedTCPPorts = [ 80 ];
+
   environment.systemPackages = with pkgs; [
     vim
   ];
