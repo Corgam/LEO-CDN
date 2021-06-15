@@ -14,7 +14,7 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./satellite /satellite
 COPY ./satellite/proto /proto
-COPY ./satellite/manage_keygroups.py /manage_keygroups.py
+COPY ./satellite/fred_communication.py /fred_communication.py
 COPY ./common/cert/ /common/cert/
 
 CMD ["python", "coordinator/setup_simulation.py"]

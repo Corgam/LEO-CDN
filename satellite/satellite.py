@@ -16,7 +16,7 @@
 import math
 import numpy as np
 from h3 import h3
-from manage_keygroups import *
+from fred_communication import FredCommunication
 
 
 class Satellite:
@@ -48,16 +48,18 @@ class Satellite:
         Host of the satellite.
     port:
         Port of the satellite.
-
+    fredComm:
+        fred functions class
     """
 
-    def __init__(self, name, server, sport, node, nport, fred, kepler_ellipse=None, offset=0):
+    def __init__(self, name, server, sport, node, nport, fred, fredComm, kepler_ellipse=None, offset=0):
         self.name = name
         self.server = server
         self.sport = sport
         self.node = node
         self.nport = nport
         self.fred = fred
+        self.fredComm = fredComm
         self.kepler_ellipse = kepler_ellipse
         self.offset = offset
         self.current_time = 0
@@ -196,11 +198,23 @@ class Satellite:
         target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
-        status_response = add_replica_node_to_keygroup(node=target_node, keygroup=keygroup_name)
+        executed = False
+        try:
+            self.fredComm.create_keygroup(keygroup_name)
+            executed = True
+        except Exception as e:
+            executed = False
+        
+        if executed == False:
+            try:
+                self.fredComm.add_replica_node_to_keygroup(node=target_node, keygroup=keygroup_name)
+                executed = True
+            except Exception as e:
+                executed = False
 
-        if status_response.status == 1 or status_response == 2:
-            print(f"Oh no. Something went wrong.")
-            print(status_response.message)
+
+        if executed == False:
+            print(f"Oh no. Something went wrong.1")
         return keygroup_name
 
     def check_keygroup(self, hex_resolution=0):
@@ -223,39 +237,42 @@ class Satellite:
             return None
         else:
             target_node = self.fred
+            executed = False
+            try:
+                status_response_add = self.fredComm.create_keygroup(new_keygroup_name)
+                executed = True
+            except Exception as e:
+                executed = False
+            
+            if executed == False:
+                try:
+                    status_response = self.fredComm.add_replica_node_to_keygroup(node=target_node, keygroup=new_keygroup_name)
+                    executed = True
+                except Exception as e:
+                    executed = False
+                    print(e)
             # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
-            status_response_add = add_replica_node_to_keygroup(node=target_node,
-                                                                               keygroup=f"{new_keygroup_name}")
+            
             # If adding to a keygroup does not work out create the keygroup.
             # print(f"[satellite.py]: Status response: {status_response_add}")
-            if status_response_add.status == 1 or status_response_add.status == 2:
-                print("Cannot add to keygroup.")
-                print(status_response_add.message)
-
+            if executed == False:
+                print("Cannot add to keygroup.2")
+                return self.keygroup
             # Removing satellite from keygroup
-            status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
-                                                                                       keygroup=f"{old_keygroup_name}")
-
-            # print(f"[satellite.py]: Status response: {status_response_remove}")
-            # If the satellite cannot be removed from the keygroup
-            if status_response_remove.status == 1:
-                print("Cannot remove to keygroup.")
-                print(status_response_remove.message)
-            self.keygroup = new_keygroup_name
-            return new_keygroup_name
+            try:
+                self.fredComm.remove_replica_node_from_keygroup(target_node=target_node, keygroup=old_keygroup_name)
+                self.keygroup = new_keygroup_name
+            except:
+                print("Cannot remove to keygroup.3")
+            
+            return self.keygroup
 
     # Reads file
     def read_file(self, file_id):
-        for keygroup in self.keygroups:
-            try:
-                print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
-                stub = client_pb2_grpc.ClientStub(self.channel)
-                response = stub.Read(
-                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-                )
-                return response
-            except:
-                # if file does not exist an error is raised
-                continue
-        print(f"doesn't exist on {self.name}")
-        return ""
+        try:
+            return self.fredComm.read_file_from_node(self.keygroup, file_id)
+        except:
+            # if file does not exist an error is raised
+            print(f"doesn't exist on {self.name}")
+            return ""
+        

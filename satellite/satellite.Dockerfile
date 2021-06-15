@@ -9,7 +9,8 @@ RUN pip install -r /requirements.txt
 
 COPY satellite_server.py /satellite_server.py
 COPY satellite.py /satellite.py
-COPY manage_keygroups.py /manage_keygroups.py
+COPY fred_communication.py /fred_communication.py
+COPY satellite_movement.py /satellite_movement.py
 COPY proto /proto
 
 CMD ["python", "satellite_server.py"]

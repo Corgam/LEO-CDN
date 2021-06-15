@@ -11,8 +11,9 @@ import toml
 import numpy as np
 import math
 from PyAstronomy import pyasl
-from manage_keygroups import *
+from fred_communication import FredCommunication
 from satellite import Satellite
+from satellite_movement import SatelliteMover
 
 app = Flask(__name__)
 
@@ -29,6 +30,12 @@ number_of_planes = config["satellites"]["planes"]
 nodes_per_plane = config["satellites"]["satellites_per_plane"]
 
 # Loading node configurations
+with open("/info/nodes.json") as f:
+    node_configs = json.load(f)
+
+nodes = [key for key in node_configs.keys()]
+
+# Loading node configurations
 with open("/info/node.json") as f:
     node_configs = json.load(f)
 
@@ -38,34 +45,40 @@ port = node_configs[name]['sport']
 fred = node_configs[name]['fred']
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
 
+#################################
+##  Update Satellite Position  ##
+#################################
+
+
+
 #########################
 ## HTTP Server Methods ##
 #########################
 
-# IP:Host/getKeygroups: returns a json of all keygroups the node is in
-@app.route('/getKeygroups')
-def getKeygroups():
-    return jsonify({"keygroups": get_keygroups()})
-
 # IP:host/getLocation: returns the satellite's location (?)
 @app.route('/getLocation')
 def getLocation():
-    return str(satellite.get_current_position)
+    return str(satellite.get_current_position())
 
 @app.route('/currentKeygroup')
 def addSatellite():
-    return str(sat.keygroup)
+    return str(satellite.keygroup)
+
+@app.route('/getAddresses')
+def getAddresses():
+    response = fredComm.read_file_from_node("manage", "addresses")
+    return response.data
 
 @app.route('/', defaults={'u_path': ''})
 @app.route('/<path:u_path>')
 def catch_all(u_path):
     link = request.headers.get('host') + "/" + u_path
     md5 = hashlib.md5(link.encode()).hexdigest()
-    saved = read_file(md5)
+    saved = satellite.read_file(md5)
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        set_data("manage", md5, "0")
+        fredComm.set_data("manage", md5, "0")
         print(f"added new key: {md5}")
         # return r.text
         return "0"
@@ -74,15 +87,28 @@ def catch_all(u_path):
         counter = int(saved.data)
         counter += 1
         saved = str(counter)
-        set_data("manage", md5, saved)
+        fredComm.set_data("manage", md5, saved)
         return saved
 
 if __name__ == '__main__':
+
+    # Loading certificates
+    with open("/common/cert/client.crt", "rb") as f:
+        client_crt = f.read()
+
+    with open("/common/cert/client.key", "rb") as f:
+        client_key = f.read()
+
+    with open("/common/cert/ca.crt", "rb") as f:
+        ca_crt = f.read()
+
+    fredComm = FredCommunication(name, target, client_crt, client_key, ca_crt)
+
     STD_GRAVITATIONAL_PARAMETER_EARTH = 3.986004418e14
     tmp = math.pow(semi_major_axis, 3) / STD_GRAVITATIONAL_PARAMETER_EARTH
     period = int(2.0 * math.pi * math.sqrt(tmp))
     raan_offsets = [(360 / number_of_planes) * i for i in range(0, number_of_planes)]
-    time_offsets = [(period / nodes_per_plane) * i for i in range(0, nodes_per_plane)]
+    time_offsets = [(period / nodes_per_plane) * i for i in range(0, nodes_per_plane+1)]
     phase_offset = 0
     phase_offset_increment = (period / nodes_per_plane) / number_of_planes
 
@@ -119,7 +145,8 @@ if __name__ == '__main__':
     print(len(list_of_kepler_ellipse))
     ellipse = list_of_kepler_ellipse[0]
     # calculate the KE solver time offset
-    offset = time_offsets[0] + phase_offsets[0]
+    offset = time_offsets[int(name.split("satellite", 1)[1])] + phase_offsets[0]
+
     satellite = Satellite(
         name=target,
         server=ip,
@@ -127,12 +154,16 @@ if __name__ == '__main__':
         node=node_configs[name]['node'],
         nport=node_configs[name]['nport'],
         fred=fred,
+        fredComm=fredComm,
         kepler_ellipse=ellipse,
         offset=offset,
     )
 
+    mover = SatelliteMover(name, satellite, 10)
+    mover.start()
+
     try:
-        join_managing_keygroups()
+        fredComm.join_managing_keygroups(fred, ip, port)
     except Exception as e:
         print("failed to join managing keygroup")
         print(e)
