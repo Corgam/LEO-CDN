@@ -17,7 +17,7 @@ import math
 import numpy as np
 from h3 import h3
 from fred_communication import FredCommunication
-
+import logging
 
 class Satellite:
     """
@@ -53,6 +53,13 @@ class Satellite:
     """
 
     def __init__(self, name, server, sport, node, nport, fred, fredComm, kepler_ellipse=None, offset=0):
+        logging.basicConfig(filename='/logs/' + name + '.log',
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+        self.logger = logging.getLogger(name)
+        self.logger.info("HALLO")
         self.name = name
         self.server = server
         self.sport = sport
@@ -194,7 +201,7 @@ class Satellite:
         lat, lon = self.get_current_geo_position()
         keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
 
-        # print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
+        # self.logger.info(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
         target_node = self.fred
 
         # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
@@ -214,7 +221,7 @@ class Satellite:
 
 
         if executed == False:
-            print(f"Oh no. Something went wrong.1")
+            self.logger.info(f"Oh no. Something went wrong.1")
         return keygroup_name
 
     def check_keygroup(self, hex_resolution=0):
@@ -250,20 +257,20 @@ class Satellite:
                     executed = True
                 except Exception as e:
                     executed = False
-                    print(e)
-            # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
+                    self.logger.info(e)
+            # self.logger.info(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
             
             # If adding to a keygroup does not work out create the keygroup.
-            # print(f"[satellite.py]: Status response: {status_response_add}")
+            # self.logger.info(f"[satellite.py]: Status response: {status_response_add}")
             if executed == False:
-                print("Cannot add to keygroup.2")
+                self.logger.info("Cannot add to keygroup.2")
                 return self.keygroup
             # Removing satellite from keygroup
             try:
                 self.fredComm.remove_replica_node_from_keygroup(target_node=target_node, keygroup=old_keygroup_name)
                 self.keygroup = new_keygroup_name
             except:
-                print("Cannot remove to keygroup.3")
+                self.logger.info("Cannot remove to keygroup.3")
             
             return self.keygroup
 
@@ -273,6 +280,6 @@ class Satellite:
             return self.fredComm.read_file_from_node(self.keygroup, file_id)
         except:
             # if file does not exist an error is raised
-            print(f"doesn't exist on {self.name}")
+            self.logger.info(f"doesn't exist on {self.name}")
             return ""
         

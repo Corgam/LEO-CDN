@@ -1,4 +1,4 @@
-from flask import *
+from flask import Flask, request
 import time
 import json
 import sys
@@ -14,6 +14,7 @@ from PyAstronomy import pyasl
 from fred_communication import FredCommunication
 from satellite import Satellite
 from satellite_movement import SatelliteMover
+import logging
 
 app = Flask(__name__)
 
@@ -44,6 +45,13 @@ ip = node_configs[name]['server']
 port = node_configs[name]['sport']
 fred = node_configs[name]['fred']
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
+
+logging.basicConfig(filename='/logs/' + name + '.log',
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
+logger = logging.getLogger(f'{name}_server')
 
 #################################
 ##  Update Satellite Position  ##
@@ -79,11 +87,11 @@ def catch_all(u_path):
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
         fredComm.set_data("manage", md5, "0")
-        print(f"added new key: {md5}")
+        logger.info(f"added new key: {md5}")
         # return r.text
         return "0"
     else:
-        print(f"key: {md5} in keygroup manage found: {saved}")
+        logger.info(f"key: {md5} in keygroup manage found: {saved}")
         counter = int(saved.data)
         counter += 1
         saved = str(counter)
@@ -142,7 +150,7 @@ if __name__ == '__main__':
         )
         list_of_kepler_ellipse.append(ellipse)
 
-    print(len(list_of_kepler_ellipse))
+    logger.info(len(list_of_kepler_ellipse))
     ellipse = list_of_kepler_ellipse[0]
     # calculate the KE solver time offset
     offset = time_offsets[int(name.split("satellite", 1)[1])] + phase_offsets[0]
@@ -165,7 +173,7 @@ if __name__ == '__main__':
     try:
         fredComm.join_managing_keygroups(fred, ip, port)
     except Exception as e:
-        print("failed to join managing keygroup")
-        print(e)
+        logger.info("failed to join managing keygroup")
+        logger.info(e)
 
     app.run(debug=True, host=ip, port=port)

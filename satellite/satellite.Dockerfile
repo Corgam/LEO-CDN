@@ -12,5 +12,6 @@ COPY satellite.py /satellite.py
 COPY fred_communication.py /fred_communication.py
 COPY satellite_movement.py /satellite_movement.py
 COPY proto /proto
+RUN mkdir /logs
 
 CMD ["python", "satellite_server.py"]
