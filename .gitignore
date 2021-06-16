@@ -167,3 +167,7 @@ gcp.json
 *.ext4
 *.bin
 *.tar.xz
+
+#visualization
+visualization/plots/html/
+visualization/plots/png/
