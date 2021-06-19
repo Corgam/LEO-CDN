@@ -2,43 +2,28 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
-## Setup
+## Requirements and setup
 
 `pip install -r requirements.txt`
 
-## Requirements
-
-- Docker
-- Python
-- Jinja2
-
 ## Run Simulation
 
-1. Run `make generate_nodes n=<int>` (e.g. `make generate_nodes n=3` for generating 3 nodes)
-2. Run `make run_nodes`
-3. Run `make coordinator`
-4. Run `make stardust`
-5. Run `make run_tester`
-
-Steps 1. and 2. can be run together with `make generate_and_run_nodes n=<int>`
+1. (Optional) Customize the config file.
+2. Run `make setup` command.
+3. Run `make coordinator` command.
+4. Run `make stardust` command.
 
 ## Generator.py
 
-Generates certificates and a .yml file for each node. Creates a Makerfile and then runs docker-compose to start all storage and FReD nodes automatically.
+Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically. Furthermore, creates all necessary files to run the project.
 
-- Usage `make generate_nodes n=<int>` whereas `n` indicates the number of nodes
+- Usage: `make generate` 
 
-## keygroup_passer.py
-
-Manages the communication between nodes. The first node initializes a keygroup and adds data into the keygroup. Afterwards the keygroup gets passed between all nodes.
-
-- Usage `make run_tester`
-
-## Stardust v1.0
+## Stardust (Ground Stations)
 
 Satellite Transmitting and Receiving Data Utility Simplification Tool.
 
-Reads HTTP Requests from requests.txt file and sends them to the best satellite. The best satellite is chosen with the help of the coordinator.
+Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests ( specified in the Config file) to the best satellite (received from the Coordinator).
 
 ## satellite_server.py
 
@@ -55,3 +40,8 @@ HTTP Server for a satellite, provides following end-points:
 | GET    | IP:5000/getLocation                     | -                                                | Returns a json with the following format: {x: &lt;number>, y: &lt;number>, z: &lt;number>} |
 | POST   | IP:5000/setLocation                     | {x: &lt;number>, y: &lt;number>, z: &lt;number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
 | GET    | IP:5000/positions                       | -                                                | Returns the position from all nodes (keygroup: manage, key: positions)                     |
+
+
+## Coordinator
+
+Please take a look [here](https://github.com/Corgam/LEO-CDN/wiki/Coordinator-API).

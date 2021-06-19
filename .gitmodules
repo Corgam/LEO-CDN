@@ -1,3 +1,6 @@
 [submodule "FReD"]
 	path = FReD
-	url = https://github.com/OpenFogStack/FReD
+	url = https://github.com/yolibernal/FReD
+[submodule "celestial"]
+	path = celestial
+	url = git@github.com:OpenFogStack/celestial.git

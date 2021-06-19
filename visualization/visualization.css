@@ -1,0 +1,64 @@
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+#content {
+  max-width: 2000px;
+  margin: auto;
+  text-align: center;
+}
+
+#text-content {
+  max-width: 920px;
+  margin: auto;
+  text-align: center;
+}
+
+#visualization-container {
+  text-align: initial;
+  width: 640px;
+  margin: auto;
+  margin-top: 20px;
+}
+
+#legend-container {
+  display: none;
+}
+
+#legend-table > tr > td {
+  padding: 2px;
+}
+
+#broker-dht-container {
+  display: none;
+}
+
+#topic-table > tr > td {
+  padding: 2px;
+  border-bottom: 1px solid #ddd;
+}
+
+table {
+  margin: auto;
+  text-align: initial;
+}
+
+table.center {
+  margin: auto;
+  text-align: center;
+}
+
+.align-left {
+  text-align: left;
+}
+
+td {
+  padding-left: 10px;
+  padding-right: 10px;
+}

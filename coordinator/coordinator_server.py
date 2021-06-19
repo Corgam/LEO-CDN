@@ -3,50 +3,42 @@
 ######################
 
 from flask import Flask, jsonify, request
-import math
+import toml
+import simulation_with_h3
 
 app = Flask(__name__)
 
-#Hardcoded satellites' positions, should use coordinator_client.satellite_pos
-satellite_positions = {
-    "172.26.8.3:9001": [2, 3, 1],
-    "172.26.9.3:9001": [5, 4, 6],
-    "172.26.10.3:9001": [8, 7, 9]
-}
-
-ground_station_positions = {
-    "gst-0": [1, 2, 3],
-    "gst-1": [4, 5, 6],
-    "gst-2": [7, 8, 9]
-}
 
 #########################
 ## HTTP Server Methods ##
 #########################
 
-@app.route("/positions")
-def positions():
-    return jsonify(satellite_positions)
 
-@app.route("/best_satellite/<ground_station_id>", methods = ["GET"])
+@app.route("/best_satellite/<ground_station_id>", methods=["GET"])
 def best_satellite(ground_station_id):
-    print(f"Got a HTTP request from {str(ground_station_id)}")
+    print(f"Calculating the best satellite to connect to from ground station {str(ground_station_id)}")
     if request.method == "GET":
-        if ground_station_id not in ground_station_positions:
-            return "<p>Invalid GST ID</p>"
-        #coordinator_client.getPositions() Should be called periodically to update
-        gst_pos = ground_station_positions[ground_station_id]
-        mindist = -1
-        for key in satellite_positions:
-            sat_pos = satellite_positions[key]
-            dist = math.sqrt((gst_pos[0]-sat_pos[0])**2 + (gst_pos[1]-sat_pos[1])**2 + (gst_pos[2]-sat_pos[2])**2)
-            if (mindist == -1 or dist < mindist):
-                mindist = dist
-                minkey = key
-        return minkey
+        if ground_station_id not in simulation_with_h3.ground_stations:
+            return "Invalid GST ID"
+        else:
+            satellite = simulation_with_h3.constellation.get_best_satellite(ground_station_id=ground_station_id)
+            return f"{satellite.server}:{satellite.sport}"  # TODO: Change to json or sth like that
     else:
-        return "<p>Error - wrong method!</p>"
+        return "Error - wrong method!"
 
-# Main function
-if __name__ == '__main__':
-    app.run(host="172.26.5.1",port=9001)
+
+@app.route("/position/<satellite_id>", methods=["GET"])
+def get_satellite_position(satellite_id):
+    print(f"Received Request to return the position of satellite {satellite_id}")
+    x, y, z = simulation_with_h3.constellation.get_satellite_position(satellite_id)
+    response_dict = {
+        'x': x,
+        'y': y,
+        'z': z
+    }
+    return jsonify(response_dict)
+
+
+def run_server():
+    print("Coordinator server now running")
+    app.run(debug=True, host="172.26.4.1", port=9001, use_reloader=False)

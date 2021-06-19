@@ -1,0 +1,13 @@
+# Main config for LEO-CDN Project
+# Change this file before you run `make setup`
+
+title = "LEO-CDN Config"
+
+[general]
+# Name of the file that contains information about all groundstations.
+# File should be located in the `data` folder.
+stardusts_list= "example_5_stardusts.txt"
+
+[satellites]
+planes = 1
+satellites_per_plane = 3

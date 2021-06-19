@@ -4,45 +4,48 @@ import os
 import shutil
 import json
 from jinja2 import Template
+import toml
 
-# Validates command line argument
-if len(sys.argv) != 3:
-    print("generator.py -node <number>")
-    exit()
+############
+## Config ##
+############
 
-if sys.argv[1] != "-node":
-    print("generator.py -node <number>")
-    exit()
-
-if not sys.argv[2].isnumeric():
-    print("generator.py -node <number>")
-    exit()
-
-if int(sys.argv[2]) < 1:
-    print("Please use a number >0")
-    exit()
-
+# Load the config
+with open("./config.toml") as f:
+    config = toml.load(f)
 # Number of nodes to generate
-nodes = int(sys.argv[2])
+planes = config["satellites"]["planes"]
+satellite_per_planes = config["satellites"]["satellites_per_plane"]
+# TODO: this +1 is for the simulation because atm it requires to init all keygroups in the beginning -> change this
+nodes = planes * satellite_per_planes +1
 
 # Create temp directory
 print("Creating temp directory...")
 if not os.path.exists("./temp"):
     os.makedirs("./temp")
 else:
-    # If the temp dir already exists, remove it and make new one
+    # If the temp dir already exists, remove it and it's files and make new empty one
     shutil.rmtree("./temp")
     os.makedirs("./temp")
 
-# Copy the certificates generators
-shutil.copyfile("./cert/gen-cert.sh", "./temp/gen-cert.sh")
-shutil.copyfile(
-    "./cert/generate-n-certificates.sh", "./temp/generate-n-certificates.sh"
-)
-shutil.copyfile("./cert/ca.crt", "./temp/ca.crt")
-shutil.copyfile("./cert/ca.key", "./temp/ca.key")
-shutil.copyfile("./cert/ca.key", "./temp/ca.key")
+##########
+## Data ##
+##########
 
+# Copy the file containing all groundstations information
+stardusts_list = config["general"]["stardusts_list"]
+print("Selecting all data files...")
+shutil.copyfile("./data/"+stardusts_list, "./temp/stardusts.txt")
+
+##################
+## Certificates ##
+##################
+
+# Copy the certificates generator files
+shutil.copyfile("./common/cert/gen-cert.sh", "./temp/gen-cert.sh")
+shutil.copyfile("./common/cert/generate-n-certificates.sh", "./temp/generate-n-certificates.sh")
+shutil.copyfile("./common/cert/ca.crt", "./temp/ca.crt")
+shutil.copyfile("./common/cert/ca.key", "./temp/ca.key")
 
 # Generating certificates for every store and fred node
 print(f"Generating certificates for {nodes} nodes...")
@@ -58,16 +61,27 @@ elif sys.platform.startswith("linux"):
         "sh ./temp/generate-n-certificates.sh '%s'" % str(nodes), shell=True
     )
 
+# Remove the certificate generator files
+os.remove("./temp/gen-cert.sh")
+os.remove("./temp/generate-n-certificates.sh")
+os.remove("./temp/ca.crt")
+os.remove("./temp/ca.key")
+os.remove("./temp/ca.srl")
+
+###############
+## YML files ##
+###############
+
 # Creating the yml files
 print(f"Generating yml file for {nodes} nodes...")
 
-with open("templates/nodex.yaml.jinja2") as file_:
+with open("common/templates/satelliteX.yaml.jinja2") as file_:
     node_template = Template(file_.read())
 
 for x in range(nodes):
-    node_IP = f"172.26.{x+7}.1"
-    store_IP = f"172.26.{x+7}.2"
-    server_IP = f"172.26.{x+7}.3"
+    node_IP = f"172.26.{x + 7}.1"
+    store_IP = f"172.26.{x + 7}.2"
+    server_IP = f"172.26.{x + 7}.3"
     node_name = f"fred{x}"
     store_name = f"store{x}"
     server_name = f"satellite{x}"
@@ -84,17 +98,18 @@ for x in range(nodes):
         server_name=server_name,
         server_IP=server_IP,
     )
-    with open(f"./temp/node{x}.yml", "w") as f:
+    with open(f"./temp/satellite{x}.yml", "w") as f:
         f.write(nodex_yaml)
 
+################
+## SH scripts ##
+################
 
 # Create a list of node names
-node_names = [f"node{x}" for x in range(nodes)]
-
+node_names = [f"satellite{x}" for x in range(nodes)]
 
 # Generate start script
-
-with open("templates/run-nodes.sh.jinja2") as file_:
+with open("common/templates/run-nodes.sh.jinja2") as file_:
     run_script_template = Template(file_.read())
 
 run_script = run_script_template.render(node_names=node_names)
@@ -102,10 +117,8 @@ run_script = run_script_template.render(node_names=node_names)
 with open(f"./temp/run-nodes.sh", "w") as f:
     f.write(run_script)
 
-
 # Generate clean script
-
-with open("templates/clean.sh.jinja2") as file_:
+with open("common/templates/clean.sh.jinja2") as file_:
     clean_script_template = Template(file_.read())
 
 clean_script = clean_script_template.render(node_names=node_names)
@@ -113,10 +126,12 @@ clean_script = clean_script_template.render(node_names=node_names)
 with open(f"./temp/clean.sh", "w") as f:
     f.write(clean_script)
 
+###############
+## JSON file ##
+###############
 
 # Generate JSON with node data
-
-with open("./temp/nodes.json", "w") as f:
+with open("./temp/freds.json", "w") as f:
     nodes_config = {
         f"fred{x}": {"host": f"172.26.{x + 7}.1", "port": 9001} for x in range(nodes)
     }
@@ -125,6 +140,7 @@ with open("./temp/nodes.json", "w") as f:
 for x in range(nodes):
     with open(f"./temp/satellite{x}.json", "w") as f:
         nodes_config = {
-            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001, "fred": f"fred{x}"}
+            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001,
+                              "fred": f"fred{x}"}
         }
         json.dump(nodes_config, f, indent=4)

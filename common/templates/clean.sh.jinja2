@@ -1,0 +1,17 @@
+#!/bin/bash
+
+docker network rm fredwork
+
+docker-compose \
+  -f common/docker/etcd.yml \
+  {%- for name in node_names %}
+  -f temp/{{name}}.yml \
+  {%- endfor %}
+  down
+
+docker stop stardust
+docker rm stardust
+docker stop coordinator
+docker rm coordinator
+
+rm -rf ./temp
