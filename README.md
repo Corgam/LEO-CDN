@@ -2,6 +2,16 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
+Authors:
+
+- Emil Balitzki
+- Jonas Bernhard
+- Abbas Fakhir
+- Huy Viet Nguyen
+- András Temesi
+- Marek Wallich
+- Hoang Mi Pham
+
 ## Requirements and setup
 
 `pip install -r requirements.txt`
@@ -21,7 +31,7 @@ Generates certificates and a .yml file for each satellite. Creates a Makefile an
 
 ## Ground Stations
 
-Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests ( specified in the Config file) to the best satellite (received from the Coordinator).
+Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests (specified in the Config file) in an async fashion to the best satellite (received from the Coordinator).
 
 ## satellite_server.py
 
