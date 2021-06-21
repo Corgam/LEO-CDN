@@ -1,11 +1,13 @@
-from flask import *
-import time
-import json
-import sys
-import requests
-import os
-import logging
 import hashlib
+import json
+import logging
+import os
+import sys
+import time
+
+import requests
+from flask import *
+
 from fred_client import FredClient
 
 app = Flask(__name__)
@@ -268,6 +270,22 @@ def catch_all(u_path):
         counter += 1
         saved = str(counter)
         fred_client.set_data("manage", md5, saved)
+        return saved
+
+
+@app.route("/<file_id>")
+def get_file(file_id):
+    saved = fred_client.read_file(file_id)
+    if saved == "":
+        fred_client.set_data("manage", file_id, "0")
+        print(f"added new key: {file_id}")
+        return "0"
+    else:
+        print(f"key: {file_id} in keygroup manage found: {saved}")
+        counter = int(saved.data)
+        counter += 1
+        saved = str(counter)
+        fred_client.set_data("manage", file_id, saved)
         return saved
 
 
