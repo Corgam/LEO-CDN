@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>LEO-CDN Project @TUBerlin</title>
+        <link rel="stylesheet" href="visualization.css">
+    </head>
+    <body>
+        <div id="content">
+            <h1>LEO-CDN Project @TUBerlin</h1>
+            <table class="center">
+                <tr>
+                    <td>
+                        <label for="layer-selection">Select Layer of Keygroups:</label>
+                        <select id="layer-selection">
+                            <option id="first-layer" value="0" selected>1st Layer</option>
+                            <option id="second-layer" value="1" disabled>2nd Layer</option>
+                            <option id="third-layer" value="2" disabled>3rd Layer</option>
+                            <option id="forth-layer" value="3" disabled>4th Layer</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="slider">Timestep: </label>
+                        <input type="range" min="0" max="8000" step="1" value="0" id="timestep">
+                        <input type="number" id="timestep-val" min="0" max="8000" step="1" value="0">
+                    </td>
+                </tr>
+            </table>
+            <div id="visualization-container">
+                <svg xmlns="http://www.w3.org/2000/svg" id="visualization-svg"></svg>
+            </div>
+        </div>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://unpkg.com/topojson-client@3"></script>
+        <script src="https://unpkg.com/versor@0.1.2"></script>
+        <script src="functionality.js"></script>
+        
+    </body>
