@@ -2,14 +2,9 @@ import toml
 
 from constellation import Constellation
 
-ground_stations = {
-    "gst-0": [1, 2, 3],
-    "gst-1": [4, 5, 6],
-    "gst-2": [7, 8, 9]
-}
-
+# Read the GSTs file
 ground_stations = dict()
-with open("./temp/stardusts.txt") as f:
+with open("./temp/gsts.txt") as f:
     for line in f:
         line = line.replace("\n","")
         id, latitude, longitude, country, numberOfRequests = line.split('|')
