@@ -1,5 +1,5 @@
 import toml
-
+import time 
 from constellation import Constellation
 
 # Read the GSTs file
@@ -48,9 +48,10 @@ def init():
 
 def run_simulation():
     # starting from time step 0
-    for step in range(0, steps):
-        next_time = step * step_length
-
-        constellation.update_position(time=next_time)
+    while(True):
+        for step in range(0, steps):
+            next_time = step * step_length
+            constellation.update_position(time=next_time)
+            time.sleep(1)
         # print(f"At step {step}. These are the current keygroups each satellite belongs to: ")
         # constellation.print_current_keygroups()
