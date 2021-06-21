@@ -4,13 +4,13 @@ RUN apt update && \
     apt install -y libgrpc-dev && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./stardust/requirements-stardust.txt /requirements.txt
+COPY ./gsts/requirements-gsts.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
-COPY ./stardust/stardust.py /stardust.py
-COPY ./temp/stardusts.txt /stardusts.txt
+COPY ./gsts/gsts.py /gsts.py
+COPY ./temp/gsts.txt /gsts.txt
 
-CMD ["python", "stardust.py"]
+CMD ["python", "gsts.py"]
