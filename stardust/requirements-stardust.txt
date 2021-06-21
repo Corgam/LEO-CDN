@@ -1,1 +1,2 @@
 numpy~=1.20.3
+requests-futures~=1.0.0

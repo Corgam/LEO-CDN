@@ -3,9 +3,12 @@
 ####################
 
 # Importing needed libraries
+from concurrent import futures
 import numpy
 import http.client
 import threading
+from requests_futures.sessions import FuturesSession
+
 
 # This class holds all the information about a single HTTP Request.
 class HTTPRequest:
@@ -98,7 +101,7 @@ def generateRequests(numberOfRequests):
     # Generate the requests 
     for i in range(0, numberOfRequests):
         number = dis[i]
-        req = f"GET / HTTP/1.1\nHost: http://domain{number}.com"
+        req = f"GET /file{number} HTTP/1.1"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
 
@@ -114,7 +117,7 @@ def connectToTheBestSatellite(id):
     if(data != "Invalid GST ID"):
         ip,port = data.split(':')
         # Return connection to the best satellite
-        print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.")
+        print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n")
         coordConn.close()
         return http.client.HTTPConnection(ip,port);
     else:
@@ -126,19 +129,23 @@ def sendRequests(stardust):
     # Generate the requests
     reqsList = generateRequests(stardust.getNumberOfRequests())
     # Create a connection to the best satellite
-    print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...")
+    print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n")
     conn = connectToTheBestSatellite(stardust.getID())
     if(conn == -1):
-        print(f"[{threading.current_thread().name}]Invalid Stardust ID...")
+        print(f"[{threading.current_thread().name}]Invalid Stardust ID...\n")
         return
     # Send all requests
-    print(f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...")
+    print(f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n")
+    # Create an async session
+    session = FuturesSession()
+    responses = list()
     for req in reqsList:
-        # Send the request
-        conn.request(method="GET",url=req.getURL(),headers=req.getHeads())
-        # Get response
-        response = conn.getresponse()
-        print(f"[{threading.current_thread().name}]Status: {response.status} and reason: {response.reason}")
+        # Send the request in an async fashion
+        responses.append(session.get(req.getURL()))
+    # Read all of the responses (or wait for them)
+    for future in responses:
+        res = future.result()
+        print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
     conn.close()
 
 
@@ -148,6 +155,6 @@ if __name__ == "__main__":
     # Read the list of the stardusts
     stardustsList = loadStardustsInfo()
     # Create stardusts threads
-    print(f"Creating {len(stardustsList)} threads...")
+    print(f"Creating {len(stardustsList)} threads...\n")
     createStardusts(stardustsList)
 
