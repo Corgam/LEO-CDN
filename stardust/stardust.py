@@ -3,7 +3,6 @@
 ####################
 
 # Importing needed libraries
-from concurrent import futures
 import numpy
 import http.client
 import threading
@@ -106,7 +105,7 @@ def generateRequests(numberOfRequests):
     return reqsList
 
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
-def connectToTheBestSatellite(id):
+def getTheBestSatellite(id):
     # Communicate with the Coordinator to choose the best satellite.
     coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
     coordConn.request(method="GET",url=f"/best_satellite/{id}")
@@ -115,11 +114,10 @@ def connectToTheBestSatellite(id):
     # Extract ip and port
     data = res.read().decode()
     if(data != "Invalid GST ID"):
-        ip,port = data.split(':')
-        # Return connection to the best satellite
+        # Return the ip and port to the best satellite
         print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n")
         coordConn.close()
-        return http.client.HTTPConnection(ip,port);
+        return data;
     else:
         return -1; 
 
@@ -130,8 +128,8 @@ def sendRequests(stardust):
     reqsList = generateRequests(stardust.getNumberOfRequests())
     # Create a connection to the best satellite
     print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n")
-    conn = connectToTheBestSatellite(stardust.getID())
-    if(conn == -1):
+    bestSat = getTheBestSatellite(stardust.getID())
+    if(bestSat == -1):
         print(f"[{threading.current_thread().name}]Invalid Stardust ID...\n")
         return
     # Send all requests
@@ -141,13 +139,11 @@ def sendRequests(stardust):
     responses = list()
     for req in reqsList:
         # Send the request in an async fashion
-        responses.append(session.get(req.getURL()))
+        responses.append(session.get("http://"+bestSat+req.getURL()))
     # Read all of the responses (or wait for them)
     for future in responses:
         res = future.result()
         print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
-    conn.close()
-
 
 # Main function, run on startup
 if __name__ == "__main__":
