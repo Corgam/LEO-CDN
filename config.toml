@@ -6,7 +6,7 @@ title = "LEO-CDN Config"
 [general]
 # Name of the file that contains information about all groundstations.
 # File should be located in the `data` folder.
-stardusts_list= "example_5_stardusts.txt"
+gsts_list= "example_5_gsts.txt"
 
 [satellites]
 planes = 1

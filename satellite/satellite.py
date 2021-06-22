@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import math
-import numpy as np
 from h3 import h3
-from fred_communication import FredCommunication
 import logging
+import requests
+import json
+from fred_client import FredClient
 
 class Satellite:
     """
@@ -52,59 +52,16 @@ class Satellite:
         fred functions class
     """
 
-    def __init__(self, name, server, sport, node, nport, fred, fredComm, kepler_ellipse=None, offset=0):
+    def __init__(self, name, fred_client, kepler_ellipse=None, offset=0):
         logging.basicConfig(filename='/logs/' + name + '.log',
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
-                            level=logging.DEBUG)
+                            level=logging.INFO)
         self.logger = logging.getLogger(name)
-        self.logger.info("HALLO")
         self.name = name
-        self.server = server
-        self.sport = sport
-        self.node = node
-        self.nport = nport
-        self.fred = fred
-        self.fredComm = fredComm
-        self.kepler_ellipse = kepler_ellipse
-        self.offset = offset
-        self.current_time = 0
-        current_position = self.kepler_ellipse.xyzPos(self.offset)
-        self.x_position = current_position[0]
-        self.y_position = current_position[1]
-        self.z_position = current_position[2]
-        self.keygroup = self.init_keygroup()
-
-
-    def set_new_position(self, current_time):
-        """
-        Sets the new position of a satellite.
-        It calls xyzPos from PyAstronomy KeplerEllipse. The parameter for this function is the time.
-        Therefore, we have to add the current time to the offset (the initial position of the satellite)
-
-        Parameters
-        ----------
-        current_time : int
-            new time to calculate the new position
-
-        Returns
-        -------
-
-        """
-        self.current_time = current_time
-
-        updated_position = self.kepler_ellipse.xyzPos(current_time + self.offset)
-        self.x_position = np.int32(updated_position[0])
-        self.y_position = np.int32(updated_position[1])
-        self.z_position = np.int32(updated_position[2])
-
-        self.check_keygroup()
-
-    def set_xyz_position(self, x, y, z):
-        self.x_position = x
-        self.y_position = y
-        self.z_position = z
+        self.fred_client = fred_client
+        self.baseurl = "http://172.26.4.1:9001/position/" + name
 
     def get_current_position(self):
         """
@@ -116,113 +73,12 @@ class Satellite:
         y_position: int
         z_position: int
         """
-        return self.x_position, self.y_position, self.z_position
-
-    def get_rotation_matrix(self, axis, degrees):
-        """
-        Return the rotation matrix associated with counterclockwise rotation about
-        the given axis by theta radians.
-
-        This function is copied from Ben S. Kempton and has not been modified.
-
-        Parameters
-        ----------
-        axis : list[x, y, z]
-            a vector defining the rotaion axis
-        degrees : float
-            The number of degrees to rotate
-        """
-
-        theta = math.radians(degrees)
-        axis = np.asarray(axis)
-        axis = axis / math.sqrt(np.dot(axis, axis))
-        a = math.cos(theta / 2.0)
-        b, c, d = -axis * math.sin(theta / 2.0)
-        aa, bb, cc, dd = a * a, b * b, c * c, d * d
-        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        return np.array([
-            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
-
-    def get_current_geo_position(self):
-        """
-        This formula considers the earth to be an ellipsoid.
-        It does not calculate the altitude since we only want to know where the position on earth is.
-        Returns
-        -------
-        lon:
-            longitude of the position of the satellite
-        lat:
-            latitude of the position of the satellite
-
-        """
-        seconds_per_day = 60 * 60 * 24
-        # earth's z axis (eg a vector in the positive z direction)
-        earth_rotation_axis = [0, 0, 1]  # this means the north pole is on the top and the south pole is on the bottom
-
-        if self.current_time == 0 or self.current_time % seconds_per_day == 0:
-            degrees_to_rotate = 0
-        else:
-            # how many degrees from time 0 should the earth rotate?
-            degrees_to_rotate = 360.0 / (seconds_per_day / (self.current_time % seconds_per_day))
-
-        # have to -degrees to rotate because the satellites moved too far away from the current
-        # keygroup and we cannot move the keygroup position because the satellites determine in
-        # which keygroup they belong to
-        rotation_matrix = self.get_rotation_matrix(earth_rotation_axis, -degrees_to_rotate)
-
-        current_position = self.get_current_position()
-        rotated_position = np.dot(rotation_matrix, current_position)
-
-        rotated_x = rotated_position[0]
-        rotated_y = rotated_position[1]
-        rotated_z = rotated_position[2]
-
-        radius = 6371000
-        lon = np.degrees(np.arctan2(rotated_y, rotated_x))
-        lat = np.degrees(np.arcsin(rotated_z / radius))
-
-        return lat, lon
-
-    def init_keygroup(self, hex_resolution=0):
-        """
-        Sets the satellite in the correct initial keygroup.
-
-        Parameters
-        ----------
-        hex_resolution: int
-            Can be between 0 and 15. Determines the size of the hexagon.
-
-        Returns
-        -------
-
-        """
-        lat, lon = self.get_current_geo_position()
-        keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
-
-        # self.logger.info(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
-        target_node = self.fred
-
-        # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
-        executed = False
-        try:
-            self.fredComm.create_keygroup(keygroup_name)
-            executed = True
-        except Exception as e:
-            executed = False
+        r = requests.get(url=self.baseurl)
+        print(r.text)
+        print('-------------------------')
         
-        if executed == False:
-            try:
-                self.fredComm.add_replica_node_to_keygroup(node=target_node, keygroup=keygroup_name)
-                executed = True
-            except Exception as e:
-                executed = False
-
-
-        if executed == False:
-            self.logger.info(f"Oh no. Something went wrong.1")
-        return keygroup_name
+        # TODO: turn x y z to lat lon
+        return 1,2
 
     def check_keygroup(self, hex_resolution=0):
         """
@@ -237,49 +93,29 @@ class Satellite:
         -------
 
         """
-        lat, lon = self.get_current_geo_position()
-        new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
-        old_keygroup_name = self.keygroup
-        if new_keygroup_name == old_keygroup_name:
-            return None
-        else:
-            target_node = self.fred
-            executed = False
-            try:
-                status_response_add = self.fredComm.create_keygroup(new_keygroup_name)
-                executed = True
-            except Exception as e:
-                executed = False
-            
-            if executed == False:
-                try:
-                    status_response = self.fredComm.add_replica_node_to_keygroup(node=target_node, keygroup=new_keygroup_name)
-                    executed = True
-                except Exception as e:
-                    executed = False
-                    self.logger.info(e)
-            # self.logger.info(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
-            
-            # If adding to a keygroup does not work out create the keygroup.
-            # self.logger.info(f"[satellite.py]: Status response: {status_response_add}")
-            if executed == False:
-                self.logger.info("Cannot add to keygroup.2")
-                return self.keygroup
-            # Removing satellite from keygroup
-            try:
-                self.fredComm.remove_replica_node_from_keygroup(target_node=target_node, keygroup=old_keygroup_name)
-                self.keygroup = new_keygroup_name
-            except:
-                self.logger.info("Cannot remove to keygroup.3")
-            
-            return self.keygroup
-
-    # Reads file
-    def read_file(self, file_id):
+        lat, lon = self.get_current_position()
+        new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 are 
         try:
-            return self.fredComm.read_file_from_node(self.keygroup, file_id)
+            response = self.fred_client.create_keygroup(new_keygroup_name)
         except:
-            # if file does not exist an error is raised
-            self.logger.info(f"doesn't exist on {self.name}")
-            return ""
+            response = object()
+            response.status = 1
+        
+        if response.status != 0:
+            try:
+                self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
+            except Exception as e:
+                print(f"Failed to join keygroup: {new_keygroup_name}", flush=True)
+        
+        keygroups = self.fred_client.get_keygroups()
+        for kg in keygroups:
+            if kg != new_keygroup_name and kg != "manage":
+                try:
+                    self.fred_client.remove_node_from_keygroup(kg)
+                    print(f"Left: {kg}", flush=True)
+                except:
+                    print(f"Failed to leave: {kg}", flush=True)
+
+        keygroups = self.fred_client.get_keygroups()
+        self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
         

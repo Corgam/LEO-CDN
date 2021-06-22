@@ -2,6 +2,16 @@
 
 Repository for the SoSe21 DSP Project: LEO-CDN
 
+Authors:
+
+- Emil Balitzki
+- Jonas Bernhard
+- Abbas Fakhir
+- Huy Viet Nguyen
+- András Temesi
+- Marek Wallich
+- Hoang Mi Pham
+
 ## Requirements and setup
 
 `pip install -r requirements.txt`
@@ -10,20 +20,18 @@ Repository for the SoSe21 DSP Project: LEO-CDN
 
 1. (Optional) Customize the config file.
 2. Run `make setup` command.
-3. Run `make coordinator` command.
-4. Run `make stardust` command.
+3. Run `make satellites` command.
+4. Run `make gsts` command.
 
 ## Generator.py
 
 Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically. Furthermore, creates all necessary files to run the project.
 
-- Usage: `make generate` 
+- Usage: `make generate`
 
-## Stardust (Ground Stations)
+## Ground Stations
 
-Satellite Transmitting and Receiving Data Utility Simplification Tool.
-
-Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests ( specified in the Config file) to the best satellite (received from the Coordinator).
+Reads the list of groundstations from `temp/filename.txt` (specified in the Config file) and creates a thread for each of them. Groundstation will send n amount of requests (specified in the Config file) in an async fashion to the best satellite (received from the Coordinator).
 
 ## satellite_server.py
 
@@ -40,3 +48,7 @@ HTTP Server for a satellite, provides following end-points:
 | GET    | IP:5000/getLocation                     | -                                                | Returns a json with the following format: {x: &lt;number>, y: &lt;number>, z: &lt;number>} |
 | POST   | IP:5000/setLocation                     | {x: &lt;number>, y: &lt;number>, z: &lt;number>} | Sets the fred node's position by modifying the node coordinate data in the manage keygroup |
 | GET    | IP:5000/positions                       | -                                                | Returns the position from all nodes (keygroup: manage, key: positions)                     |
+
+## Coordinator
+
+Please take a look [here](https://github.com/Corgam/LEO-CDN/wiki/Coordinator-API).

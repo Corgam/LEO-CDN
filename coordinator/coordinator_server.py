@@ -13,16 +13,10 @@ app = Flask(__name__)
 ## HTTP Server Methods ##
 #########################
 
-@app.route("/positions")
-def positions():
-    satellites_as_list = simulation_with_h3.constellation.get_all_satellites()
-    converted_satellites_list = [satellite.__dict__ for satellite in satellites_as_list]
-    return jsonify(converted_satellites_list)
-
 
 @app.route("/best_satellite/<ground_station_id>", methods=["GET"])
 def best_satellite(ground_station_id):
-    print(f"Got a HTTP request from {str(ground_station_id)}")
+    print(f"Calculating the best satellite to connect to from ground station {str(ground_station_id)}")
     if request.method == "GET":
         if ground_station_id not in simulation_with_h3.ground_stations:
             return "Invalid GST ID"
@@ -31,6 +25,18 @@ def best_satellite(ground_station_id):
             return f"{satellite.server}:{satellite.sport}"  # TODO: Change to json or sth like that
     else:
         return "Error - wrong method!"
+
+
+@app.route("/position/<satellite_id>", methods=["GET"])
+def get_satellite_position(satellite_id):
+    print(f"Received Request to return the position of satellite {satellite_id}")
+    x, y, z = simulation_with_h3.constellation.get_satellite_position(satellite_id)
+    response_dict = {
+        'x': x,
+        'y': y,
+        'z': z
+    }
+    return jsonify(response_dict)
 
 
 def run_server():

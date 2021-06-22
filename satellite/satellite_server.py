@@ -1,40 +1,14 @@
-from flask import Flask, request
-import time
+from flask import *
 import json
-import sys
-import requests
-import os
 import logging
 import hashlib
-import h3
-import toml
-import numpy as np
-import math
+import time
 from PyAstronomy import pyasl
-from fred_communication import FredCommunication
+from fred_client import FredClient
 from satellite import Satellite
-from satellite_movement import SatelliteMover
-import logging
+from multiprocessing import Process
 
 app = Flask(__name__)
-
-
-EARTH_RADIUS = 6371000  # in meter
-ALTITUDE = 550  # Orbit Altitude (Km)
-semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
-
-
-with open("/config.toml") as f:
-    config = toml.load(f)
-
-number_of_planes = config["satellites"]["planes"]
-nodes_per_plane = config["satellites"]["satellites_per_plane"]
-
-# Loading node configurations
-with open("/info/nodes.json") as f:
-    node_configs = json.load(f)
-
-nodes = [key for key in node_configs.keys()]
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -46,36 +20,111 @@ port = node_configs[name]['sport']
 fred = node_configs[name]['fred']
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
 
+# Loading node configurations
+with open("/info/nodes.json") as f:
+    node_configs = json.load(f)
+
+nodes = [key for key in node_configs.keys()]
+
 logging.basicConfig(filename='/logs/' + name + '.log',
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
 logger = logging.getLogger(f'{name}_server')
 
-#################################
-##  Update Satellite Position  ##
-#################################
+#########################
+## Internal functions  ##
+#########################
 
 
+def join_managing_keygroups():
+    try_joining = False
+    try:
+        response = fred_client.create_keygroup("manage")
+        if response.status != 0:
+            response = fred_client.add_replica_node_to_keygroup("manage")
+            if response.status == 0:
+                append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+            else:
+                logger.info(f"Couldn't create nor join manage")
+        else:
+            fred_client.set_data("manage", "addresses", json.dumps(
+                ["http://" + ip + ":" + str(port) + "/"]))
+    except Exception as e:
+        try:
+            response = fred_client.add_replica_node_to_keygroup("manage")
+            if response.status == 0:
+                append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+            else:
+                logger.info(f"Couldn't create nor join manage")
+        except Exception as e:
+            logger.info(f"Couldn't create nor join manage")
+            
+
+
+def append_data(keygroup, key, entry):
+    response = fred_client.read_file_from_node(keygroup, key)
+    if response.status != 0:
+        cur_data = []
+        cur_data.append(entry)
+        fred_client.set_data(keygroup, key, json.dumps(cur_data))
+    else:
+        cur_data = json.loads(response.data)
+        cur_data.append(entry)
+        fred_client.set_data(keygroup, key, json.dumps(cur_data))
+    return json.dumps(cur_data)
+    # return response
+
+def position_query():
+    while(True):
+        satellite.check_keygroup()
+        time.sleep(0.5)
 
 #########################
 ## HTTP Server Methods ##
 #########################
 
-# IP:host/getLocation: returns the satellite's location (?)
+# IP:host/getValue/<keygroup>/<key>: returns the value of a given key if possible
+@app.route('/getValue/<keygroup>/<key>')
+def getValueWithKeygroup(keygroup, key):
+    return str(fred_client.read_file_from_node(keygroup, key))
+
+# IP:host/getValue/<key>: goes through all keygroups to find the data
+@app.route('/getValue/<key>')
+def getValue(key):
+    return str(fred_client.read_file(key))
+
+# IP:host/setData/<keygroup>/<key>: sets data to the specified key
+@app.route('/setData/<keygroup>/<key>', methods=['POST'])
+def setData(keygroup, key):
+    data = request.data.decode('UTF-8')
+    # TODO maybe can just pass on data
+    fred_client.set_data(keygroup, key, data)
+    resp = fred_client.read_file_from_node(keygroup, key)
+    return str(resp)
+
+# IP:host/appendData/<keygroup>/<key>: appends data to the specified key if it is
+# a list
+@app.route('/appendData/<keygroup>/<key>', methods=['POST'])
+def appendData(keygroup, key):
+    entry = request.data.decode('UTF-8')
+    try:
+        cur_data = append_data(keygroup, key, entry)
+    except Exception as e:
+        return str(e), 500
+    
+    return cur_data, 200
+
+
 @app.route('/getLocation')
 def getLocation():
     return str(satellite.get_current_position())
 
 @app.route('/currentKeygroup')
 def addSatellite():
-    return str(satellite.keygroup)
+    return " ".join(str(x) for x in fred_client.get_keygroups())
 
-@app.route('/getAddresses')
-def getAddresses():
-    response = fredComm.read_file_from_node("manage", "addresses")
-    return response.data
 
 @app.route('/', defaults={'u_path': ''})
 @app.route('/<path:u_path>')
@@ -86,7 +135,7 @@ def catch_all(u_path):
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        fredComm.set_data("manage", md5, "0")
+        fred_client.set_data("manage", md5, "0")
         logger.info(f"added new key: {md5}")
         # return r.text
         return "0"
@@ -95,85 +144,31 @@ def catch_all(u_path):
         counter = int(saved.data)
         counter += 1
         saved = str(counter)
-        fredComm.set_data("manage", md5, saved)
+        fred_client.set_data("manage", md5, saved)
         return saved
 
 if __name__ == '__main__':
 
     # Loading certificates
-    with open("/common/cert/client.crt", "rb") as f:
+    with open("/cert/client.crt", "rb") as f:
         client_crt = f.read()
 
-    with open("/common/cert/client.key", "rb") as f:
+    with open("/cert/client.key", "rb") as f:
         client_key = f.read()
 
-    with open("/common/cert/ca.crt", "rb") as f:
+    with open("/cert/ca.crt", "rb") as f:
         ca_crt = f.read()
 
-    fredComm = FredCommunication(name, target, client_crt, client_key, ca_crt)
-
-    STD_GRAVITATIONAL_PARAMETER_EARTH = 3.986004418e14
-    tmp = math.pow(semi_major_axis, 3) / STD_GRAVITATIONAL_PARAMETER_EARTH
-    period = int(2.0 * math.pi * math.sqrt(tmp))
-    raan_offsets = [(360 / number_of_planes) * i for i in range(0, number_of_planes)]
-    time_offsets = [(period / nodes_per_plane) * i for i in range(0, nodes_per_plane+1)]
-    phase_offset = 0
-    phase_offset_increment = (period / nodes_per_plane) / number_of_planes
-
-    # this loop results puts thing in an array in this order:
-    # [...8,6,4,2,0,1,3,5,7...]
-    # so that the offsets in adjacent planes are similar
-    # basically do not want the max and min offset in two adjcent planes
-    temp = []
-    toggle = False
-    for i in range(number_of_planes):
-        if toggle:
-            temp.append(phase_offset)
-        else:
-            temp.insert(0, phase_offset)
-            # temp.append(phase_offset)
-        toggle = not toggle
-        phase_offset = phase_offset + phase_offset_increment
-
-    phase_offsets = temp
-    
-    # create kepler ellipse for each degree offset
-    list_of_kepler_ellipse = list()
-    for raan in raan_offsets:
-        ellipse = pyasl.KeplerEllipse(
-            per=period,  # how long the orbit takes in seconds
-            a=semi_major_axis,  # if circular orbit, this is same as radius
-            e=0,  # generally close to 0 for leo constillations
-            Omega=raan,  # right ascention of the ascending node
-            w=0.0,  # initial time offset / mean anamoly
-            i=53,  # orbit inclination
-        )
-        list_of_kepler_ellipse.append(ellipse)
-
-    logger.info(len(list_of_kepler_ellipse))
-    ellipse = list_of_kepler_ellipse[0]
-    # calculate the KE solver time offset
-    offset = time_offsets[int(name.split("satellite", 1)[1])] + phase_offsets[0]
+    fred_client = FredClient(name, fred, target, client_crt, client_key, ca_crt)
 
     satellite = Satellite(
-        name=target,
-        server=ip,
-        sport=port,
-        node=node_configs[name]['node'],
-        nport=node_configs[name]['nport'],
-        fred=fred,
-        fredComm=fredComm,
-        kepler_ellipse=ellipse,
-        offset=offset,
+        name=name,
+        fred_client=fred_client,
     )
+    
+    join_managing_keygroups()
 
-    mover = SatelliteMover(name, satellite, 10)
-    mover.start()
-
-    try:
-        fredComm.join_managing_keygroups(fred, ip, port)
-    except Exception as e:
-        logger.info("failed to join managing keygroup")
-        logger.info(e)
+    simulation = Process(target=position_query)
+    simulation.start()
 
     app.run(debug=True, host=ip, port=port)

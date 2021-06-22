@@ -33,9 +33,9 @@ else:
 ##########
 
 # Copy the file containing all groundstations information
-stardusts_list = config["general"]["stardusts_list"]
+gsts_list = config["general"]["gsts_list"]
 print("Selecting all data files...")
-shutil.copyfile("./data/"+stardusts_list, "./temp/stardusts.txt")
+shutil.copyfile("./data/"+gsts_list, "./temp/gsts.txt")
 
 ##################
 ## Certificates ##

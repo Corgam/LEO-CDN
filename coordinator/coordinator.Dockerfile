@@ -12,9 +12,7 @@ COPY ./coordinator /coordinator
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
-COPY ./satellite /satellite
-COPY ./satellite/proto /proto
-COPY ./satellite/fred_communication.py /fred_communication.py
 COPY ./common/cert/ /common/cert/
+COPY ./temp /temp
 
 CMD ["python", "coordinator/setup_simulation.py"]

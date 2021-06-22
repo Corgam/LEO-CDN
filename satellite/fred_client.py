@@ -1,23 +1,19 @@
-# Loading node configurations
-import json
-import toml
-
-from proto import client_pb2, client_pb2_grpc
 import grpc
-
+import json
+from proto import client_pb2, client_pb2_grpc
 import logging
 
-class FredCommunication:
-
+class FredClient:
     def __init__(self, name, fred, target, client_crt, client_key, ca_crt):
         logging.basicConfig(filename='/logs/' + name + '.log',
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
-                            level=logging.DEBUG)
+                            level=logging.INFO)
         self.logger = logging.getLogger(f'{name}_fred')
-        self.name = name
         self.fred = fred
+        self.target = target
+        self.name = name
 
         self.creds = grpc.ssl_channel_credentials(
             certificate_chain=client_crt,
@@ -25,12 +21,9 @@ class FredCommunication:
             root_certificates=ca_crt,
         )
 
-        self.target = target
+        self.channel = grpc.secure_channel(target, credentials=self.creds)
         self.keygroups = []
-
-        
-
-    # TODO: connect this pls with the server and change in satellite.py the calls accordingly
+    
     def get_all_existing_replica_nodes(self):
         self.logger.info("Retrieving all replica nodes: ")
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
@@ -39,7 +32,6 @@ class FredCommunication:
                 client_pb2.GetAllReplicaRequest()
             )
         self.logger.info(status_response)
-
 
     def create_keygroup(self, keygroup, mutable=True, expiry=0):
         """
@@ -70,12 +62,12 @@ class FredCommunication:
             )
         if status_response.status == 0:
             self.keygroups.append(keygroup)
+            self.logger.info(f"Initializing succeeded...")
         else:
             self.logger.info(f"Failed initializing {keygroup} at {self.name}...")
         return status_response
-
-
-    def add_replica_node_to_keygroup(self, node, keygroup):
+    
+    def add_replica_node_to_keygroup(self, keygroup):
         """
         Adds a replica node to a keygroup.
         Parameters
@@ -96,16 +88,17 @@ class FredCommunication:
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
             status_response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=node)
+                client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
             )
 
         if status_response.status == 0:
             self.keygroups.append(keygroup)
+            self.logger.info(f"Adding succeeded...")
         else:
             self.logger.info(f"Failed adding {self.name} to {keygroup}...")
 
         return status_response
-
+        
 
     def remove_replica_node_from_keygroup(self, node, keygroup):
         """
@@ -133,11 +126,11 @@ class FredCommunication:
         
         if status_response.status == 0:
             self.keygroups.remove(keygroup)
+            self.logger.info(f"Removing succeeded...")
         else:
             self.logger.info(f"Failed removing {self.name} to {keygroup}...")
 
         return status_response
-
 
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
@@ -155,46 +148,40 @@ class FredCommunication:
                     cur_data = json.loads(response.data)
                     cur_data.append(value)
                     self.set_data(kg, key, json.dumps(cur_data))
-
+    
     # Reads file
     def read_file_from_node(self, keygroup, file_id):
         try:
-            self.logger.info(f"Reading {file_id=} in {keygroup=}...")
-            with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-                stub = client_pb2_grpc.ClientStub(channel)
-                response = stub.Read(
-                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-                )
-                self.logger.info(response)
-                return response
+            print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
+            stub = client_pb2_grpc.ClientStub(self.channel)
+            response = stub.Read(
+                client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+            )
+            print(response)
+            return response
         except Exception as e:
             # if file does not exist an error is raised
             # return str(e)
             return ""
 
-    def append_data(self, keygroup, key, entry):
-        response = self.read_file_from_node(keygroup, key)
-        if not response:
-            cur_data = []
-            cur_data.append(entry)
-            self.set_data(keygroup, key, json.dumps(cur_data))
-        else:
-            cur_data = json.loads(response.data)
-            cur_data.append(entry)
-            self.set_data(keygroup, key, json.dumps(cur_data))
-        return json.dumps(cur_data)
-        # return response
-
-    def join_managing_keygroups(self, fred, ip, port):
-        try_joining = False
-        response = self.create_keygroup("manage")
-        if response.status == 0:
-            self.set_data("manage", "addresses", json.dumps(["http://" + ip + ":" + str(port) + "/"]))
-        else:
-            self.logger.info('"manage" keygroup already exists. Trying to join...')
-            response = self.add_replica_node_to_keygroup(fred, "manage")
-            if response.status == 0:
-                self.append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+    # Reads file
+    def read_file(self, file_id):
+        for keygroup in self.keygroups:
+            try:
+                print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
+                stub = client_pb2_grpc.ClientStub(self.channel)
+                response = stub.Read(
+                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+                )
+                return response
+            except:
+                # if file does not exist an error is raised
+                continue
+        print(f"doesn't exist on {self.name}")
+        return ""
     
-    def getKeygroups(self):
+    def get_keygroups(self):
         return self.keygroups
+    
+    def remove_keygroup(self, kg):
+        self.keygroups.remove(kg)

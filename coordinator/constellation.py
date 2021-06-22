@@ -17,8 +17,8 @@ import math
 import toml
 import numpy as np
 from PyAstronomy import pyasl
-
-from satellite.satellite import Satellite
+from satellite_position import SatellitePos
+from errors import *
 
 EARTH_RADIUS = 6371000  # in meter
 ALTITUDE = 550  # Orbit Altitude (Km)
@@ -30,6 +30,7 @@ SECONDS_PER_DAY = 60 * 60 * 24
 # earth's z axis (eg a vector in the positive z direction)
 EARTH_ROTATION_AXIS = [0, 0, 1]  # this means the north pole is on the top and the south pole is on the bottom
 SEMI_MAJOR_AXIS = float(ALTITUDE) * 1000 + EARTH_RADIUS
+
 
 class Constellation:
     """
@@ -121,7 +122,6 @@ class Constellation:
             )
             list_of_kepler_ellipse.append(ellipse)
 
-
         for plane in range(0, self.number_of_planes):
             for node in range(0, self.nodes_per_plane):
                 ellipse = list_of_kepler_ellipse[plane]
@@ -131,13 +131,8 @@ class Constellation:
                 with open(f"./temp/satellite{satellite_number}.json") as f:
                     node_configs = json.load(f)
                 node_configs = node_configs[f"satellite{satellite_number}"]
-                new_satellite = Satellite(
+                new_satellite = SatellitePos(
                     name=f"satellite{satellite_number}",
-                    server=node_configs["server"],
-                    sport=node_configs["sport"],
-                    node=node_configs["node"],
-                    nport=node_configs["nport"],
-                    fred=node_configs["fred"],
                     kepler_ellipse=ellipse,
                     offset=offset,
                 )
@@ -145,7 +140,7 @@ class Constellation:
 
     def add_new_ground_station(self, ground_station_id, lat, lon):
         x, y, z = self.transform_geo_to_xyz(lat, lon)
-        self.dict_of_ground_stations[ground_station_id] = {"x": x, "y": y, "z": z}
+        self.dict_of_ground_stations[ground_station_id] = {"x": x, "y": y, "z": z, "lat": lat, "lon": lon}
 
     def add_new_ground_station_xyz(self, ground_station_id, x, y, z):
         self.dict_of_ground_stations[ground_station_id] = {"x": x, "y": y, "z": z}
@@ -169,7 +164,7 @@ class Constellation:
         latitude = math.radians(lat)
         longitude = math.radians(lon)
         init_pos[0] = radius * math.cos(latitude) * math.cos(longitude)  # x
-        init_pos[1] = radius * math.cos(latitude) * math.sin(longitude)   # y
+        init_pos[1] = radius * math.cos(latitude) * math.sin(longitude)  # y
         init_pos[2] = radius * math.sin(latitude)  # z
 
         # if simulation time is not 0, figure out current position
@@ -265,9 +260,9 @@ class Constellation:
             x, y, z = satellite.get_current_position()
             # calculate euclidean distance
             distance = int(math.sqrt(
-                        math.pow(x - ground_station["x"], 2) +
-                        math.pow(y - ground_station["y"], 2) +
-                        math.pow(z - ground_station["z"], 2)))
+                math.pow(x - ground_station["x"], 2) +
+                math.pow(y - ground_station["y"], 2) +
+                math.pow(z - ground_station["z"], 2)))
             if distance < shortest_distance:
                 # TODO check whether the distance is even allowed
                 shortest_distance = distance
@@ -287,10 +282,6 @@ class Constellation:
             print(f"{sat.name}")
             print(sat.get_current_position())
 
-    def print_current_keygroups(self):
-        for sat in self.list_of_satellites:
-            print(f"{sat.name} is in {sat.keygroup}")
-
     def get_all_satellites(self):
         """
         Returns the list of all satellites.
@@ -299,3 +290,65 @@ class Constellation:
 
         """
         return self.list_of_satellites
+
+    def get_satellite(self, satellite_id):
+        """
+        Returns a specific satellite.
+        Parameters
+        ----------
+        satellite_id
+
+        Returns
+        -------
+
+        """
+        satellite = None
+        for sat in self.list_of_satellites:
+            if sat.name == satellite_id:
+                satellite = sat
+        if satellite is None:
+            raise NoSuchSatelliteError
+        else:
+            return satellite
+
+    def get_satellite_position(self, satellite_id):
+        """
+        Returns the x,y,z coordinates of a satellite.
+        Parameters
+        ----------
+        satellite_id
+
+        Returns
+        -------
+
+        """
+        sat = self.get_satellite(satellite_id)
+        return sat.get_current_position()
+
+    def get_ground_station_position(self, ground_station_id):
+        """
+        Returns the position of a ground station.
+        Parameters
+        ----------
+        ground_station_id
+
+        Returns
+        -------
+
+        """
+        ground_station = self.dict_of_ground_stations[ground_station_id]
+        return ground_station["x"], ground_station["y"], ground_station["z"]
+
+    def get_ground_station_geo_position(self, ground_station_id):
+        """
+        Returns the geographical position (longitude and latitude) of a ground station.
+        Parameters
+        ----------
+        ground_station_id
+
+        Returns
+        -------
+
+        """
+        ground_station = self.dict_of_ground_stations[ground_station_id]
+        return ground_station["lat"], ground_station["lon"]
