@@ -17,7 +17,12 @@ import math
 import toml
 import numpy as np
 from PyAstronomy import pyasl
+<<<<<<< HEAD
 from satellite_position import SatellitePos
+=======
+
+from satellite.satellite import Satellite
+>>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
 from errors import *
 
 EARTH_RADIUS = 6371000  # in meter
@@ -284,6 +289,19 @@ class Constellation:
             print(f"{sat.name}")
             print(sat.get_current_position())
 
+<<<<<<< HEAD
+=======
+    def print_current_keygroups(self):
+        """
+        Prints the current keygroups of the satellites.
+        Returns
+        -------
+
+        """
+        for sat in self.list_of_satellites:
+            print(f"{sat.name} is in {sat.keygroup}")
+
+>>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
     def get_all_satellites(self):
         """
         Returns the list of all satellites.
@@ -327,6 +345,23 @@ class Constellation:
         sat = self.get_satellite(satellite_id)
         return sat.get_current_position()
 
+<<<<<<< HEAD
+=======
+    def get_satellite_keygroup(self, satellite_id):
+        """
+        Returns the Keygroup in which the satellite is at the moment.
+        Parameters
+        ----------
+        satellite_id
+
+        Returns
+        -------
+
+        """
+        sat = self.get_satellite(satellite_id)
+        return sat.keygroup
+
+>>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
     def get_ground_station_position(self, ground_station_id):
         """
         Returns the position of a ground station.

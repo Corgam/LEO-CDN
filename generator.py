@@ -16,7 +16,6 @@ with open("./config.toml") as f:
 # Number of nodes to generate
 planes = config["satellites"]["planes"]
 satellite_per_planes = config["satellites"]["satellites_per_plane"]
-# TODO: this +1 is for the simulation because atm it requires to init all keygroups in the beginning -> change this
 nodes = planes * satellite_per_planes
 
 # Create temp directory

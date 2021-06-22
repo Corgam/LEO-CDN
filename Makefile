@@ -1,4 +1,5 @@
 .PHONY: generate run setup gsts clean compile_grpc_python coordinator
+<<<<<<< HEAD
 
 test:
 	@! docker ps -a | grep stardust || docker container rm stardust -f
@@ -8,6 +9,8 @@ test:
 		--network=fredwork \
 		--ip=172.26.8.4 \
 		stardust
+=======
+>>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
 
 generate:
 	@python ./generator.py
