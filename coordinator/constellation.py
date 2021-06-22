@@ -128,6 +128,7 @@ class Constellation:
                 # calculate the KE solver time offset
                 offset = time_offsets[node] + phase_offsets[plane]
                 satellite_number = (plane * self.nodes_per_plane) + node
+                print(f"Creating satellite{satellite_number}", flush=True)
                 with open(f"./temp/satellite{satellite_number}.json") as f:
                     node_configs = json.load(f)
                 node_configs = node_configs[f"satellite{satellite_number}"]

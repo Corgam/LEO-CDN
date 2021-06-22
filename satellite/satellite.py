@@ -95,13 +95,14 @@ class Satellite:
         """
         lat, lon = self.get_current_position()
         new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 are 
+        status = 0
         try:
             response = self.fred_client.create_keygroup(new_keygroup_name)
+            status = response.status
         except:
-            response = object()
-            response.status = 1
+            status = 0
         
-        if response.status != 0:
+        if status != 0:
             try:
                 self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
             except Exception as e:

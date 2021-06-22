@@ -7,6 +7,7 @@ from PyAstronomy import pyasl
 from fred_client import FredClient
 from satellite import Satellite
 from multiprocessing import Process
+from lorem_text import lorem
 
 app = Flask(__name__)
 
@@ -135,16 +136,14 @@ def catch_all(u_path):
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        fred_client.set_data("manage", md5, "0")
+        paragraph_length = 5
+        lorem_text = lorem.paragraphs(paragraph_length)
+        fred_client.set_data("manage", md5, lorem_text)
         logger.info(f"added new key: {md5}")
         # return r.text
         return "0"
     else:
-        logger.info(f"key: {md5} in keygroup manage found: {saved}")
-        counter = int(saved.data)
-        counter += 1
-        saved = str(counter)
-        fred_client.set_data("manage", md5, saved)
+        logger.info(f"key was found: {md5}")
         return saved
 
 if __name__ == '__main__':
@@ -171,4 +170,4 @@ if __name__ == '__main__':
     simulation = Process(target=position_query)
     simulation.start()
 
-    app.run(debug=True, host=ip, port=port)
+    app.run(debug=True, host=ip, port=port, use_reloader=False)
