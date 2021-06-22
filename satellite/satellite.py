@@ -61,53 +61,8 @@ class Satellite:
                             level=logging.INFO)
         self.logger = logging.getLogger(name)
         self.name = name
-<<<<<<< HEAD
         self.fred_client = fred_client
         self.baseurl = "http://172.26.4.1:9001/position/" + name
-=======
-        self.server = server
-        self.sport = sport
-        self.node = node
-        self.nport = nport
-        self.fred = fred
-        self.kepler_ellipse = kepler_ellipse
-        self.offset = offset
-        self.current_time = 0
-        current_position = self.kepler_ellipse.xyzPos(self.offset)
-        self.x_position = current_position[0]
-        self.y_position = current_position[1]
-        self.z_position = current_position[2]
-        self.keygroup = self.init_keygroup()
-
-    def set_new_position(self, current_time):
-        """
-        Sets the new position of a satellite.
-        It calls xyzPos from PyAstronomy KeplerEllipse. The parameter for this function is the time.
-        Therefore, we have to add the current time to the offset (the initial position of the satellite)
-
-        Parameters
-        ----------
-        current_time : int
-            new time to calculate the new position
-
-        Returns
-        -------
-
-        """
-        self.current_time = current_time
-
-        updated_position = self.kepler_ellipse.xyzPos(current_time + self.offset)
-        self.x_position = np.int32(updated_position[0])
-        self.y_position = np.int32(updated_position[1])
-        self.z_position = np.int32(updated_position[2])
-
-        self.check_keygroup()
-
-    def set_xyz_position(self, x, y, z):
-        self.x_position = x
-        self.y_position = y
-        self.z_position = z
->>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
 
     def get_current_position(self):
         """
@@ -127,37 +82,6 @@ class Satellite:
 
         return lat, lon
 
-<<<<<<< HEAD
-=======
-    def init_keygroup(self, hex_resolution=0):
-        """
-        Sets the satellite in the correct initial keygroup.
-
-        Parameters
-        ----------
-        hex_resolution: int
-            Can be between 0 and 15. Determines the size of the hexagon.
-
-        Returns
-        -------
-
-        """
-        lat, lon = self.get_current_geo_position()
-        keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
-
-        # print(f"[satellites.py]: Initializing keygroup {keygroup_name} at node {self.name}...")
-        # target_node = self.fred
-
-        # status_response = keygroup_passer.create_keygroup(target_node=target_node, keygroup=keygroup_name)
-
-        # status_response = add_replica_node_to_keygroup(target_node=target_node, keygroup=keygroup_name)
-
-        # if status_response.status == 1 or status_response == 2:
-            # print(f"Oh no. Something went wrong.")
-            # print(status_response.message)
-        return keygroup_name
-
->>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
     def check_keygroup(self, hex_resolution=0):
         """
         Checks whether the keygroup is still the same.
@@ -171,7 +95,6 @@ class Satellite:
         -------
 
         """
-<<<<<<< HEAD
         lat, lon = self.get_current_position()
         new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 are 
         joined_keygroups = self.fred_client.get_keygroups()
@@ -212,32 +135,3 @@ class Satellite:
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
         
-=======
-        lat, lon = self.get_current_geo_position()
-        new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 area
-        old_keygroup_name = self.keygroup
-        if new_keygroup_name == old_keygroup_name:
-            return None
-        else:
-            # target_node = self.fred
-            # print(f"Changing keygroup for {self.name} from {old_keygroup_name} to {new_keygroup_name}...")
-            # status_response_add = add_replica_node_to_keygroup(target_node=target_node,
-            #                                                                    keygroup=f"{new_keygroup_name}")
-            # If adding to a keygroup does not work out create the keygroup.
-            # print(f"[satellite.py]: Status response: {status_response_add}")
-            # if status_response_add.status == 1 or status_response_add.status == 2:
-            # print("Cannot add to keygroup.")
-            # print(status_response_add.message)
-
-            # Removing satellite from keygroup
-            # status_response_remove = remove_replica_node_from_keygroup(target_node=target_node,
-            #                                                                            keygroup=f"{old_keygroup_name}")
-
-            # print(f"[satellite.py]: Status response: {status_response_remove}")
-            # If the satellite cannot be removed from the keygroup
-            # if status_response_remove.status == 1:
-            #     print("Cannot remove to keygroup.")
-            #    print(status_response_remove.message)
-            self.keygroup = new_keygroup_name
-            return new_keygroup_name
->>>>>>> ad1196e87202953740930a526fb7b0e5c10bfd53
