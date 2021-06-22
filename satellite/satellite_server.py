@@ -142,21 +142,19 @@ def addSatellite():
 @app.route('/', defaults={'u_path': ''})
 @app.route('/<path:u_path>')
 def catch_all(u_path):
-    link = request.headers.get('host') + "/" + u_path
-    md5 = hashlib.md5(link.encode()).hexdigest()
-    saved = fred_client.read_file(md5)
     file_id = u_path
+    saved = fred_client.read_file(file_id)
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
         paragraph_length = get_paragraph_length(file_id)
         lorem_text = lorem.paragraphs(paragraph_length)
-        fred_client.set_data("manage", md5, lorem_text)
-        logger.info(f"added new key: {md5}")
+        fred_client.set_data("manage", file_id, lorem_text)
+        logger.info(f"added new key: {file_id}")
         # return r.text
         return lorem_text
     else:
-        logger.info(f"key was found: {md5}")
+        logger.info(f"key was found: {file_id}")
         return saved
 
 if __name__ == '__main__':
