@@ -9,5 +9,10 @@ title = "LEO-CDN Config"
 gsts_list= "example_5_gsts.txt"
 
 [satellites]
+# Steps: total amount of required steps for a Satellite to finish a rotation around the globe
+# Step_Interval: interval between each step
+
 planes = 1
 satellites_per_plane = 3
+steps = 20 
+step_interval = 0.25

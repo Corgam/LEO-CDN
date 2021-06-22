@@ -1,7 +1,6 @@
 from flask import *
 import json
 import logging
-import hashlib
 import time
 from PyAstronomy import pyasl
 from fred_client import FredClient

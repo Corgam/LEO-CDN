@@ -93,14 +93,11 @@ class FredClient:
 
         if status_response.status == 0:
             self.keygroups.append(keygroup)
-            self.logger.info(f"Adding succeeded...")
-        else:
-            self.logger.info(f"Failed adding {self.name} to {keygroup}...")
 
         return status_response
         
 
-    def remove_replica_node_from_keygroup(self, node, keygroup):
+    def remove_replica_node_from_keygroup(self, keygroup):
         """
         Removes a replica node from a keygroup.
         Parameters
@@ -121,14 +118,11 @@ class FredClient:
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
             status_response = stub.RemoveReplica(
-                client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=node)
+                client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
             )
         
         if status_response.status == 0:
             self.keygroups.remove(keygroup)
-            self.logger.info(f"Removing succeeded...")
-        else:
-            self.logger.info(f"Failed removing {self.name} to {keygroup}...")
 
         return status_response
 

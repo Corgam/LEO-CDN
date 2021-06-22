@@ -107,25 +107,27 @@ class Satellite:
                 break
 
         if needsToJoin:
-            status = 0
+            status = 1
             try:
-                response = self.fred_client.create_keygroup(new_keygroup_name)
+                response = self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
                 status = response.status
-            except:
-                status = 0
-            
-            if status != 0:
-                try:
-                    self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
-                except Exception as e:
+                if response.status == 0:
+                    self.logger.info(f"{self.name} joined {new_keygroup_name}")
+                else:
                     self.logger.info(f"{self.name} failed to join {new_keygroup_name}")
-        
+            except Exception as e:
+                status = 1
+            if status == 1:
+                try:
+                    response = self.fred_client.create_keygroup(new_keygroup_name)
+                except Exception as e:
+                    self.logger.info(e)
 
         keygroups = self.fred_client.get_keygroups()
         for kg in keygroups:
             if kg != new_keygroup_name and kg != "manage":
                 try:
-                    self.fred_client.remove_node_from_keygroup(kg)
+                    self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.logger.info(f"{self.name} left {kg}")
                 except:
                     self.logger.info(f"{self.name} failed to leave {kg}")

@@ -27,7 +27,8 @@ class Simulator (threading.Thread):
         # Number of nodes to generate
         number_of_planes = config["satellites"]["planes"]
         nodes_per_plane = config["satellites"]["satellites_per_plane"]
-
+        self.steps = config["satellites"]["steps"]
+        self.interval = config["satellites"]["step_interval"]
         self.constellation = Constellation(number_of_planes=number_of_planes,
                                     nodes_per_plane=nodes_per_plane,
                                     semi_major_axis=semi_major_axis)
@@ -43,10 +44,9 @@ class Simulator (threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        steps = 20
-        step_length = int(self.constellation.period / steps)
+        step_length = int(self.constellation.period / self.steps)
         while(True):
-            for step in range(0, steps):
+            for step in range(0, self.steps):
                 next_time = step * step_length
                 self.constellation.update_position(time=next_time)
-                time.sleep(0.25)
+                time.sleep(self.interval)
