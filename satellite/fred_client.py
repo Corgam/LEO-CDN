@@ -173,7 +173,7 @@ class FredClient:
                 response = stub.Read(
                     client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
-                return response
+                return response.data
             except:
                 # if file does not exist an error is raised
                 continue

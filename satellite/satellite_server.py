@@ -80,7 +80,7 @@ def append_data(keygroup, key, entry):
 def position_query():
     while(True):
         satellite.check_keygroup()
-        time.sleep(0.5)
+        time.sleep(2.5)
 
 #########################
 ## HTTP Server Methods ##
@@ -132,7 +132,7 @@ def addSatellite():
 def catch_all(u_path):
     link = request.headers.get('host') + "/" + u_path
     md5 = hashlib.md5(link.encode()).hexdigest()
-    saved = satellite.read_file(md5)
+    saved = fred_client.read_file(md5)
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
@@ -141,7 +141,7 @@ def catch_all(u_path):
         fred_client.set_data("manage", md5, lorem_text)
         logger.info(f"added new key: {md5}")
         # return r.text
-        return "0"
+        return lorem_text
     else:
         logger.info(f"key was found: {md5}")
         return saved
