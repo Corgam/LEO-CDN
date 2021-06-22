@@ -50,8 +50,9 @@ class SatellitePos:
 
     """
 
-    def __init__(self, name, kepler_ellipse=None, offset=0):
+    def __init__(self, name, sport, kepler_ellipse=None, offset=0):
         self.name = name
+        self.sport = sport
         self.kepler_ellipse = kepler_ellipse
         self.offset = offset
         self.current_time = 0
@@ -78,9 +79,9 @@ class SatellitePos:
         self.current_time = current_time
 
         updated_position = self.kepler_ellipse.xyzPos(current_time + self.offset)
-        self.x_position = np.int32(updated_position[0])
-        self.y_position = np.int32(updated_position[1])
-        self.z_position = np.int32(updated_position[2])
+        self.x_position = int(np.int32(updated_position[0]))
+        self.y_position = int(np.int32(updated_position[1]))
+        self.z_position = int(np.int32(updated_position[2]))
         print(f"Position Update ({self.name}: {self.x_position} - {self.y_position} - {self.z_position}")
 
     def set_xyz_position(self, x, y, z):

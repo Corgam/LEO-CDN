@@ -92,7 +92,7 @@ def get_paragraph_length(file_id):
             return int(line[1])
     
     # if the file_id is not found
-    return 0
+    return 5
 
 #########################
 ## HTTP Server Methods ##

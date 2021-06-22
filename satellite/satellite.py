@@ -18,6 +18,7 @@ import logging
 import requests
 import json
 from fred_client import FredClient
+import numpy as np
 
 class Satellite:
     """
@@ -74,11 +75,12 @@ class Satellite:
         z_position: int
         """
         r = requests.get(url=self.baseurl)
-        print(r.text)
-        print('-------------------------')
-        
-        # TODO: turn x y z to lat lon
-        return 1,2
+        position = json.loads(r.text)
+        radius = 6371000
+        lon = np.degrees(np.arctan2(position['y'], position['x']))
+        lat = np.degrees(np.arcsin(position['z'] / radius))
+
+        return lat, lon
 
     def check_keygroup(self, hex_resolution=0):
         """
@@ -95,27 +97,38 @@ class Satellite:
         """
         lat, lon = self.get_current_position()
         new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 are 
-        status = 0
-        try:
-            response = self.fred_client.create_keygroup(new_keygroup_name)
-            status = response.status
-        except:
+        joined_keygroups = self.fred_client.get_keygroups()
+        
+        needsToJoin = True
+        for kg in joined_keygroups:
+            if kg == new_keygroup_name:
+                needsToJoin = False
+                self.logger.info(f"{self.name} is already inside {new_keygroup_name}")
+                break
+
+        if needsToJoin:
             status = 0
-        
-        if status != 0:
             try:
-                self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
-            except Exception as e:
-                print(f"Failed to join keygroup: {new_keygroup_name}", flush=True)
+                response = self.fred_client.create_keygroup(new_keygroup_name)
+                status = response.status
+            except:
+                status = 0
+            
+            if status != 0:
+                try:
+                    self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
+                except Exception as e:
+                    self.logger.info(f"{self.name} failed to join {new_keygroup_name}")
         
+
         keygroups = self.fred_client.get_keygroups()
         for kg in keygroups:
             if kg != new_keygroup_name and kg != "manage":
                 try:
                     self.fred_client.remove_node_from_keygroup(kg)
-                    print(f"Left: {kg}", flush=True)
+                    self.logger.info(f"{self.name} left {kg}")
                 except:
-                    print(f"Failed to leave: {kg}", flush=True)
+                    self.logger.info(f"{self.name} failed to leave {kg}")
 
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))

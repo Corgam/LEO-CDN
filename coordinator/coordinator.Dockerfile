@@ -15,4 +15,4 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 COPY ./common/cert/ /common/cert/
 COPY ./temp /temp
 
-CMD ["python", "coordinator/setup_simulation.py"]
+CMD ["python", "coordinator/coordinator_server.py"]

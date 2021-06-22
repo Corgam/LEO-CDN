@@ -134,6 +134,7 @@ class Constellation:
                 node_configs = node_configs[f"satellite{satellite_number}"]
                 new_satellite = SatellitePos(
                     name=f"satellite{satellite_number}",
+                    sport=node_configs["sport"],
                     kepler_ellipse=ellipse,
                     offset=offset,
                 )

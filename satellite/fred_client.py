@@ -58,7 +58,7 @@ class FredClient:
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
             status_response = stub.CreateKeygroup(
-                client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable, expiry=expiry)
+                client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
             )
         if status_response.status == 0:
             self.keygroups.append(keygroup)
