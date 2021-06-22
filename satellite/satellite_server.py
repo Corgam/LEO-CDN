@@ -8,6 +8,7 @@ from fred_client import FredClient
 from satellite import Satellite
 from multiprocessing import Process
 from lorem_text import lorem
+import csv
 
 app = Flask(__name__)
 
@@ -33,6 +34,8 @@ logging.basicConfig(filename='/logs/' + name + '.log',
                     datefmt='%H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(f'{name}_server')
+
+files_csv = open('./files.csv', "r")
 
 #########################
 ## Internal functions  ##
@@ -81,6 +84,15 @@ def position_query():
     while(True):
         satellite.check_keygroup()
         time.sleep(2.5)
+
+def get_paragraph_length(file_id):
+    reader = csv.reader(files_csv)
+    for line in reader:
+        if line[0] == file_id:
+            return int(line[1])
+    
+    # if the file_id is not found
+    return 0
 
 #########################
 ## HTTP Server Methods ##
@@ -133,10 +145,11 @@ def catch_all(u_path):
     link = request.headers.get('host') + "/" + u_path
     md5 = hashlib.md5(link.encode()).hexdigest()
     saved = fred_client.read_file(md5)
+    file_id = u_path
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
-        paragraph_length = 5
+        paragraph_length = get_paragraph_length(file_id)
         lorem_text = lorem.paragraphs(paragraph_length)
         fred_client.set_data("manage", md5, lorem_text)
         logger.info(f"added new key: {md5}")

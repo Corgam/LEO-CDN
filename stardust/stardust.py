@@ -85,13 +85,41 @@ if __name__ == "__main__":
     # print(r.text)
     # print('-------------------------')
 
-    headers = {'host': 'http://riptutorial.com'}
-    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
-    r = requests.get(url=TESTURL, headers=headers)
+    # headers = {'host': 'http://riptutorial.com'}
+    # print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    # r = requests.get(url=TESTURL, headers=headers)
+    # print(r.text)
+    # print('-------------------------')
+
+    # print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
+    # r = requests.get(url=TESTURL, headers=headers)
+    # print(r.text)
+    # print('-------------------------')
+
+    r = requests.get(url=BASE_URL + "/file_1")
     print(r.text)
     print('-------------------------')
 
-    print('Get https://riptutorial.com/flask/example/19420/catch-all-route..')
-    r = requests.get(url=TESTURL, headers=headers)
+    r = requests.get(url=BASE_URL + "/file_2")
+    print(r.text)
+    print('-------------------------')
+    
+    r = requests.get(url=BASE_URL + "/file_3")
+    print(r.text)
+    print('-------------------------')
+    
+    r = requests.get(url=BASE_URL + "/file_4")
+    print(r.text)
+    print('-------------------------')
+
+    r = requests.get(url=BASE_URL + "/file_5")
+    print(r.text)
+    print('-------------------------')
+    
+    r = requests.get(url=BASE_URL + "/file_6")
+    print(r.text)
+    print('-------------------------')
+    
+    r = requests.get(url=BASE_URL + "/file_7")
     print(r.text)
     print('-------------------------')
