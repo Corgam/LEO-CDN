@@ -43,8 +43,8 @@ class Simulator (threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        step_length = 5
-        steps = int(self.constellation.period / step_length)
+        steps = 20
+        step_length = int(self.constellation.period / steps)
         while(True):
             for step in range(0, steps):
                 next_time = step * step_length
