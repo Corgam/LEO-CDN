@@ -71,6 +71,7 @@ services:
       - ../../common/cert/ca.crt:/cert/ca.crt
       - ../../temp/freds.json:/info/nodes.json
       - ../../temp/{{ server_name }}.json:/info/node.json
+      - ../../temp/logs:/logs
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

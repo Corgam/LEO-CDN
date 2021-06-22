@@ -51,15 +51,15 @@
         service_account_file: "{{ gcp_cred_file }}"
       register: address
 
-    - name: Delete our address
-      gcp_compute_address:
-        name: 'address-instance'
-        state: absent
+    #- name: Delete our address
+    #  gcp_compute_address:
+    #    name: 'address-instance'
+    #    state: absent
 
-        region: "{{ region }}"
-        project: "{{ gcp_project }}"
-        auth_kind: "{{ gcp_cred_kind }}"
-        service_account_file: "{{ gcp_cred_file }}"
+    #    region: "{{ region }}"
+    #    project: "{{ gcp_project }}"
+    #    auth_kind: "{{ gcp_cred_kind }}"
+    #    service_account_file: "{{ gcp_cred_file }}"
 
     - name: Remove known_hosts entry
       tags: [instance]

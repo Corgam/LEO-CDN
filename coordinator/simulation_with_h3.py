@@ -1,65 +1,52 @@
-import json
-import h3
 import toml
-
-from satellite.manage_keygroups import *
 from constellation import Constellation
+import threading
+import time
 
-ground_stations = {
-    "gst-0": [1, 2, 3],
-    "gst-1": [4, 5, 6],
-    "gst-2": [7, 8, 9]
-}
+class Simulator (threading.Thread):
+    def __init__(self):
+        print("[simulation_with_h3]: Initialize simulation")
 
-EARTH_RADIUS = 6371000  # in meter
-ALTITUDE = 550  # Orbit Altitude (Km)
-semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
+        EARTH_RADIUS = 6371000  # in meter
+        ALTITUDE = 550  # Orbit Altitude (Km)
+        semi_major_axis = float(ALTITUDE) * 1000 + EARTH_RADIUS
 
-steps = 1000
-step_length = 5
+        # Read the GSTs file
+        ground_stations = dict()
+        with open("./temp/gsts.txt") as f:
+            for line in f:
+                line = line.replace("\n","")
+                id, latitude, longitude, country, numberOfRequests = line.split('|')
+                ground_stations[id] = {"latitude": latitude,
+                                    "longitude": longitude}
 
-# Load the config
-with open("./config.toml") as f:
-    config = toml.load(f)
+        # Load the config
+        with open("./config.toml") as f:
+            config = toml.load(f)
 
-# Number of nodes to generate
-number_of_planes = config["satellites"]["planes"]
-nodes_per_plane = config["satellites"]["satellites_per_plane"]
+        # Number of nodes to generate
+        number_of_planes = config["satellites"]["planes"]
+        nodes_per_plane = config["satellites"]["satellites_per_plane"]
+        self.steps = config["satellites"]["steps"]
+        self.interval = config["satellites"]["step_interval"]
+        self.constellation = Constellation(number_of_planes=number_of_planes,
+                                    nodes_per_plane=nodes_per_plane,
+                                    semi_major_axis=semi_major_axis)
 
-last_node = number_of_planes * nodes_per_plane  # for node that creates all keygroups
+        # add ground station to simulation
+        for key in ground_stations:
+            ground_station_data = ground_stations[key]
+            self.constellation.add_new_ground_station(ground_station_id=key,
+                                                lat=float(ground_station_data["latitude"]),
+                                                lon=float(ground_station_data["longitude"]))
 
+        print("finish initializing", flush=True)
+        threading.Thread.__init__(self)
 
-def init():
-    print("[simulation_with_h3]: Initialize all keygroups")
-    h3_center_address = h3.geo_to_h3(0, 0, 0)  # lat, lng, hex resolution
-    all_keygroup_areas_as_ring = h3.k_ring_distances(h3_center_address, 10)
-
-    for ring in all_keygroup_areas_as_ring:
-        ring = list(ring)  # transform {area1, area2} to a list
-        for area in ring:
-            create_keygroup(f"satellite{last_node}", area)
-
-    print("[simulation_with_h3]: Initialize simulation")
-    global constellation
-    constellation = Constellation(number_of_planes=number_of_planes,
-                                  nodes_per_plane=nodes_per_plane,
-                                  semi_major_axis=semi_major_axis)
-
-    for key in ground_stations:
-        position = ground_stations[key]
-        constellation.add_new_ground_station_xyz(ground_station_id=key,
-                                                 x=position[0],
-                                                 y=position[1],
-                                                 z=position[2])
-
-    print("finish initializing")
-
-
-def run_simulation():
-    # starting from time step 0
-    for step in range(0, steps):
-        next_time = step * step_length
-
-        constellation.update_position(time=next_time)
-        # print(f"At step {step}. These are the current keygroups each satellite belongs to: ")
-        # constellation.print_current_keygroups()
+    def run(self):
+        step_length = int(self.constellation.period / self.steps)
+        while(True):
+            for step in range(0, self.steps):
+                next_time = step * step_length
+                self.constellation.update_position(time=next_time)
+                time.sleep(self.interval)

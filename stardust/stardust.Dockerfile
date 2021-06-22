@@ -7,10 +7,6 @@ RUN apt update && \
 COPY ./stardust/requirements-stardust.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
-COPY ./FReD /FReD
-ENV PYTHONPATH="${PYTHONPATH}:/FReD"
-
 COPY ./stardust/stardust.py /stardust.py
-COPY ./temp/stardusts.txt /stardusts.txt
 
 CMD ["python", "stardust.py"]

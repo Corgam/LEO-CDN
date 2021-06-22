@@ -1,89 +1,148 @@
 import grpc
 import json
 from proto import client_pb2, client_pb2_grpc
+import logging
 
 class FredClient:
-    def __init__(self, name, target, client_crt, client_key, ca_crt):
+    def __init__(self, name, fred, target, client_crt, client_key, ca_crt):
+        logging.basicConfig(filename='/logs/' + name + '.log',
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.INFO)
+        self.logger = logging.getLogger(f'{name}_fred')
+        self.fred = fred
+        self.target = target
         self.name = name
 
-        creds = grpc.ssl_channel_credentials(
+        self.creds = grpc.ssl_channel_credentials(
             certificate_chain=client_crt,
             private_key=client_key,
             root_certificates=ca_crt,
         )
 
-        self.channel = grpc.secure_channel(target, credentials=creds)
-        self.keygroups = ["manage"]
+        self.channel = grpc.secure_channel(target, credentials=self.creds)
+        self.keygroups = []
     
-    # Initializes the keygroup
-    def init_keygroup(self, kg):
-        print(f"Initializing {kg} at {self.name}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        try:
-            response = stub.CreateKeygroup(
-                client_pb2.CreateKeygroupRequest(keygroup=kg, mutable=True)
+    def get_all_existing_replica_nodes(self):
+        self.logger.info("Retrieving all replica nodes: ")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.GetAllReplica(
+                client_pb2.GetAllReplicaRequest()
             )
-            self.keygroups.append(kg)
-            print(f'giving {self.name} permission')
-            self.give_user_permissions(self.name, kg, 4)
-            print('gave permission')
-            return True
-        except:
-            return False
+        self.logger.info(status_response)
+
+    def create_keygroup(self, keygroup, mutable=True, expiry=0):
+        """
+        Parameters
+        ----------
+        target_node: str
+            Has to be in the format "node<nodeId>". NodeId starts with 0.
+            This is for indexing the correct host and port in the nodes.json file.
+        keygroup: str
+            Name or ID of the keygroup.
+        mutable: bool
+            Tells whether the keygroup is mutable or not.
+        expiry: int
+            Time until data in keygroup expires. If this value is 0 the expiry of data is deactivated.
+            0 is also the default value.
+        Returns
+        -------
+        status_response: StatusResponse
+            The parsed response of creating a keygroup.
+            It consists of an status and a message if the status is 1.
+            1 means error and 0 means OK.
+        """
+        self.logger.info(f"Initializing {keygroup} at {self.name}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.CreateKeygroup(
+                client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
+            )
+        if status_response.status == 0:
+            self.keygroups.append(keygroup)
+            self.logger.info(f"Initializing succeeded...")
+        else:
+            self.logger.info(f"Failed initializing {keygroup} at {self.name}...")
+        return status_response
     
+    def add_replica_node_to_keygroup(self, keygroup):
+        """
+        Adds a replica node to a keygroup.
+        Parameters
+        ----------
+        target_node: str
+            Has to be in the format "node<nodeId>". NodeId starts with 0.
+            This is for indexing the correct host and port in the nodes.json file.
+        keygroup: str
+            Name or ID of the keygroup.
+        Returns
+        -------
+        status_response: StatusResponse
+            The parsed response of adding a replica node to a keygroup.
+            It consists of an status and a message if the status is 1.
+            1 means error and 0 means OK.
+        """
+        self.logger.info(f"Adding {self.name} to {keygroup}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.AddReplica(
+                client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+            )
+
+        if status_response.status == 0:
+            self.keygroups.append(keygroup)
+
+        return status_response
+        
+
+    def remove_replica_node_from_keygroup(self, keygroup):
+        """
+        Removes a replica node from a keygroup.
+        Parameters
+        ----------
+        target_node: str
+            Has to be in the format "node<nodeId>". NodeId starts with 0.
+            This is for indexing the correct host and port in the nodes.json file.
+        keygroup: str
+            Name or ID of the keygroup.
+        Returns
+        -------
+        status_response: StatusResponse
+            The parsed response of removing a replica node to a keygroup.
+            It consists of an status and a message if the status is 1.
+            1 means error and 0 means OK.
+        """
+        self.logger.info(f"Removing {self.name} from {keygroup}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.RemoveReplica(
+                client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+            )
+        
+        if status_response.status == 0:
+            self.keygroups.remove(keygroup)
+
+        return status_response
+
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
-        print(f"Adding {key}:{value} to {kg}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        try:
-            response = stub.Update(
-                client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
-            )
-            print(response)
-        except Exception as e:
-            response = self.read_file_from_node(kg, key)
-            if response:
-                cur_data = json.loads(response.data)
-                cur_data.append(value)
-                set_data(kg, key, json.dumps(cur_data))
+        self.logger.info(f"Adding {key}:{value} to {kg}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            try:
+                response = stub.Update(
+                    client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
+                )
+                self.logger.info(response)
+            except Exception as e:
+                response = self.read_file_from_node(kg, key)
+                if response:
+                    cur_data = json.loads(response.data)
+                    cur_data.append(value)
+                    self.set_data(kg, key, json.dumps(cur_data))
     
-    # Adds node to the keygroup
-    def add_node_to_keygroup(self, kg, node, satellite):
-        print(f"Adding {node} to {kg}...")
-        try:
-            stub = client_pb2_grpc.ClientStub(self.channel)
-            response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-            )
-            print(response)
-            self.give_user_permissions(node, kg, 4)
-            self.give_user_permissions(satellite, kg, 4)
-            return True
-        except Exception as e:
-            print(e)
-            return False
-    
-    def node_to_keygroup(self, kg, node):
-        print(f"Adding {node} to {kg}...")
-        try:
-            stub = client_pb2_grpc.ClientStub(self.channel)
-            response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=kg, nodeId=node)
-            )
-            return str(response)
-        except Exception as e:
-            print(e)
-            return str(e)
-    
-    # Removes node from the keygroup
-    def remove_node_from_keygroup(self, kg, node):
-        print(f"Removing {self.name} from {kg}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        response = stub.RemoveReplica(
-            client_pb2.RemoveReplicaRequest(keygroup=kg, nodeId=node)
-        )
-        print(response)
-
     # Reads file
     def read_file_from_node(self, keygroup, file_id):
         try:
@@ -108,24 +167,12 @@ class FredClient:
                 response = stub.Read(
                     client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
-                return response
+                return response.data
             except:
                 # if file does not exist an error is raised
                 continue
         print(f"doesn't exist on {self.name}")
         return ""
-
-
-    def add_role(self, user, keygroup, role):
-        try:
-            stub = client_pb2_grpc.ClientStub(self.channel)
-            response = stub.AddUser(
-                client_pb2.UserRequest(
-                    user=user, keygroup=keygroup, role=role)
-            )
-            return str(response)
-        except Exception as e:
-            return str(e)
     
     def get_keygroups(self):
         return self.keygroups
