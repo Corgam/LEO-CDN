@@ -1,14 +1,5 @@
 .PHONY: generate run setup gsts clean compile_grpc_python coordinator
 
-test:
-	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
-	@docker run -it \
-		--name stardust \
-		--network=fredwork \
-		--ip=172.26.8.4 \
-		stardust
-
 generate:
 	@python ./generator.py
 

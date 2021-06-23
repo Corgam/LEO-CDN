@@ -8,8 +8,16 @@ from satellite import Satellite
 from multiprocessing import Process
 from lorem_text import lorem
 import csv
+import toml
 
 app = Flask(__name__)
+
+# Load the config
+with open("./config.toml") as f:
+    node_configs = toml.load(f)
+
+# Frequency for sending position queries
+frequency = node_configs["satellites"]["position_interval"]
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -82,7 +90,7 @@ def append_data(keygroup, key, entry):
 def position_query():
     while(True):
         satellite.check_keygroup()
-        time.sleep(2.5)
+        time.sleep(frequency)
 
 def get_paragraph_length(file_id):
     reader = csv.reader(files_csv)

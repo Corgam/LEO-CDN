@@ -72,6 +72,7 @@ services:
       - ../../temp/freds.json:/info/nodes.json
       - ../../temp/{{ server_name }}.json:/info/node.json
       - ../../temp/logs:/logs
+      - ../../config.toml:/config.toml
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}
