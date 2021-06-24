@@ -16,8 +16,7 @@ with open("./config.toml") as f:
 # Number of nodes to generate
 planes = config["satellites"]["planes"]
 satellite_per_planes = config["satellites"]["satellites_per_plane"]
-# TODO: this +1 is for the simulation because atm it requires to init all keygroups in the beginning -> change this
-nodes = planes * satellite_per_planes +1
+nodes = planes * satellite_per_planes
 
 # Create temp directory
 print("Creating temp directory...")
@@ -33,9 +32,9 @@ else:
 ##########
 
 # Copy the file containing all groundstations information
-stardusts_list = config["general"]["stardusts_list"]
+gsts_list = config["general"]["gsts_list"]
 print("Selecting all data files...")
-shutil.copyfile("./data/"+stardusts_list, "./temp/stardusts.txt")
+shutil.copyfile("./data/"+gsts_list, "./temp/gsts.txt")
 
 ##################
 ## Certificates ##

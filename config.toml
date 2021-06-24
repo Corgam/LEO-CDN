@@ -6,8 +6,15 @@ title = "LEO-CDN Config"
 [general]
 # Name of the file that contains information about all groundstations.
 # File should be located in the `data` folder.
-stardusts_list= "example_5_stardusts.txt"
+gsts_list= "example_5_gsts.txt"
 
 [satellites]
+# Steps: total amount of required steps for a Satellite to finish a rotation around the globe
+# Step_Interval: interval between each step in seconds
+# Position_Interval: interval of the position query to the coordinator in seconds
+
 planes = 1
 satellites_per_plane = 3
+steps = 20 
+step_interval = 0.25
+position_interval = 0.5

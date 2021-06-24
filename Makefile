@@ -1,30 +1,21 @@
-.PHONY: generate run setup groundstations stardust clean compile_grpc_python coordinator
+.PHONY: generate run setup gsts clean compile_grpc_python coordinator
 
 generate:
 	@python ./generator.py
 
-run:
+satellites:
 	@sh ./temp/run-nodes.sh
 
-setup: generate run
-
-groundstations:
-	@! docker ps -a | grep groundstation || docker container rm groundstation -f
-	@docker build -f ./groundstation/groundstation.Dockerfile -t groundstation .
+setup: generate coordinator
+		
+gsts:
+	@! docker ps -a | grep gsts || docker container rm gsts -f
+	@docker build -f ./gsts/gsts.Dockerfile -t gsts .
 	@docker run -it \
-		--name groundstation \
+		--name gsts \
 		--network=fredwork \
 		--ip=172.26.8.4 \
-		groundstation
-
-stardust:
-	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
-	@docker run -it \
-		--name stardust \
-		--network=fredwork \
-		--ip=172.26.8.4 \
-		stardust
+		gsts
 
 clean:
 	@sh temp/clean.sh
