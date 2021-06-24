@@ -91,16 +91,28 @@ def createGSTs(gstsList):
     for thread in threads:
         thread.start()
 
+# Reads the file order for generator of requests
+def readFileOrder(gstID):
+    # Read the file order json
+    with open("./fileOrder.json") as f:
+        fileOrderJSON = json.load(f)
+        # Return file order for specific GST
+        return fileOrderJSON[str(gstID)]
 
-# Generates the requests instead of reading them from a file
-def generateRequests(numberOfRequests):
+# Generate requests based on new workload
+def generateRequests(gstID, p, numberOfRequests):
     reqsList = list()
-    # Create the random geometric distribution
-    dis = numpy.random.geometric(0.01,numberOfRequests)
-    # Generate the requests 
-    for i in range(0, numberOfRequests):
-        number = dis[i]
-        req = f"GET /file{number} HTTP/1.1"
+    #Read the file order
+    fileOrder = readFileOrder(gstID)
+    # Generate indicies of files
+    file_indices = np.random.geometric(p, numberOfRequests)
+    for file_ind in file_indices:
+        # Skip unlikely file
+        if file_ind >= len(fileOrder):
+            continue
+        # Create new request
+        file_id = fileOrder[file_ind]
+        req = f"GET /file{file_id} HTTP/1.1"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
 
@@ -117,7 +129,7 @@ def getTheBestSatellite(id):
         # Return the ip and port to the best satellite
         print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n")
         coordConn.close()
-        return data;
+        return data
     else:
         return -1; 
 
@@ -125,7 +137,7 @@ def getTheBestSatellite(id):
 # Send all requests to the best satellite
 def sendRequests(gst):
     # Generate the requests
-    reqsList = generateRequests(gst.getNumberOfRequests())
+    reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
     # Create a connection to the best satellite
     print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n")
     bestSat = getTheBestSatellite(gst.getID())

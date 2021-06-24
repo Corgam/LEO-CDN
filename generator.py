@@ -36,6 +36,13 @@ gsts_list = config["general"]["gsts_list"]
 print("Selecting all data files...")
 shutil.copyfile("./data/"+gsts_list, "./temp/gsts.txt")
 
+# Copy the file order
+# TODO: If workload is not generated: run the makefile command
+if(os.path.isfile("./data/file_orders.json")):
+    shutil.copyfile("./data/file_orders.json","./temp/file_orders.json")
+else:
+    print("FILE_ORDERS.JSON WAS NOT GENERATED. ERRORS CAN HAPPEN, PLEASE GENERATE THE MISSING FILE WITH `make generate_workload`!")
+
 ##################
 ## Certificates ##
 ##################

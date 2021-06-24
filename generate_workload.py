@@ -1,13 +1,14 @@
 import pandas as pd
 from util import transform_geo_to_xyz
-import umap
+import umap.umap_ as umap
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 import numpy as np
 import json
 
-input_file = "misc/workload/simplemaps_worldcities_basicv1.73/worldcities.csv"
-output_file = "file_orders.json"
+#TODO: Read the cities list from config
+input_file = "data/worldcities_5.csv"
+output_file = "data/file_orders.json"
 
 print(f"Reading input file from {input_file}")
 df_gst = pd.read_csv(input_file)
