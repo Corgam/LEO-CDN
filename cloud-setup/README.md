@@ -13,7 +13,7 @@ It can be useful to have the `gcloud` CLI tool installed as the web interface is
 
 To run the cloud setup, you need to have Ansible installed on your machine.
 
-The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang`.
+The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang andrewrothstein.firecracker geerlingguy.docker`.
 
 ## Starting the VM
 

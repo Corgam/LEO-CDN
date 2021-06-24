@@ -81,7 +81,7 @@
         state: present
         
         min_cpu_platform: "Intel Haswell"
-        machine_type: "n1-standard-4"
+        machine_type: "n1-standard-8"
 
         tags:
           items:
@@ -121,6 +121,8 @@
   hosts: new_instances
   connection: ssh
   become: yes
+  roles:
+    - geerlingguy.docker
 
   tasks:
     - name: Update package list and upgrade packages
@@ -138,6 +140,8 @@
           - git
           - ufw
           - gdb
+          - tmux
+          - htop
         state: latest
       
     - name: Give user access to kvm
