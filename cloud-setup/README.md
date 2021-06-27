@@ -15,6 +15,8 @@ To run the cloud setup, you need to have Ansible installed on your machine.
 
 The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang`.
 
+Note: In case gantsign.golang cannot be found, install it via: `ansible-galaxy install gantsign.golang`.
+
 ## Starting the VM
 
 There are 2 ansible playbooks.
@@ -28,6 +30,8 @@ The setup does
 And the teardown does
 - Remove the GCP instance and resources
 - Remove the SSH key from the local known_hosts
+
+First, you need to install the necessary role: `ansible-galaxy install andrewrothstein.firecracker`.
 
 If you want to run the full setup, you need to run `ansible-playbook setup.yml`. This will take about 10 minutes.
 
@@ -56,6 +60,8 @@ and start celestial:
 Rootfs and kernel can be downloaded using the `dl-microvm.sh` script.
 
 The rootfs can also be built using the builder in the `microvm` directory.
+
+Note: In case the files take too long, try downloading them via browser.
 
 ### state of the rootfs
 
