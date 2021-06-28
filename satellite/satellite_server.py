@@ -9,8 +9,15 @@ from multiprocessing import Process
 from lorem_text import lorem
 import csv
 import toml
+from Request import db, Request
+import datetime
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data/satellite.db'
+
+db.app = app
+db.init_app(app)
+db.create_all()
 
 # Load the config
 with open("./config.toml") as f:
@@ -151,6 +158,9 @@ def addSatellite():
 def catch_all(u_path):
     file_id = u_path
     saved = fred_client.read_file(file_id)
+    stat_record = Request(file_id=file_id, time=datetime.datetime.utcnow())
+    db.session.add(stat_record)
+    db.session.commit()
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)

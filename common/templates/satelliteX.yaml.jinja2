@@ -32,6 +32,7 @@ services:
       - ../../temp/{{ node_name }}.crt:/cert/{{ node_name }}.crt
       - ../../temp/{{ node_name }}.key:/cert/{{ node_name }}.key
       - ../../common/cert/ca.crt:/cert/ca.crt
+      - ../../satellite/data/{{node_name}}:/data
     ports:
       - {{ host_port }}:9001
     networks:
