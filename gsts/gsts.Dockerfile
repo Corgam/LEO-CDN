@@ -12,6 +12,6 @@ ENV PYTHONPATH="${PYTHONPATH}:/FReD"
 
 COPY ./gsts/gsts.py /gsts.py
 COPY ./temp/gsts.txt /gsts.txt
-COPY ./temp/file_order.json /file_order.json
+COPY ./temp/file_orders.json /file_orders.json
 
 CMD ["python", "gsts.py"]
