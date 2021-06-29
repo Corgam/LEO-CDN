@@ -132,7 +132,7 @@ def generateRequests(gstID, p, numberOfRequests):
             continue
         # Create new request
         file_id = fileOrder[file_ind]
-        req = f"GET /file{file_id} HTTP/1.1"
+        req = f"GET /{file_id} HTTP/1.1"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
 
