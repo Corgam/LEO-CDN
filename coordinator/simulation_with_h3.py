@@ -20,6 +20,7 @@ class Simulator(threading.Thread):
         df_gst = pd.read_csv("./temp/gsts.csv")
         for index, gst in df_gst.iterrows():
             ground_stations[gst.id] = {"latitude": gst.lat, "longitude": gst.lng}
+        self.ground_stations = ground_stations
 
         # Load the config
         with open("./config.toml") as f:
