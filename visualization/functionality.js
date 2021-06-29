@@ -1,21 +1,5 @@
-//
-// Configuration
-//
-
-// ms to wait after dragging before auto-rotating
-var rotationDelay = 3000
-// scale of the globe (not the canvas element)
-var scaleFactor = 0.9
-// autorotation speed
-var degPerSec = 6
-// start angles
-var angles = { x: -20, y: 40, z: 0}
-// colors
-var colorWater = '#fff'
-var colorLand = '#111'
-var colorGraticule = '#ccc'
-var colorCountry = '#a00'
-
+// Code taken and changed from: https://github.com/MoeweX/DisGB-Simulation
+// 
 // function for data rendering to svg
 // the path returned by createPathAndPrepSvg is required for correct rendering
 // arguments:
@@ -344,6 +328,36 @@ function renderData(data, colors, path){
                 [Math.round(data[i].lon1), Math.round(data[i].lat1)],
                 ],
             ]);
+        } else if (data[i].type === "oct") { 
+          rect = createGeoJsonPolygon([
+              [
+              [Math.round(data[i].lon1), Math.round(data[i].lat1)],
+              [Math.round(data[i].lon8), Math.round(data[i].lat8)],
+              [Math.round(data[i].lon7), Math.round(data[i].lat7)],
+              [Math.round(data[i].lon6), Math.round(data[i].lat6)],
+              [Math.round(data[i].lon5), Math.round(data[i].lat5)],
+              [Math.round(data[i].lon4), Math.round(data[i].lat4)],
+              [Math.round(data[i].lon3), Math.round(data[i].lat3)],
+              [Math.round(data[i].lon2), Math.round(data[i].lat2)],
+              [Math.round(data[i].lon1), Math.round(data[i].lat1)],
+              ],
+          ]);
+        } else if (data[i].type === "dec") { 
+          rect = createGeoJsonPolygon([
+              [
+              [Math.round(data[i].lon1), Math.round(data[i].lat1)],
+              [Math.round(data[i].lon10), Math.round(data[i].lat10)],
+              [Math.round(data[i].lon9), Math.round(data[i].lat9)],
+              [Math.round(data[i].lon8), Math.round(data[i].lat8)],
+              [Math.round(data[i].lon7), Math.round(data[i].lat7)],
+              [Math.round(data[i].lon6), Math.round(data[i].lat6)],
+              [Math.round(data[i].lon5), Math.round(data[i].lat5)],
+              [Math.round(data[i].lon4), Math.round(data[i].lat4)],
+              [Math.round(data[i].lon3), Math.round(data[i].lat3)],
+              [Math.round(data[i].lon2), Math.round(data[i].lat2)],
+              [Math.round(data[i].lon1), Math.round(data[i].lat1)],
+              ],
+          ]);
         }
         if (rect !== null) {
             // select color
