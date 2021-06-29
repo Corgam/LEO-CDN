@@ -33,14 +33,14 @@ else:
 ##########
 
 # Copy the file containing all groundstations information
-gsts = config["general"]["gsts"]
+gsts_list = config["general"]["gsts_list"]
 print("Selecting all data files...")
-shutil.copyfile("./data/" + gsts, "./temp/gsts.csv")
+shutil.copyfile(gsts_list, "./temp/gsts.csv")
 
 # Copy the file order
 # TODO: If workload is not generated: run the makefile command
-if os.path.isfile("./data/file_orders.json"):
-    shutil.copyfile("./data/file_orders.json", "./temp/file_orders.json")
+if os.path.isfile(config["workload"]["output_file"]):
+    shutil.copyfile(config["workload"]["output_file"], "./temp/file_orders.json")
 else:
     print(
         "FILE_ORDERS.JSON WAS NOT GENERATED. ERRORS CAN HAPPEN, PLEASE GENERATE THE MISSING FILE WITH `make generate_workload`!"

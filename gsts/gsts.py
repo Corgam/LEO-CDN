@@ -7,7 +7,8 @@ import json
 import threading
 
 # Importing needed libraries
-import numpy
+import numpy as np
+import pandas as pd
 from requests_futures.sessions import FuturesSession
 
 
@@ -83,7 +84,7 @@ class GST:
 def loadGSTsInfo():
     gstsList = list()
     # Treat each line as new object
-    df_gst = pd.read_csv("./temp/gsts.csv")
+    df_gst = pd.read_csv("/gsts.csv")
     for index, gst in df_gst.iterrows():
         gstsList.append(
             GST(
@@ -92,7 +93,7 @@ def loadGSTsInfo():
                 float(gst.lng),
                 gst.country,
                 # TODO: make number of requests (per second?) depend on population
-                int(1),
+                10,
             )
         )
     return gstsList

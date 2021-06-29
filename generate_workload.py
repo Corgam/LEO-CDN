@@ -1,14 +1,20 @@
-import pandas as pd
-from util import transform_geo_to_xyz
-import umap.umap_ as umap
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-import numpy as np
 import json
 
-#TODO: Read the cities list from config
-input_file = "data/worldcities_5.csv"
-output_file = "data/file_orders.json"
+import numpy as np
+import pandas as pd
+import toml
+import umap.umap_ as umap
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from util import transform_geo_to_xyz
+
+with open("./config.toml") as f:
+    config = toml.load(f)
+
+# TODO: Read the cities list from config
+input_file = config["general"]["gsts_list"]
+output_file = config["workload"]["output_file"]
 
 print(f"Reading input file from {input_file}")
 df_gst = pd.read_csv(input_file)

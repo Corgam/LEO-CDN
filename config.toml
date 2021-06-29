@@ -6,7 +6,7 @@ title = "LEO-CDN Config"
 [general]
 # Name of the file that contains information about all groundstations.
 # File should be located in the `data` folder.
-gsts = "data/worldcities_5.csv"
+gsts_list = "data/worldcities_5.csv"
 
 [satellites]
 # Steps: total amount of required steps for a Satellite to finish a rotation around the globe
@@ -18,3 +18,6 @@ satellites_per_plane = 3
 steps = 20
 step_interval = 0.25
 position_interval = 0.5
+
+["workload"]
+output_file = "data/file_orders.json"
