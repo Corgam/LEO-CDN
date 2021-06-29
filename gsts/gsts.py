@@ -83,19 +83,18 @@ class GST:
 def loadGSTsInfo():
     gstsList = list()
     # Treat each line as new object
-    with open("./gsts.txt") as f:
-        for line in f:
-            line = line.replace("\n", "")
-            id, latitude, longitude, country, numberOfRequests = line.split("|")
-            gstsList.append(
-                GST(
-                    id,
-                    float(latitude),
-                    float(longitude),
-                    country,
-                    int(numberOfRequests),
-                )
+    df_gst = pd.read_csv("./temp/gsts.csv")
+    for index, gst in df_gst.iterrows():
+        gstsList.append(
+            GST(
+                gst.id,
+                float(gst.lat),
+                float(gst.lng),
+                gst.country,
+                # TODO: make number of requests (per second?) depend on population
+                int(1),
             )
+        )
     return gstsList
 
 

@@ -33,9 +33,9 @@ else:
 ##########
 
 # Copy the file containing all groundstations information
-gsts_list = config["general"]["gsts_list"]
+gsts = config["general"]["gsts"]
 print("Selecting all data files...")
-shutil.copyfile("./data/" + gsts_list, "./temp/gsts.txt")
+shutil.copyfile("./data/" + gsts, "./temp/gsts.csv")
 
 # Copy the file order
 # TODO: If workload is not generated: run the makefile command
