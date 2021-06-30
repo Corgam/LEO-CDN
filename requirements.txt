@@ -6,3 +6,6 @@ numpy~=1.20.3
 h3~=3.7.2
 PyAstronomy~=0.16.0
 toml~=0.10.2
+umap-learn
+pandas
+sklearn
