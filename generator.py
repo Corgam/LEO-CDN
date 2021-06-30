@@ -1,10 +1,11 @@
-import sys
-import subprocess
+import json
 import os
 import shutil
-import json
-from jinja2 import Template
+import subprocess
+import sys
+
 import toml
+from jinja2 import Template
 
 ############
 ## Config ##
@@ -34,7 +35,16 @@ else:
 # Copy the file containing all groundstations information
 gsts_list = config["general"]["gsts_list"]
 print("Selecting all data files...")
-shutil.copyfile("./data/"+gsts_list, "./temp/gsts.txt")
+shutil.copyfile(gsts_list, "./temp/gsts.csv")
+
+# Copy the file order
+# TODO: If workload is not generated: run the makefile command
+if os.path.isfile(config["workload"]["output_file"]):
+    shutil.copyfile(config["workload"]["output_file"], "./temp/file_orders.json")
+else:
+    print(
+        "FILE_ORDERS.JSON WAS NOT GENERATED. ERRORS CAN HAPPEN, PLEASE GENERATE THE MISSING FILE WITH `make generate_workload`!"
+    )
 
 ##################
 ## Certificates ##
@@ -42,7 +52,9 @@ shutil.copyfile("./data/"+gsts_list, "./temp/gsts.txt")
 
 # Copy the certificates generator files
 shutil.copyfile("./common/cert/gen-cert.sh", "./temp/gen-cert.sh")
-shutil.copyfile("./common/cert/generate-n-certificates.sh", "./temp/generate-n-certificates.sh")
+shutil.copyfile(
+    "./common/cert/generate-n-certificates.sh", "./temp/generate-n-certificates.sh"
+)
 shutil.copyfile("./common/cert/ca.crt", "./temp/ca.crt")
 shutil.copyfile("./common/cert/ca.key", "./temp/ca.key")
 
@@ -139,7 +151,12 @@ with open("./temp/freds.json", "w") as f:
 for x in range(nodes):
     with open(f"./temp/satellite{x}.json", "w") as f:
         nodes_config = {
-            f"satellite{x}": {"server": f"172.26.{x + 7}.3", "sport": 5000, "node": f"172.26.{x + 7}.1", "nport": 9001,
-                              "fred": f"fred{x}"}
+            f"satellite{x}": {
+                "server": f"172.26.{x + 7}.3",
+                "sport": 5000,
+                "node": f"172.26.{x + 7}.1",
+                "nport": 9001,
+                "fred": f"fred{x}",
+            }
         }
         json.dump(nodes_config, f, indent=4)
