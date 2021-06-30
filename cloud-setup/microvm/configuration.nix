@@ -22,7 +22,9 @@
   };
 
   services.nginx.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 ];
+  services.openssh.enable = true;
+  
+  networking.firewall.allowedTCPPorts = [ 80 22 ];
 
   environment.systemPackages = with pkgs; [
     vim

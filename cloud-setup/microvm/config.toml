@@ -21,9 +21,9 @@ peeringhosts = ["172.17.0.1:1970"]
 # peeringhosts = ["192.168.0.20:1970", "192.168.0.30:1970"]
 
 # whether to enable database for machines
-database = false
+database = true
 # dbhost if database is enabled
-#dbhost = "172.17.0.1:8000"
+dbhost = "172.17.0.1:8000"
 
 [networkparams]
 # ISL propagation factor
@@ -112,7 +112,7 @@ bootparams = ""
 
 [[shell]]
 planes = 1
-sats = 10
+sats = 7
 altitude = 550
 inclination = 53.0
 arcofascendingnodes = 360.0

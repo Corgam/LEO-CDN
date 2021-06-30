@@ -43,6 +43,8 @@ To do the full teardown, you need to run `ansible-playbook teardown.yml`. If you
 
 The celestial server needs to be started manually for now.
 
+To keep the simulation running without an active SSH session, you can use `tmux`.
+
 To do so, log in via ssh:
 
 `ssh 34.89.212.29`
@@ -54,6 +56,32 @@ and start celestial:
 `make binary`
 
 `make runserver`
+
+and in a separate shell:
+
+`cd celestial`
+
+`make container`
+
+`sudo docker run -p 8000:8000 --rm -it -v /config.toml:/config.toml celestial /config.toml`
+
+## Working in the VM environment
+### The Celestial APIs
+
+The `drill` DNS client is available to interact with Celestials [DNS API](https://github.com/OpenFogStack/celestial#dns-api).
+
+`drill @127.0.0.1 0.0.celestial`
+
+`drill @127.0.0.1 Berlin.gst.celestial`
+
+The [HTTP API](https://github.com/OpenFogStack/celestial#http-api) can be queried using `curl`
+
+`curl localhost/info`
+
+`curl localhost/shell/0/0`
+### Interacting with the MicroVMs
+
+**WIP**: They respond to pings but not to SSH or HTTP queries.
 
 ## building the rootfs and kernel
 
