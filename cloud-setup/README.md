@@ -15,7 +15,7 @@ To run the cloud setup, you need to have Ansible installed on your machine.
 
 The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang andrewrothstein.firecracker geerlingguy.docker`.
 
-Note: In case gantsign.golang cannot be found, install it via: `ansible-galaxy install gantsign.golang`.
+Note: In case `gantsign.golang` or `andrewrothstein.firecracker` or `geerlingguy.docker` cannot be found, install them via: `ansible-galaxy install andrewrothstein.firecracker gantsign.golang geerlingguy.docker`.
 
 ## Starting the VM
 
@@ -30,8 +30,6 @@ The setup does
 And the teardown does
 - Remove the GCP instance and resources
 - Remove the SSH key from the local known_hosts
-
-First, you need to install the necessary role: `ansible-galaxy install andrewrothstein.firecracker`.
 
 If you want to run the full setup, you need to run `ansible-playbook setup.yml`. This will take about 10 minutes.
 
