@@ -1,7 +1,10 @@
-.PHONY: generate run setup gsts clean compile_grpc_python coordinator
+.PHONY: generate generate_workload run setup gsts clean compile_grpc_python coordinator
 
 generate:
 	@python ./generator.py
+
+generate_workload:
+	@python ./generate_workload.py
 
 satellites:
 	@sh ./temp/run-nodes.sh

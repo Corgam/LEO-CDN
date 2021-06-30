@@ -1,9 +1,13 @@
-import toml
-from constellation import Constellation
 import threading
 import time
 
-class Simulator (threading.Thread):
+import pandas as pd
+import toml
+
+from constellation import Constellation
+
+
+class Simulator(threading.Thread):
     def __init__(self):
         print("[simulation_with_h3]: Initialize simulation")
 
@@ -13,12 +17,10 @@ class Simulator (threading.Thread):
 
         # Read the GSTs file
         ground_stations = dict()
-        with open("./temp/gsts.txt") as f:
-            for line in f:
-                line = line.replace("\n","")
-                id, latitude, longitude, country, numberOfRequests = line.split('|')
-                ground_stations[id] = {"latitude": latitude,
-                                    "longitude": longitude}
+        df_gst = pd.read_csv("./temp/gsts.csv")
+        for index, gst in df_gst.iterrows():
+            ground_stations[gst.id] = {"latitude": gst.lat, "longitude": gst.lng}
+        self.ground_stations = ground_stations
 
         # Load the config
         with open("./config.toml") as f:
@@ -29,23 +31,27 @@ class Simulator (threading.Thread):
         nodes_per_plane = config["satellites"]["satellites_per_plane"]
         self.steps = config["satellites"]["steps"]
         self.interval = config["satellites"]["step_interval"]
-        self.constellation = Constellation(number_of_planes=number_of_planes,
-                                    nodes_per_plane=nodes_per_plane,
-                                    semi_major_axis=semi_major_axis)
+        self.constellation = Constellation(
+            number_of_planes=number_of_planes,
+            nodes_per_plane=nodes_per_plane,
+            semi_major_axis=semi_major_axis,
+        )
 
         # add ground station to simulation
         for key in ground_stations:
             ground_station_data = ground_stations[key]
-            self.constellation.add_new_ground_station(ground_station_id=key,
-                                                lat=float(ground_station_data["latitude"]),
-                                                lon=float(ground_station_data["longitude"]))
+            self.constellation.add_new_ground_station(
+                ground_station_id=key,
+                lat=float(ground_station_data["latitude"]),
+                lon=float(ground_station_data["longitude"]),
+            )
 
         print("finish initializing", flush=True)
         threading.Thread.__init__(self)
 
     def run(self):
         step_length = int(self.constellation.period / self.steps)
-        while(True):
+        while True:
             for step in range(0, self.steps):
                 next_time = step * step_length
                 self.constellation.update_position(time=next_time)

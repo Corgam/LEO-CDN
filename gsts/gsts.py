@@ -2,10 +2,13 @@
 ## Ground Stations ##
 #####################
 
-# Importing needed libraries
-import numpy
 import http.client
+import json
 import threading
+
+# Importing needed libraries
+import numpy as np
+import pandas as pd
 from requests_futures.sessions import FuturesSession
 
 
@@ -18,11 +21,11 @@ class HTTPRequest:
     # Sets the URL and heads dic from given string. No error check.
     @classmethod
     def fromString(self, reqString):
-        lines = str(reqString).split('\n')
+        lines = str(reqString).split("\n")
         # Prepare url
         url = lines[0]
-        url = url.replace("GET ","")
-        url = url.replace(" HTTP/1.1","")
+        url = url.replace("GET ", "")
+        url = url.replace(" HTTP/1.1", "")
         # Prepeare headers
         heads = {}
         for line in lines:
@@ -32,15 +35,16 @@ class HTTPRequest:
                 # Fill in the headers
                 parts = line.split(": ")
                 heads[parts[0]] = parts[1]
-        return HTTPRequest(url,heads)
+        return HTTPRequest(url, heads)
 
-    #Returns the URL of the HTTP Request
+    # Returns the URL of the HTTP Request
     def getURL(self):
         return self.URL
-    
-    #Returns the dict of heads of the HTTP Request
+
+    # Returns the dict of heads of the HTTP Request
     def getHeads(self):
         return self.heads
+
 
 # This class holds information about one groundstation
 class GST:
@@ -50,21 +54,27 @@ class GST:
         self.longitude = longitude
         self.country = country
         self.numberOfRequests = numberOfRequests
+
     # Returns the ID of the GST
     def getID(self):
         return self.id
+
     # Returns the latitude of the GST
     def getLatitude(self):
         return self.latitude
+
     # Returns the longitude of the GST
     def getLongitude(self):
         return self.longitude
+
     # Returns the country of the GST
     def getCountry(self):
         return self.country
+
     # Returns the numberOfRequests the GST will send
     def getNumberOfRequests(self):
         return self.numberOfRequests
+
 
 #########################
 ## Internal functions  ##
@@ -74,12 +84,20 @@ class GST:
 def loadGSTsInfo():
     gstsList = list()
     # Treat each line as new object
-    with open("./gsts.txt") as f:
-        for line in f:
-            line = line.replace("\n","")
-            id, latitude, longitude, country, numberOfRequests = line.split('|')
-            gstsList.append(GST(id, float(latitude), float(longitude), country, int(numberOfRequests)))
+    df_gst = pd.read_csv("/gsts.csv")
+    for index, gst in df_gst.iterrows():
+        gstsList.append(
+            GST(
+                gst.id,
+                float(gst.lat),
+                float(gst.lng),
+                gst.country,
+                # TODO: make number of requests (per second?) depend on population
+                10,
+            )
+        )
     return gstsList
+
 
 # Creates a new thread for each gst
 def createGSTs(gstsList):
@@ -92,58 +110,80 @@ def createGSTs(gstsList):
         thread.start()
 
 
-# Generates the requests instead of reading them from a file
-def generateRequests(numberOfRequests):
+# Reads the file order for generator of requests
+def readFileOrder(gstID):
+    # Read the file order json
+    with open("./file_orders.json") as f:
+        fileOrderJSON = json.load(f)
+        # Return file order for specific GST
+        return fileOrderJSON[str(gstID)]
+
+
+# Generate requests based on new workload
+def generateRequests(gstID, p, numberOfRequests):
     reqsList = list()
-    # Create the random geometric distribution
-    dis = numpy.random.geometric(0.01,numberOfRequests)
-    # Generate the requests 
-    for i in range(0, numberOfRequests):
-        number = dis[i]
-        req = f"GET /file{number} HTTP/1.1"
+    # Read the file order
+    fileOrder = readFileOrder(gstID)
+    # Generate indicies of files
+    file_indices = np.random.geometric(p, numberOfRequests)
+    for file_ind in file_indices:
+        # Skip unlikely file
+        if file_ind >= len(fileOrder):
+            continue
+        # Create new request
+        file_id = fileOrder[file_ind]
+        req = f"GET /{file_id} HTTP/1.1"
         reqsList.append(HTTPRequest.fromString(req))
     return reqsList
+
 
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
 def getTheBestSatellite(id):
     # Communicate with the Coordinator to choose the best satellite.
     coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
-    coordConn.request(method="GET",url=f"/best_satellite/{id}")
+    coordConn.request(method="GET", url=f"/best_satellite/{id}")
     # Get the response
     res = coordConn.getresponse()
     # Extract ip and port
     data = res.read().decode()
-    if(data != "Invalid GST ID"):
+    if data != "Invalid GST ID":
         # Return the ip and port to the best satellite
-        print(f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n")
+        print(
+            f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n"
+        )
         coordConn.close()
-        return data;
+        return data
     else:
-        return -1; 
+        return -1
 
 
 # Send all requests to the best satellite
 def sendRequests(gst):
     # Generate the requests
-    reqsList = generateRequests(gst.getNumberOfRequests())
+    reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
     # Create a connection to the best satellite
-    print(f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n")
+    print(
+        f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
+    )
     bestSat = getTheBestSatellite(gst.getID())
-    if(bestSat == -1):
+    if bestSat == -1:
         print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
         return
     # Send all requests
-    print(f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n")
+    print(
+        f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
+    )
     # Create an async session
     session = FuturesSession()
     responses = list()
     for req in reqsList:
         # Send the request in an async fashion
-        responses.append(session.get("http://"+bestSat+req.getURL()))
+        responses.append(session.get("http://" + bestSat + req.getURL()))
     # Read all of the responses (or wait for them)
     for future in responses:
         res = future.result()
         print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
+
 
 # Main function, run on startup
 if __name__ == "__main__":
@@ -153,4 +193,3 @@ if __name__ == "__main__":
     # Create GSTs threads
     print(f"Creating {len(gstsList)} threads...\n")
     createGSTs(gstsList)
-
