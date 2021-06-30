@@ -6,7 +6,7 @@
       gcp_project: leo-cdn
       gcp_cred_kind: serviceaccount
       gcp_cred_file: gcp.json
-      zone: "europe-west3-c"
+      zone: "europe-west3-a"
       region: "europe-west3"
 
   tasks:
@@ -142,6 +142,7 @@
           - gdb
           - tmux
           - htop
+          - ipset
         state: latest
       
     - name: Give user access to kvm
@@ -207,6 +208,12 @@
       ansible.posix.synchronize:
         src: microvm/hello-vmlinux.bin
         dest: "/celestial/"
+    
+    - name: Copy config
+      become: yes
+      ansible.posix.synchronize:
+        src: microvm/config.toml
+        dest: "/"
 
 #   - name: Copy Celestial to our instance
 #     ansible.builtin.copy:

@@ -13,17 +13,17 @@ animation = false
 
 # endpoints of machines running firecracker and
 # our api
-hosts = ["34.89.212.29:1969"]
+hosts = ["172.17.0.1:1969"]
 # hosts = ["35.246.247.15:1969", "34.107.74.168:1969"]
 # peer addresses of our hosts so they can talk
 # to each other
-peeringhosts = ["127.0.0.1:1970"]
+peeringhosts = ["172.17.0.1:1970"]
 # peeringhosts = ["192.168.0.20:1970", "192.168.0.30:1970"]
 
 # whether to enable database for machines
-database = true
+database = false
 # dbhost if database is enabled
-dbhost = "127.0.0.1:8000"
+#dbhost = "172.17.0.1:8000"
 
 [networkparams]
 # ISL propagation factor
@@ -111,7 +111,7 @@ rootfs = "rootfs.ext4"
 bootparams = ""
 
 [[shell]]
-planes = 10
+planes = 1
 sats = 10
 altitude = 550
 inclination = 53.0
