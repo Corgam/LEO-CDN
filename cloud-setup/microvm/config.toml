@@ -3,7 +3,7 @@ model = "SGP4"
 
 # bounding box of coverage area in lat-long (bottom left) lat-long (top right)
 # http://bboxfinder.com/
-bbox = [34.657635,-13.881488,58.794799,26.196637]
+bbox = [-85.000000,-180.000000,85.000000,180.000000]
 
 interval = 1
 
