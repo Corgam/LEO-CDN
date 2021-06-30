@@ -15,7 +15,7 @@
         name: 'disk-dbuster-ans'
         state: present
 
-        size_gb: 10
+        size_gb: 100
         source_image: 'projects/debian-cloud/global/images/family/debian-10'
 
         zone: "{{ zone }}"
@@ -91,7 +91,7 @@
           - auto_delete: true
             boot: true
             initialize_params:
-              disk_size_gb: 10
+              disk_size_gb: 100
               image: "{{ image.selfLink }}"
         
         network_interfaces:
@@ -143,6 +143,7 @@
           - tmux
           - htop
           - ipset
+          - ldnsutils
         state: latest
       
     - name: Give user access to kvm
