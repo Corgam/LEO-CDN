@@ -1,9 +1,6 @@
 { config, pkgs, ... }:
 
 {
-  imports = [ ];
-  boot.isContainer = true;
-
   users = {
     mutableUsers = false;
     users = {
@@ -22,9 +19,16 @@
   };
 
   services.nginx.enable = true;
+
+  services.nginx.virtualHosts."0.0.0.0" = {
+    addSSL = false;
+    locations."/".return = "200 OK\n";
+  };
+
+  services.haveged.enable = true;
   services.openssh.enable = true;
-  
-  networking.firewall.allowedTCPPorts = [ 80 22 ];
+
+  nix.autoOptimiseStore = true;
 
   environment.systemPackages = with pkgs; [
     vim
