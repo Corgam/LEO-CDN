@@ -143,6 +143,7 @@
           - htop
           - ipset
           - ldnsutils
+          - zstd
         state: latest
 
     - name: Give user access to kvm
@@ -202,7 +203,7 @@
         dest: "~"
         rsync_opts:
           - "--exclude=.git"
-    
+
     #- name: Copy microvm build environment
     #  ansible.posix.synchronize:
     #    src: microvm
@@ -214,15 +215,25 @@
     # TODO: run dl-microvm.sh on the VM instead...
     # or build the rootfss there...
 
+    #- name: Copy sat rootfs
+    #  ansible.posix.synchronize:
+    #    src: microvm/rootfs-sat.ext4.zst
+    #    dest: "/celestial/"
+
+    #- name: Copy gst rootfs
+    #  ansible.posix.synchronize:
+    #    src: microvm/rootfs-gst.ext4
+    #    dest: "/celestial/"
+
     - name: Copy sat rootfs
-      ansible.posix.synchronize:
-        src: microvm/rootfs-sat.ext4
-        dest: "/celestial/"
+      unarchive:
+        src: microvm/rootfs-sat.tar.zst
+        dest: /celestial/
 
     - name: Copy gst rootfs
-      ansible.posix.synchronize:
-        src: microvm/rootfs-gst.ext4
-        dest: "/celestial/"
+      unarchive:
+        src: microvm/rootfs-gst.tar.zst
+        dest: /celestial/
 
     - name: Copy kernel
       ansible.posix.synchronize:
