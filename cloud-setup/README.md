@@ -13,9 +13,9 @@ It can be useful to have the `gcloud` CLI tool installed as the web interface is
 
 To run the cloud setup, you need to have Ansible installed on your machine.
 
-The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang`.
+The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang andrewrothstein.firecracker geerlingguy.docker`.
 
-Note: In case gantsign.golang cannot be found, install it via: `ansible-galaxy install gantsign.golang`.
+Note: In case `gantsign.golang` or `andrewrothstein.firecracker` or `geerlingguy.docker` cannot be found, install them via: `ansible-galaxy install andrewrothstein.firecracker gantsign.golang geerlingguy.docker`.
 
 ## Starting the VM
 
@@ -31,8 +31,6 @@ And the teardown does
 - Remove the GCP instance and resources
 - Remove the SSH key from the local known_hosts
 
-First, you need to install the necessary role: `ansible-galaxy install andrewrothstein.firecracker`.
-
 If you want to run the full setup, you need to run `ansible-playbook setup.yml`. This will take about 10 minutes.
 
 You can also just run the celestial setup using `ansible-playbook --tags celestial setup.yml`.
@@ -42,6 +40,8 @@ To do the full teardown, you need to run `ansible-playbook teardown.yml`. If you
 ## Starting celestial
 
 The celestial server needs to be started manually for now.
+
+To keep the simulation running without an active SSH session, you can use `tmux`.
 
 To do so, log in via ssh:
 
@@ -54,6 +54,32 @@ and start celestial:
 `make binary`
 
 `make runserver`
+
+and in a separate shell:
+
+`cd celestial`
+
+`make container`
+
+`sudo docker run -p 8000:8000 --rm -it -v /config.toml:/config.toml celestial /config.toml`
+
+## Working in the VM environment
+### The Celestial APIs
+
+The `drill` DNS client is available to interact with Celestials [DNS API](https://github.com/OpenFogStack/celestial#dns-api).
+
+`drill @127.0.0.1 0.0.celestial`
+
+`drill @127.0.0.1 Berlin.gst.celestial`
+
+The [HTTP API](https://github.com/OpenFogStack/celestial#http-api) can be queried using `curl`
+
+`curl localhost/info`
+
+`curl localhost/shell/0/0`
+### Interacting with the MicroVMs
+
+**WIP**: They respond to pings but not to SSH or HTTP queries.
 
 ## building the rootfs and kernel
 

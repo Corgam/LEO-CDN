@@ -19,15 +19,14 @@ Authors:
 ## Run Simulation
 
 1. (Optional) Customize the config file.
-2. Run `make setup` command.
-3. Run `make satellites` command.
-4. Run `make gsts` command.
+2. Generate the workload `make generate_workload`.
+3. Run `make setup` command.
+4. Run `make satellites` command.
+5. Run `make gsts` command.
 
-## Generator.py
+## Generator
 
 Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically. Furthermore, creates all necessary files to run the project.
-
-- Usage: `make generate`
 
 ## Ground Stations
 

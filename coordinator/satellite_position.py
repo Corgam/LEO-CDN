@@ -14,6 +14,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import math
+
 import numpy as np
 from h3 import h3
 
@@ -50,7 +51,8 @@ class SatellitePos:
 
     """
 
-    def __init__(self, name, sport, kepler_ellipse=None, offset=0):
+    def __init__(self, host, name, sport, kepler_ellipse=None, offset=0):
+        self.host = host
         self.name = name
         self.sport = sport
         self.kepler_ellipse = kepler_ellipse
@@ -82,7 +84,9 @@ class SatellitePos:
         self.x_position = int(np.int32(updated_position[0]))
         self.y_position = int(np.int32(updated_position[1]))
         self.z_position = int(np.int32(updated_position[2]))
-        print(f"Position Update ({self.name}: {self.x_position} - {self.y_position} - {self.z_position}")
+        print(
+            f"Position Update ({self.name}: {self.x_position} - {self.y_position} - {self.z_position}"
+        )
 
     def set_xyz_position(self, x, y, z):
         self.x_position = x
@@ -123,10 +127,13 @@ class SatellitePos:
         b, c, d = -axis * math.sin(theta / 2.0)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
         bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-        return np.array([
-            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+        return np.array(
+            [
+                [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
+            ]
+        )
 
     def get_current_geo_position(self):
         """
@@ -142,18 +149,26 @@ class SatellitePos:
         """
         seconds_per_day = 60 * 60 * 24
         # earth's z axis (eg a vector in the positive z direction)
-        earth_rotation_axis = [0, 0, 1]  # this means the north pole is on the top and the south pole is on the bottom
+        earth_rotation_axis = [
+            0,
+            0,
+            1,
+        ]  # this means the north pole is on the top and the south pole is on the bottom
 
         if self.current_time == 0 or self.current_time % seconds_per_day == 0:
             degrees_to_rotate = 0
         else:
             # how many degrees from time 0 should the earth rotate?
-            degrees_to_rotate = 360.0 / (seconds_per_day / (self.current_time % seconds_per_day))
+            degrees_to_rotate = 360.0 / (
+                seconds_per_day / (self.current_time % seconds_per_day)
+            )
 
         # have to -degrees to rotate because the satellites moved too far away from the current
         # keygroup and we cannot move the keygroup position because the satellites determine in
         # which keygroup they belong to
-        rotation_matrix = self.get_rotation_matrix(earth_rotation_axis, -degrees_to_rotate)
+        rotation_matrix = self.get_rotation_matrix(
+            earth_rotation_axis, -degrees_to_rotate
+        )
 
         current_position = self.get_current_position()
         rotated_position = np.dot(rotation_matrix, current_position)

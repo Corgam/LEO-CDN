@@ -32,9 +32,9 @@ with open("/info/node.json") as f:
     node_configs = json.load(f)
 
 name = list(node_configs.keys())[0]
-ip = node_configs[name]['server']
-port = node_configs[name]['sport']
-fred = node_configs[name]['fred']
+ip = node_configs[name]["server"]
+port = node_configs[name]["sport"]
+fred = node_configs[name]["fred"]
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
 
 # Loading node configurations
@@ -114,34 +114,37 @@ def get_paragraph_length(file_id):
 #########################
 
 # IP:host/getValue/<keygroup>/<key>: returns the value of a given key if possible
-@app.route('/getValue/<keygroup>/<key>')
+@app.route("/getValue/<keygroup>/<key>")
 def getValueWithKeygroup(keygroup, key):
     return str(fred_client.read_file_from_node(keygroup, key))
 
+
 # IP:host/getValue/<key>: goes through all keygroups to find the data
-@app.route('/getValue/<key>')
+@app.route("/getValue/<key>")
 def getValue(key):
     return str(fred_client.read_file(key))
 
+
 # IP:host/setData/<keygroup>/<key>: sets data to the specified key
-@app.route('/setData/<keygroup>/<key>', methods=['POST'])
+@app.route("/setData/<keygroup>/<key>", methods=["POST"])
 def setData(keygroup, key):
-    data = request.data.decode('UTF-8')
+    data = request.data.decode("UTF-8")
     # TODO maybe can just pass on data
     fred_client.set_data(keygroup, key, data)
     resp = fred_client.read_file_from_node(keygroup, key)
     return str(resp)
 
+
 # IP:host/appendData/<keygroup>/<key>: appends data to the specified key if it is
 # a list
-@app.route('/appendData/<keygroup>/<key>', methods=['POST'])
+@app.route("/appendData/<keygroup>/<key>", methods=["POST"])
 def appendData(keygroup, key):
-    entry = request.data.decode('UTF-8')
+    entry = request.data.decode("UTF-8")
     try:
         cur_data = append_data(keygroup, key, entry)
     except Exception as e:
         return str(e), 500
-    
+
     return cur_data, 200
 
 
@@ -154,8 +157,8 @@ def addSatellite():
     return " ".join(str(x) for x in fred_client.get_keygroups())
 
 
-@app.route('/', defaults={'u_path': ''})
-@app.route('/<path:u_path>')
+@app.route("/", defaults={"u_path": ""})
+@app.route("/<path:u_path>")
 def catch_all(u_path):
     file_id = u_path
     saved = fred_client.read_file(file_id)
@@ -175,7 +178,7 @@ def catch_all(u_path):
         logger.info(f"key was found: {file_id}")
         return saved
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # Loading certificates
     with open("/cert/client.crt", "rb") as f:

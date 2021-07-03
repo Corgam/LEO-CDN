@@ -6,7 +6,7 @@
       gcp_project: leo-cdn
       gcp_cred_kind: serviceaccount
       gcp_cred_file: gcp.json
-      zone: "europe-west3-c"
+      zone: "europe-west3-a"
       region: "europe-west3"
 
   tasks:
@@ -15,7 +15,7 @@
         name: 'disk-dbuster-ans'
         state: present
 
-        size_gb: 10
+        size_gb: 100
         source_image: 'projects/debian-cloud/global/images/family/debian-10'
 
         zone: "{{ zone }}"
@@ -81,7 +81,7 @@
         state: present
         
         min_cpu_platform: "Intel Haswell"
-        machine_type: "n1-standard-4"
+        machine_type: "n1-standard-8"
 
         tags:
           items:
@@ -91,7 +91,7 @@
           - auto_delete: true
             boot: true
             initialize_params:
-              disk_size_gb: 10
+              disk_size_gb: 100
               image: "{{ image.selfLink }}"
         
         network_interfaces:
@@ -121,6 +121,8 @@
   hosts: new_instances
   connection: ssh
   become: yes
+  roles:
+    - geerlingguy.docker
 
   tasks:
     - name: Update package list and upgrade packages
@@ -138,6 +140,10 @@
           - git
           - ufw
           - gdb
+          - tmux
+          - htop
+          - ipset
+          - ldnsutils
         state: latest
       
     - name: Give user access to kvm
@@ -203,6 +209,12 @@
       ansible.posix.synchronize:
         src: microvm/hello-vmlinux.bin
         dest: "/celestial/"
+    
+    - name: Copy config
+      become: yes
+      ansible.posix.synchronize:
+        src: microvm/config.toml
+        dest: "/"
 
 #   - name: Copy Celestial to our instance
 #     ansible.builtin.copy:
