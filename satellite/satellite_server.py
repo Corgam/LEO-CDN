@@ -11,9 +11,14 @@ import csv
 import toml
 from Request import db, Request
 import datetime
+import sqlite3
+from pathlib import Path
+
+Path("/db").mkdir(parents=True, exist_ok=True)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/satellite.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////db/satellite.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.app = app
 db.init_app(app)

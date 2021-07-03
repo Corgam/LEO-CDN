@@ -172,4 +172,4 @@ gcp.json
 visualization/plots/html/
 visualization/plots/png/
 
-satellite/data
+satellite/db
