@@ -13,11 +13,12 @@ from Request import db, Request
 import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data/satellite.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/satellite.db'
 
 db.app = app
 db.init_app(app)
 db.create_all()
+db.session.commit()
 
 # Load the config
 with open("./config.toml") as f:
