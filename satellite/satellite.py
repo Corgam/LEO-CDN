@@ -100,15 +100,18 @@ class Satellite:
         new_keygroup_names = [str(resolution) + h3.geo_to_h3(lat, lon, resolution) for resolution in range(self.keygroup_layers)]  # is the same as h3 are 
         joined_keygroups = self.fred_client.get_keygroups()
         
+        # Checks if the new_keygroup_names need to be joined
         needsToJoin = [True for x in range(self.keygroup_layers)]
         for kg in joined_keygroups:
-            for x in range(len(new_keygroup_names)):
+            for x in range(self.keygroup_layers):
+                # Checks if the satellite is already inside the keygroup
                 if kg == new_keygroup_names[x]:
                     needsToJoin[x] = False
                     self.logger.info(f"{self.name} is already inside {new_keygroup_names[x]}")
                     break
-
-        for x in range(len(needsToJoin)):
+        
+        for x in range(self.keygroup_layers):
+            # If the satellite isn't inside the keygroup yet
             if needsToJoin[x]:
                 status = 1
                 try:
@@ -126,6 +129,7 @@ class Satellite:
                     except Exception as e:
                         self.logger.info(e)
 
+        # Get all keygroups of the satellite and check if it needs to be removed
         keygroups = self.fred_client.get_keygroups()
         for kg in keygroups:
             remove = True
@@ -140,6 +144,7 @@ class Satellite:
                 except:
                     self.logger.info(f"{self.name} failed to leave {kg}")
 
+        # Prints all keygroups of the satellite in the logger
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
         
