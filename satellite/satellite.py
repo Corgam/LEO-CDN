@@ -97,7 +97,7 @@ class Satellite:
 
         """
         lat, lon = self.get_current_position()
-        new_keygroup_names = [str(resolution) + h3.geo_to_h3(lat, lon, resolution) for resolution in range(self.keygroup_layers)]  # is the same as h3 are 
+        new_keygroup_names = [h3.geo_to_h3(lat, lon, resolution) for resolution in range(self.keygroup_layers)]  # is the same as h3 are 
         joined_keygroups = self.fred_client.get_keygroups()
         
         # Checks if the new_keygroup_names need to be joined
