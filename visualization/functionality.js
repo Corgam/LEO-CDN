@@ -1,5 +1,9 @@
 // Code taken and changed from: https://github.com/MoeweX/DisGB-Simulation
-// 
+
+var lastTime = d3.now()
+var autorotate, path, land110, land50, ground_stations;
+var current_layer = null
+
 // function for data rendering to svg
 // the path returned by createPathAndPrepSvg is required for correct rendering
 // arguments:
@@ -66,6 +70,26 @@ function boundNumberToInterval(number, min, max) {
     return number;
 }
 
+function startRotation(delay, projection) {
+  console.log("start Rotation")
+  autorotate.restart((elapsed) => {
+    now = d3.now()
+    diff = now - lastTime
+    if (diff < elapsed) {
+      rotation = projection.rotate()
+      rotation[0] += diff * (6/1000)
+      projection.rotate(rotation)
+      render(land110, current_layer, path, ground_stations) //or land 50?
+    }
+    lastTime = now
+  }, delay || 0)
+}
+
+function stopRotation() {
+  console.log("stop rotation")
+  autorotate.stop()
+}
+
 // function for dragging the projection, translating mouse drag with versor into rotations
 // of the projection
 function drag(projection) {
@@ -76,6 +100,7 @@ function drag(projection) {
       const coords = [d3.event.x - 10, d3.event.y - 10]; // -10px to correct for svg viewbox
       v0 = versor.cartesian(projection.invert(coords));
       q0 = versor((r0 = projection.rotate()));
+      stopRotation()
     }
   
     function dragged() {
@@ -85,8 +110,12 @@ function drag(projection) {
       const q1 = versor.multiply(q0, versor.delta(v0, v1));
       projection.rotate(versor.rotation(q1));
     }
+
+    function dragended() {
+      startRotation(3000, projection)
+    }
   
-    return d3.drag().on("start", dragstarted).on("drag", dragged);
+    return d3.drag().on("start", dragstarted).on("drag", dragged).on('end', dragended);
 }
 
 function getResponseText(response) {
@@ -137,7 +166,6 @@ clearState();
       }
     }
 
-    let current_layer = null
     // -- loading of all the data, synchronous with await --
     // load and parse available files
     const first_layer = await fetch("CSV/keygroups_1.csv")
@@ -156,15 +184,15 @@ clearState();
     }
 
     // TODO load ground station data here
-    const ground_stations = await fetch("CSV/ground_stations.csv")
+    ground_stations = await fetch("CSV/ground_stations.csv")
       .then(getResponseText)
       .then(parseResponse);
   
     // load data of continents from world-atlas
-    const land110 = await d3
+    land110 = await d3
       .json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json")
       .then((json) => topojson.feature(json, json.objects.land));
-    const land50 = await d3
+    land50 = await d3
       .json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-50m.json")
       .then((json) => topojson.feature(json, json.objects.land));
    
@@ -235,7 +263,20 @@ clearState();
     let width = 640;
   
     // create path and prepare svg
-    let path = createPathAndPrepSvg(projection, width);
+    path = createPathAndPrepSvg(projection, width);
+
+    // autorotation
+    autorotate = d3.timer((elapsed) => {
+      now = d3.now()
+      diff = now - lastTime
+      if (diff < elapsed) {
+        rotation = projection.rotate()
+        rotation[0] += diff * (6/1000)
+        projection.rotate(rotation)
+        render(land110, current_layer, path, ground_stations) //or land 50?
+      }
+      lastTime = now
+    }, 150);
 
     function dataListener() {
         layer_value = this.value;
@@ -392,8 +433,7 @@ function renderGroundStations(data, path){
     for (let i = 0; i < data.length; i++) {
       const point = createGeoJsonPoint([data[i].lng, data[i].lat]); // lon, lat; has to be inverted because of GeoJson
       const id = "ground_station"+i;
-
-      console.log(point)
+      
       // generate point if it does not exist
       let point_svg = d3.select("#"+id);
       if (point_svg.empty()) {
