@@ -4,9 +4,10 @@
 // the path returned by createPathAndPrepSvg is required for correct rendering
 // arguments:
 // - land (to render continents)
-// - data (to render as points)
+// - keygroups (to render keygroups)
 // - path (to generate svg paths with correct projection)
-function render(land, data, path) {
+// - ground_stations (ground stations to generate)
+function render(land, keygroups, path, ground_stations) {
     // standard colors from seaborn
     const colors = [
       "#4c72b0",
@@ -43,7 +44,8 @@ function render(land, data, path) {
     // rendering of sphere with countries
     map_svg.select("#land").datum(land).attr("d", path);
     if (data !== null) {
-        renderData(data, colors, path);
+        renderKeygroups(keygroups, colors, path);
+        renderGroundStations(ground_stations, path)
     }
 }
 // Note: brokertypefromfilename: do not have and need that
@@ -135,9 +137,6 @@ clearState();
       }
     }
 
-    // TODO
-    // Add more layers
-
     let current_layer = null
     // -- loading of all the data, synchronous with await --
     // load and parse available files
@@ -155,6 +154,11 @@ clearState();
     if (second_layer != null) {
       file_menu.select("#second-layer").property("disabled", false);
     }
+
+    // TODO load ground station data here
+    const ground_stations = await fetch("CSV/ground_stations.csv")
+      .then(getResponseText)
+      .then(parseResponse);
   
     // load data of continents from world-atlas
     const land110 = await d3
@@ -216,9 +220,9 @@ clearState();
       map_svg
         .call(
           drag(projection)
-            .on("drag.render", () => render(land110, current_layer, path))
-            .on("end.render", () => render(land50, current_layer,path)))
-        .call(() => render(land50, first_layer, path));
+            .on("drag.render", () => render(land110, current_layer, path, ground_stations))
+            .on("end.render", () => render(land50, current_layer,path, ground_stations)))
+        .call(() => render(land50, first_layer, path, ground_stations));
   
       return path;
     }
@@ -253,7 +257,7 @@ clearState();
                 break;
         }
         clearDataFromSvg();
-        render(land50, current_layer, path);
+        render(land50, current_layer, path, ground_stations);
       }
     // create listeners for input of rotation angles
     function sliderListener() {
@@ -283,7 +287,7 @@ return {
 };
 }
 
-function renderData(data, colors, path){
+function renderKeygroups(data, colors, path){
     const data_group = d3.select("#data");
     for (let i = 0; i < data.length; i++) {
         let rect = null
@@ -380,6 +384,47 @@ function renderData(data, colors, path){
             console.log("sth is not working")
         } 
     }
+}
+
+function renderGroundStations(data, path){
+  const data_group = d3.select("#data");
+  const color = "orange"
+    for (let i = 0; i < data.length; i++) {
+      const point = createGeoJsonPoint([data[i].lng, data[i].lat]); // lon, lat; has to be inverted because of GeoJson
+      const id = "ground_station"+i;
+
+      console.log(point)
+      // generate point if it does not exist
+      let point_svg = d3.select("#"+id);
+      if (point_svg.empty()) {
+          point_svg = data_group.append("path")
+              .attr("id", id);
+      }
+
+      // render point
+      path.pointRadius(3.5)
+      point_svg
+          .attr("fill", color)
+          .datum(point)
+          .attr("d", path);
+
+      // generate or select outline
+      let point_svg_outline = d3.select("#"+id+"_outline");
+      if (point_svg_outline.empty()) {
+          point_svg_outline = data_group.append("path")
+              .attr("id", id+"_outline");
+      }
+
+      // render outline
+      path.pointRadius(7)
+      point_svg_outline
+          .attr("fill", "none")
+          .attr("stroke", color)
+          .attr("stroke-width", "2.5")
+          .datum(point)
+          .attr("d", path);
+    
+  }
 }
 
 function clearState() {
