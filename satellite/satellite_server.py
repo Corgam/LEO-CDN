@@ -161,6 +161,16 @@ def getLocation():
 def addSatellite():
     return " ".join(str(x) for x in fred_client.get_keygroups())
 
+@app.route('/mostPopularFile')
+def mostPopularFile():
+    date = datetime.datetime.utcnow() - datetime.timedelta(hours = 1)
+    top_files = db.engine.execute(
+        'select file_id, count(file_id) as req_count ' +
+       f'from request where time >= "{date}"' + 
+        'group by file_id order by req_count;')
+    print(top_files)
+    return top_files
+
 
 @app.route("/", defaults={"u_path": ""})
 @app.route("/<path:u_path>")
