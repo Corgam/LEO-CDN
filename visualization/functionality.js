@@ -1,8 +1,11 @@
-// Code taken and changed from: https://github.com/MoeweX/DisGB-Simulation
+// Code for the rendering mostly taken and adapted from: https://github.com/MoeweX/DisGB-Simulation
+// Automatic rotation taken from: https://jorin.me/d3-canvas-globe-hover/
 
 var lastTime = d3.now()
-var autorotate, path, land110, land50, ground_stations;
+var autorotate, path, land110, land50, ground_stations, satellites_0, satellites_1, satellites_2, satellites_3, satellites_4;
 var current_layer = null
+var current_layer_value = 0
+var current_timestep = null
 
 // function for data rendering to svg
 // the path returned by createPathAndPrepSvg is required for correct rendering
@@ -11,7 +14,7 @@ var current_layer = null
 // - keygroups (to render keygroups)
 // - path (to generate svg paths with correct projection)
 // - ground_stations (ground stations to generate)
-function render(land, keygroups, path, ground_stations) {
+function render(land, keygroups, path, ground_stations, satellites) {
     // standard colors from seaborn
     const colors = [
       "#4c72b0",
@@ -47,9 +50,16 @@ function render(land, keygroups, path, ground_stations) {
   
     // rendering of sphere with countries
     map_svg.select("#land").datum(land).attr("d", path);
-    if (data !== null) {
+    if (keygroups !== null) {
         renderKeygroups(keygroups, colors, path);
-        renderGroundStations(ground_stations, path)
+    }
+
+    if (ground_stations !== null){
+      renderGroundStations(ground_stations, path)
+    }
+
+    if (satellites !== null && current_layer_value === 0) {
+      renderSatellites(satellites, path)
     }
 }
 // Note: brokertypefromfilename: do not have and need that
@@ -71,7 +81,6 @@ function boundNumberToInterval(number, min, max) {
 }
 
 function startRotation(delay, projection) {
-  console.log("start Rotation")
   autorotate.restart((elapsed) => {
     now = d3.now()
     diff = now - lastTime
@@ -79,14 +88,13 @@ function startRotation(delay, projection) {
       rotation = projection.rotate()
       rotation[0] += diff * (6/1000)
       projection.rotate(rotation)
-      render(land110, current_layer, path, ground_stations) //or land 50?
+      render(land50, current_layer, path, ground_stations, current_timestep) //or land 50?
     }
     lastTime = now
   }, delay || 0)
 }
 
 function stopRotation() {
-  console.log("stop rotation")
   autorotate.stop()
 }
 
@@ -183,11 +191,35 @@ clearState();
       file_menu.select("#second-layer").property("disabled", false);
     }
 
-    // TODO load ground station data here
+    // load ground station data 
     ground_stations = await fetch("CSV/ground_stations.csv")
       .then(getResponseText)
       .then(parseResponse);
+
+    satellites_0 = await fetch("CSV/satellites_0.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+
+    if (satellites_0 != null) {
+      current_timestep = satellites_0
+    }
   
+    satellites_1 = await fetch("CSV/satellites_0.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+  
+    satellites_2 = await fetch("CSV/satellites_0.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+  
+    satellites_3 = await fetch("CSV/satellites_0.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+
+    satellites_4 = await fetch("CSV/satellites_0.csv")
+    .then(getResponseText)
+    .then(parseResponse);
+    
     // load data of continents from world-atlas
     land110 = await d3
       .json("https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json")
@@ -248,9 +280,9 @@ clearState();
       map_svg
         .call(
           drag(projection)
-            .on("drag.render", () => render(land110, current_layer, path, ground_stations))
-            .on("end.render", () => render(land50, current_layer,path, ground_stations)))
-        .call(() => render(land50, first_layer, path, ground_stations));
+            .on("drag.render", () => render(land110, current_layer, path, ground_stations, current_timestep))
+            .on("end.render", () => render(land50, current_layer,path, ground_stations, current_timestep)))
+        .call(() => render(land50, first_layer, path, ground_stations, current_timestep));
   
       return path;
     }
@@ -273,7 +305,7 @@ clearState();
         rotation = projection.rotate()
         rotation[0] += diff * (6/1000)
         projection.rotate(rotation)
-        render(land110, current_layer, path, ground_stations) //or land 50?
+        render(land50, current_layer, path, ground_stations, current_timestep) //or land 50?
       }
       lastTime = now
     }, 150);
@@ -285,11 +317,13 @@ clearState();
             case "0":
                 legend_container.style("display", "initial");
                 current_layer = first_layer;
+                current_layer_value = 0;
                 // TODO createLegend();
                 break;
             case "1": 
                 legend_container.style("display", "initial");
                 current_layer = second_layer
+                current_layer_value = 1;
                 break;
             default:
                 // no-data
@@ -298,13 +332,30 @@ clearState();
                 break;
         }
         clearDataFromSvg();
-        render(land50, current_layer, path, ground_stations);
+        render(land50, current_layer, path, ground_stations, current_timestep);
       }
     // create listeners for input of rotation angles
     function sliderListener() {
-        const correctedValue = boundNumberToInterval(this.value, 0, 8000); 
+        const correctedValue = boundNumberToInterval(this.value, 0, 200); 
         document.getElementById("timestep").value = correctedValue;
         document.getElementById("timestep-val").value = correctedValue;
+        switch (correctedValue){
+          case "0": current_timestep = satellites_0;
+          break;
+          case "50": current_timestep = satellites_1;
+          break;
+          case "100": current_timestep = satellites_2;
+          break;
+          case "150": current_timestep = satellites_3;
+          break;
+          case "200": current_timestep = satellites_4;
+          break;
+          default : current_timestep = satellites_0;
+          break;          
+        }
+
+        clearDataFromSvg();
+        render(land50, current_layer, path, ground_stations, current_timestep);
     }
 
     document.getElementById("layer-selection").onchange = dataListener;
@@ -432,8 +483,8 @@ function renderGroundStations(data, path){
   const color = "orange"
     for (let i = 0; i < data.length; i++) {
       const point = createGeoJsonPoint([data[i].lng, data[i].lat]); // lon, lat; has to be inverted because of GeoJson
-      const id = "ground_station"+i;
-      
+      const id = "ground_station_"+i;
+
       // generate point if it does not exist
       let point_svg = d3.select("#"+id);
       if (point_svg.empty()) {
@@ -447,7 +498,7 @@ function renderGroundStations(data, path){
           .attr("fill", color)
           .datum(point)
           .attr("d", path);
-
+        
       // generate or select outline
       let point_svg_outline = d3.select("#"+id+"_outline");
       if (point_svg_outline.empty()) {
@@ -465,6 +516,32 @@ function renderGroundStations(data, path){
           .attr("d", path);
     
   }
+}
+
+function renderSatellites(data, path){
+  const data_group = d3.select("#data");
+    for (let i = 0; i < data.length; i++) {
+      const point = createGeoJsonPoint([data[i].longitude, data[i].latitude]); // lon, lat; has to be inverted because of GeoJson
+      const id = "satellite"+i;
+      let keygroup = data[i].keygroupID
+      let keygroup_svg = d3.select("#" + "keygroup_" + keygroup)
+      const color = keygroup_svg.attr("fill")
+
+      // generate point if it does not exist
+      let point_svg = d3.select("#"+id);
+      if (point_svg.empty()) {
+          point_svg = data_group.append("path")
+              .attr("id", id);
+      }
+
+      // render point
+      path.pointRadius(5)
+      point_svg
+          .attr("fill", color)
+          .style("opacity", 1.0)
+          .datum(point)
+          .attr("d", path);
+    }
 }
 
 function clearState() {
