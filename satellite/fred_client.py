@@ -161,13 +161,13 @@ class FredClient:
             with grpc.secure_channel(self.target, credentials=self.creds) as channel:
                 stub = client_pb2_grpc.ClientStub(channel)
                 response = stub.GetKeygroupReplica(
-                    client_pb2.GetKeygroupReplicaRequest(keygroup=str(kg))
+                    client_pb2.GetKeygroupReplicaRequest(keygroup=kg)
                 )
                 return response
         except Exception as e:
             self.logger.info(e)
             return "[none]"
-        # return "dummy func"
+        
 
     # Reads file
     def read_file(self, file_id):
