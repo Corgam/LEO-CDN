@@ -38,7 +38,6 @@ print("Selecting all data files...")
 shutil.copyfile(gsts_list, "./temp/gsts.csv")
 
 # Copy the file order
-# TODO: If workload is not generated: run the makefile command
 if os.path.isfile(config["workload"]["output_file"]):
     shutil.copyfile(config["workload"]["output_file"], "./temp/file_orders.json")
 else:

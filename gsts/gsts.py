@@ -5,6 +5,8 @@
 import http.client
 import json
 import threading
+import toml
+import math
 
 # Importing needed libraries
 import numpy as np
@@ -99,12 +101,31 @@ def loadGSTsInfo():
     return gstsList
 
 
-# Creates a new thread for each gst
+# Create all threads and all GSTs
 def createGSTs(gstsList):
+    # Load the config
+    with open("./config.toml") as f:
+        config = toml.load(f)
+    # Number of threads to create
+    threadsNumber = config["gsts"]["number_of_threads"]
+    # Split the gsts into n threads
+    splittedGST = 0
+    numberOfGSTinThread = math.ceil(len(gstsList)/threadsNumber)
+    threadsLists = list()
+    while splittedGST < len(gstsList):
+        # Create a list that will hold groundstations for one thread
+        newThreadList = list()
+        for x in range(numberOfGSTinThread):
+            # Look out for the out of bounds error
+            if splittedGST+x < len(gstsList):
+                newThreadList.append(gstsList[splittedGST+x])
+        splittedGST = splittedGST+numberOfGSTinThread
+        # Add the list to the list of lists
+        threadsLists.append(newThreadList)
     threads = list()
-    # Create threads
-    for gst in gstsList:
-        threads.append(threading.Thread(target=sendRequests, args=(gst,)))
+    # Create thread for each list of the gsts
+    for gstList in threadsLists:
+        threads.append(threading.Thread(target=sendRequests, args=(gstList,)))
     # Start threads
     for thread in threads:
         thread.start()
@@ -158,31 +179,32 @@ def getTheBestSatellite(id):
 
 
 # Send all requests to the best satellite
-def sendRequests(gst):
-    # Generate the requests
-    reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
-    # Create a connection to the best satellite
-    print(
-        f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
-    )
-    bestSat = getTheBestSatellite(gst.getID())
-    if bestSat == -1:
-        print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
-        return
-    # Send all requests
-    print(
-        f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
-    )
-    # Create an async session
-    session = FuturesSession()
-    responses = list()
-    for req in reqsList:
-        # Send the request in an async fashion
-        responses.append(session.get("http://" + bestSat + req.getURL()))
-    # Read all of the responses (or wait for them)
-    for future in responses:
-        res = future.result()
-        print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
+def sendRequests(gstList):
+    for gst in gstList:
+        # Generate the requests
+        reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
+        # Create a connection to the best satellite
+        print(
+            f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
+        )
+        bestSat = getTheBestSatellite(gst.getID())
+        if bestSat == -1:
+            print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
+            return
+        # Send all requests
+        print(
+            f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
+        )
+        # Create an async session
+        session = FuturesSession()
+        responses = list()
+        for req in reqsList:
+            # Send the request in an async fashion
+            responses.append(session.get("http://" + bestSat + req.getURL()))
+        # Read all of the responses (or wait for them)
+        for future in responses:
+            res = future.result()
+            print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
 
 
 # Main function, run on startup
