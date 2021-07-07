@@ -170,7 +170,7 @@ def mostPopularFile():
         'select file_id, count(file_id) as req_count ' +
        f'from request where time >= "{date}"' + 
         'group by file_id order by req_count;').all()
-    return jsonify({'result': list(reversed([row[0] for row in top_files]))})
+    return jsonify({'file_ids': list(reversed([row[0] for row in top_files]))})
 
 
 @app.route("/", defaults={"u_path": ""})
