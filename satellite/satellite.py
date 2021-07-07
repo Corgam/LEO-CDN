@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from h3 import h3
+import h3
 import logging
 import requests
 import json
@@ -107,7 +107,6 @@ class Satellite:
                 # Checks if the satellite is already inside the keygroup
                 if kg == new_keygroup_names[x]:
                     needsToJoin[x] = False
-                    self.logger.info(f"{self.name} is already inside {new_keygroup_names[x]}")
                     break
         
         for x in range(self.keygroup_layers):
@@ -117,17 +116,13 @@ class Satellite:
                 try:
                     response = self.fred_client.add_replica_node_to_keygroup(new_keygroup_names[x])
                     status = response.status
-                    if response.status == 0:
-                        self.logger.info(f"{self.name} joined {new_keygroup_names[x]}")
-                    else:
-                        self.logger.info(f"{self.name} failed to join {new_keygroup_names[x]}")
                 except Exception as e:
                     status = 1
                 if status == 1:
                     try:
                         response = self.fred_client.create_keygroup(new_keygroup_names[x])
-                    except Exception as e:
-                        self.logger.info(e)
+                    except:
+                        continue
 
         # Get all keygroups of the satellite and check if it needs to be removed
         keygroups = self.fred_client.get_keygroups()
@@ -140,15 +135,64 @@ class Satellite:
             if remove:
                 try:
                     self.fred_client.remove_replica_node_from_keygroup(kg)
-                    self.logger.info(f"{self.name} left {kg}")
                 except:
-                    self.logger.info(f"{self.name} failed to leave {kg}")
+                    continue
 
         # Prints all keygroups of the satellite in the logger
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
+        self.manage(new_keygroup_names)
 
+    def manage(self, keygroups):
+        """
+        Runs the whole managing process
+
+        Parameters
+        ----------
+        Current keygroups the satellite is inside of
+
+        Returns
+        -------
+        """
+
+        # Gets a list of keygroups that has a managing role
+        manager_list = self.isManager(keygroups)
+
+        # if the list isn't empty, the satellite is a manager
+        if len(manager_list) > 0:
+            for manage_keygroup in manager_list:
+                # Get neighbouring keygroups
+                keygroups_to_manage = h3.k_ring_distances(manage_keygroup, 1)[1]
+                self.logger.info(f"Inside central kg: {manage_keygroup} - manages: {keygroups_to_manage}")
+
+                # Get responsible satellite for each neighbour
+                for neighbour in keygroups_to_manage:
+                    responsible_satellite = self.fred_client.get_keygroup_replica(neighbour)
+                    self.logger.info(f"{responsible_satellite} is responsible for the neighbour: {neighbour}")
+
+    def isManager(self, keygroups):
+        """
+        Checks whether the satellite is a manager.
+
+        Parameters
+        ----------
+        Current keygroups the satellite is inside of
+
+        Returns
+        -------
+        List of keygroups that the satellite manages
+        """
+        managerList = []
+
+        # keygoup[0] is the keygroup with resolution 0, get the central position
+        center_coordinates = h3.h3_to_geo(keygroups[0])
+
+        for x in range(1, self.keygroup_layers):
+            # Get the central keygroup for resolution x > 0, depending on keygroup_layers in config.toml  
+            lower_layer_center = h3.geo_to_h3(center_coordinates[0], center_coordinates[1], x)
+            # Check if the satellite is inside one the manager keygroup
+            for i in range(self.keygroup_layers):
+                if keygroups[i] == lower_layer_center:
+                    managerList.append(keygroups[i])
         
-    def isManager(self):
-
-        return False
+        return managerList

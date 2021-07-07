@@ -15,7 +15,7 @@ gsts_list = "data/worldcities_5.csv"
 
 planes = 1
 satellites_per_plane = 3
-steps = 20
+steps = 100
 step_interval = 0.25
 position_interval = 0.5
 keygroup_layers = 2
