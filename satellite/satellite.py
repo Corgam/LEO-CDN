@@ -54,12 +54,12 @@ class Satellite:
     """
 
     def __init__(self, name, fred_client, keygroup_layers, kepler_ellipse=None, offset=0):
-        logging.basicConfig(filename='/logs/' + name + '.log',
+        logging.basicConfig(filename='/logs/' + name + '_satellite.log',
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
                             level=logging.INFO)
-        self.logger = logging.getLogger(name)
+        self.logger = logging.getLogger(f'{name}_satellite')
         self.name = name
         self.fred_client = fred_client
         self.keygroup_layers = keygroup_layers
@@ -132,10 +132,10 @@ class Satellite:
         # Get all keygroups of the satellite and check if it needs to be removed
         keygroups = self.fred_client.get_keygroups()
         for kg in keygroups:
-            remove = True
+            remove = False
             for new_kg in new_keygroup_names:
                 if kg != new_kg and kg != "manage":
-                    remove = False
+                    remove = True
                     break
             if remove:
                 try:
@@ -147,4 +147,8 @@ class Satellite:
         # Prints all keygroups of the satellite in the logger
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
+
         
+    def isManager(self):
+
+        return False
