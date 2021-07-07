@@ -36,7 +36,7 @@ with open("/info/nodes.json") as f:
 
 nodes = [key for key in node_configs.keys()]
 
-logging.basicConfig(filename='/logs/' + name + '.log',
+logging.basicConfig(filename='/logs/' + name + '_server.log',
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',

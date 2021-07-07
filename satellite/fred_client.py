@@ -5,7 +5,7 @@ import logging
 
 class FredClient:
     def __init__(self, name, fred, target, client_crt, client_key, ca_crt):
-        logging.basicConfig(filename='/logs/' + name + '.log',
+        logging.basicConfig(filename='/logs/' + name + '_fred.log',
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
@@ -26,11 +26,10 @@ class FredClient:
     
     def get_all_existing_replica_nodes(self):
         self.logger.info("Retrieving all replica nodes: ")
-        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            status_response = stub.GetAllReplica(
-                client_pb2.GetAllReplicaRequest()
-            )
+        stub = client_pb2_grpc.ClientStub(self.channel)
+        status_response = stub.GetAllReplica(
+            client_pb2.GetAllReplicaRequest()
+        )
         self.logger.info(status_response)
 
     def create_keygroup(self, keygroup, mutable=True, expiry=0):
@@ -55,11 +54,10 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Initializing {keygroup} at {self.name}...")
-        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            status_response = stub.CreateKeygroup(
-                client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
-            )
+        stub = client_pb2_grpc.ClientStub(self.channel)
+        status_response = stub.CreateKeygroup(
+            client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
+        )
         if status_response.status == 0:
             self.keygroups.append(keygroup)
             self.logger.info(f"Initializing succeeded...")
@@ -85,11 +83,10 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Adding {self.name} to {keygroup}...")
-        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            status_response = stub.AddReplica(
-                client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
-            )
+        stub = client_pb2_grpc.ClientStub(self.channel)
+        status_response = stub.AddReplica(
+            client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+        )
 
         if status_response.status == 0:
             self.keygroups.append(keygroup)
@@ -115,33 +112,33 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Removing {self.name} from {keygroup}...")
-        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            status_response = stub.RemoveReplica(
-                client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
-            )
+        stub = client_pb2_grpc.ClientStub(self.channel)
+        status_response = stub.RemoveReplica(
+            client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+        )
+        self.logger.info(f"{self.name} tried to leave keygroup...")
         
         if status_response.status == 0:
+            self.logger.info(f"{self.name} successfully left keygroup...")
             self.keygroups.remove(keygroup)
-
+        
         return status_response
 
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
         self.logger.info(f"Adding {key}:{value} to {kg}...")
-        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
-            stub = client_pb2_grpc.ClientStub(channel)
-            try:
-                response = stub.Update(
-                    client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
-                )
-                self.logger.info(response)
-            except Exception as e:
-                response = self.read_file_from_node(kg, key)
-                if response:
-                    cur_data = json.loads(response.data)
-                    cur_data.append(value)
-                    self.set_data(kg, key, json.dumps(cur_data))
+        stub = client_pb2_grpc.ClientStub(self.channel)
+        try:
+            response = stub.Update(
+                client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
+            )
+            self.logger.info(response)
+        except Exception as e:
+            response = self.read_file_from_node(kg, key)
+            if response:
+                cur_data = json.loads(response.data)
+                cur_data.append(value)
+                self.set_data(kg, key, json.dumps(cur_data))
     
     # Reads file
     def read_file_from_node(self, keygroup, file_id):
