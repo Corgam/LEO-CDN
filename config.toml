@@ -18,6 +18,7 @@ satellites_per_plane = 3
 steps = 20
 step_interval = 0.25
 position_interval = 0.5
+keygroup_layers = 2
 
 ["workload"]
 output_file = "data/file_orders.json"

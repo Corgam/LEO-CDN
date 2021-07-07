@@ -53,7 +53,7 @@ class Satellite:
         fred functions class
     """
 
-    def __init__(self, name, fred_client, kepler_ellipse=None, offset=0):
+    def __init__(self, name, fred_client, keygroup_layers, kepler_ellipse=None, offset=0):
         logging.basicConfig(filename='/logs/' + name + '.log',
                             filemode='a',
                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
@@ -62,6 +62,7 @@ class Satellite:
         self.logger = logging.getLogger(name)
         self.name = name
         self.fred_client = fred_client
+        self.keygroup_layers = keygroup_layers
         self.baseurl = "http://172.26.4.1:9001/position/" + name
 
     def get_current_position(self):
@@ -82,7 +83,7 @@ class Satellite:
 
         return lat, lon
 
-    def check_keygroup(self, hex_resolution=0):
+    def check_keygroup(self):
         """
         Checks whether the keygroup is still the same.
         If yes it returns 0. Otherwise, it returns the new keygroup_id.
@@ -96,42 +97,54 @@ class Satellite:
 
         """
         lat, lon = self.get_current_position()
-        new_keygroup_name = h3.geo_to_h3(lat, lon, hex_resolution)  # is the same as h3 are 
+        new_keygroup_names = [h3.geo_to_h3(lat, lon, resolution) for resolution in range(self.keygroup_layers)]  # is the same as h3 are 
         joined_keygroups = self.fred_client.get_keygroups()
         
-        needsToJoin = True
+        # Checks if the new_keygroup_names need to be joined
+        needsToJoin = [True for x in range(self.keygroup_layers)]
         for kg in joined_keygroups:
-            if kg == new_keygroup_name:
-                needsToJoin = False
-                self.logger.info(f"{self.name} is already inside {new_keygroup_name}")
-                break
-
-        if needsToJoin:
-            status = 1
-            try:
-                response = self.fred_client.add_replica_node_to_keygroup(new_keygroup_name)
-                status = response.status
-                if response.status == 0:
-                    self.logger.info(f"{self.name} joined {new_keygroup_name}")
-                else:
-                    self.logger.info(f"{self.name} failed to join {new_keygroup_name}")
-            except Exception as e:
+            for x in range(self.keygroup_layers):
+                # Checks if the satellite is already inside the keygroup
+                if kg == new_keygroup_names[x]:
+                    needsToJoin[x] = False
+                    self.logger.info(f"{self.name} is already inside {new_keygroup_names[x]}")
+                    break
+        
+        for x in range(self.keygroup_layers):
+            # If the satellite isn't inside the keygroup yet
+            if needsToJoin[x]:
                 status = 1
-            if status == 1:
                 try:
-                    response = self.fred_client.create_keygroup(new_keygroup_name)
+                    response = self.fred_client.add_replica_node_to_keygroup(new_keygroup_names[x])
+                    status = response.status
+                    if response.status == 0:
+                        self.logger.info(f"{self.name} joined {new_keygroup_names[x]}")
+                    else:
+                        self.logger.info(f"{self.name} failed to join {new_keygroup_names[x]}")
                 except Exception as e:
-                    self.logger.info(e)
+                    status = 1
+                if status == 1:
+                    try:
+                        response = self.fred_client.create_keygroup(new_keygroup_names[x])
+                    except Exception as e:
+                        self.logger.info(e)
 
+        # Get all keygroups of the satellite and check if it needs to be removed
         keygroups = self.fred_client.get_keygroups()
         for kg in keygroups:
-            if kg != new_keygroup_name and kg != "manage":
+            remove = True
+            for new_kg in new_keygroup_names:
+                if kg != new_kg and kg != "manage":
+                    remove = False
+                    break
+            if remove:
                 try:
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.logger.info(f"{self.name} left {kg}")
                 except:
                     self.logger.info(f"{self.name} failed to leave {kg}")
 
+        # Prints all keygroups of the satellite in the logger
         keygroups = self.fred_client.get_keygroups()
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
         
