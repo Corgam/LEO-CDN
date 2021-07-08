@@ -204,27 +204,6 @@
         rsync_opts:
           - "--exclude=.git"
 
-    #- name: Copy microvm build environment
-    #  ansible.posix.synchronize:
-    #    src: microvm
-    #    dest: "/celestial/"
-    #    rsync_opts:
-    #      - "--exclude=*.ext4"
-    #      - "--exclude=*.bin"
-
-    # TODO: run dl-microvm.sh on the VM instead...
-    # or build the rootfss there...
-
-    #- name: Copy sat rootfs
-    #  ansible.posix.synchronize:
-    #    src: microvm/rootfs-sat.ext4.zst
-    #    dest: "/celestial/"
-
-    #- name: Copy gst rootfs
-    #  ansible.posix.synchronize:
-    #    src: microvm/rootfs-gst.ext4
-    #    dest: "/celestial/"
-
     - name: Copy sat rootfs
       unarchive:
         src: microvm/rootfs-sat.tar.zst
@@ -237,7 +216,7 @@
 
     - name: Copy kernel
       ansible.posix.synchronize:
-        src: microvm/hello-vmlinux.bin
+        src: microvm/vmlinux-5.10.bin
         dest: "/celestial/"
 
     - name: Copy config
@@ -245,12 +224,3 @@
       ansible.posix.synchronize:
         src: microvm/config.toml
         dest: "/"
-    #   - name: Copy Celestial to our instance
-    #     ansible.builtin.copy:
-    #       src: ../celestial
-    #       dest: ~/celestial
-
-    - name: Build Celestial server
-      community.general.make:
-        chdir: ~/celestial
-        target: binary
