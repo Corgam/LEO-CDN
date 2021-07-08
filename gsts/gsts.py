@@ -4,13 +4,13 @@
 
 import http.client
 import json
-import threading
-import toml
 import math
+import threading
 
 # Importing needed libraries
 import numpy as np
 import pandas as pd
+import toml
 from requests_futures.sessions import FuturesSession
 
 
@@ -110,16 +110,16 @@ def createGSTs(gstsList):
     threadsNumber = config["gsts"]["number_of_threads"]
     # Split the gsts into n threads
     splittedGST = 0
-    numberOfGSTinThread = math.ceil(len(gstsList)/threadsNumber)
+    numberOfGSTinThread = math.ceil(len(gstsList) / threadsNumber)
     threadsLists = list()
     while splittedGST < len(gstsList):
         # Create a list that will hold groundstations for one thread
         newThreadList = list()
         for x in range(numberOfGSTinThread):
             # Look out for the out of bounds error
-            if splittedGST+x < len(gstsList):
-                newThreadList.append(gstsList[splittedGST+x])
-        splittedGST = splittedGST+numberOfGSTinThread
+            if splittedGST + x < len(gstsList):
+                newThreadList.append(gstsList[splittedGST + x])
+        splittedGST = splittedGST + numberOfGSTinThread
         # Add the list to the list of lists
         threadsLists.append(newThreadList)
     threads = list()
@@ -180,6 +180,7 @@ def getTheBestSatellite(id):
 
 # Send all requests to the best satellite
 def sendRequests(gstList):
+    responses = []
     for gst in gstList:
         # Generate the requests
         reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
@@ -197,14 +198,13 @@ def sendRequests(gstList):
         )
         # Create an async session
         session = FuturesSession()
-        responses = list()
         for req in reqsList:
             # Send the request in an async fashion
             responses.append(session.get("http://" + bestSat + req.getURL()))
-        # Read all of the responses (or wait for them)
-        for future in responses:
-            res = future.result()
-            print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
+    # Read all of the responses (wait for them)
+    for future in responses:
+        res = future.result()
+        print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
 
 
 # Main function, run on startup
