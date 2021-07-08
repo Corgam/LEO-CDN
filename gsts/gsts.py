@@ -6,6 +6,7 @@ import http.client
 import json
 import math
 import threading
+from concurrent.futures import as_completed
 
 # Importing needed libraries
 import numpy as np
@@ -101,7 +102,7 @@ def createGSTs(config, gstsList):
     for gstList in threadsLists:
         threads.append(
             threading.Thread(
-                target=sendRequests,
+                target=sendRequestsForAllGsts,
                 args=(
                     config,
                     gstList,
@@ -141,52 +142,59 @@ def generateRequests(gstID, p, numberOfRequests):
 
 
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
-def getTheBestSatellite(id):
+def getTheBestSatellite(session, id):
     # Communicate with the Coordinator to choose the best satellite.
-    coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
-    coordConn.request(method="GET", url=f"/best_satellite/{id}")
-    # Get the response
-    res = coordConn.getresponse()
-    # Extract ip and port
-    data = res.read().decode()
+    future = session.get(f"http://172.26.4.1:9001/best_satellite/{id}")
+    resp = future.result()
+    data = resp.text
     if data != "Invalid GST ID":
         # Return the ip and port to the best satellite
         print(
             f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n"
         )
-        coordConn.close()
         return data
     else:
         return -1
 
 
-# Send all requests to the best satellite
-def sendRequests(config, gstList):
+def sendRequests(session, gst, reqsList):
     responses = []
+
+    # Generate the requests
+    reqsList = generateRequests(
+        gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
+    )
+    # Create a connection to the best satellite
+    print(
+        f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
+    )
+    bestSat = getTheBestSatellite(session, gst.id)
+    if bestSat == -1:
+        print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
+        return
+    # Send all requests
+    print(
+        f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
+    )
+    for req in reqsList:
+        # Send the request in an async fashion
+        responses.append(session.get("http://" + bestSat + req.URL))
+    return responses
+
+
+# Send all requests to the best satellite
+def sendRequestsForAllGsts(config, gstList):
+    responses = []
+    session = FuturesSession()
     for gst in gstList:
         # Generate the requests
         reqsList = generateRequests(
             gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
         )
-        # Create a connection to the best satellite
-        print(
-            f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
-        )
-        bestSat = getTheBestSatellite(gst.id)
-        if bestSat == -1:
-            print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
-            return
-        # Send all requests
-        print(
-            f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
-        )
-        # Create an async session
-        session = FuturesSession()
-        for req in reqsList:
-            # Send the request in an async fashion
-            responses.append(session.get("http://" + bestSat + req.URL))
+        responses += sendRequests(session, gst, reqsList)
+
     # Read all of the responses (wait for them)
-    for future in responses:
+    for future in as_completed(responses):
         res = future.result()
         print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
 
