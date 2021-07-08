@@ -18,6 +18,7 @@ with open("./config.toml") as f:
 
 # Frequency for sending position queries
 frequency = node_configs["satellites"]["position_interval"]
+keygroup_layers = node_configs["satellites"]["keygroup_layers"]
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -35,7 +36,7 @@ with open("/info/nodes.json") as f:
 
 nodes = [key for key in node_configs.keys()]
 
-logging.basicConfig(filename='/logs/' + name + '.log',
+logging.basicConfig(filename='/logs/' + name + '_server.log',
                     filemode='a',
                     format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                     datefmt='%H:%M:%S',
@@ -184,6 +185,7 @@ if __name__ == "__main__":
     satellite = Satellite(
         name=name,
         fred_client=fred_client,
+				keygroup_layers=keygroup_layers,
     )
     
     join_managing_keygroups()
