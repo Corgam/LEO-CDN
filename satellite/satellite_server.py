@@ -211,7 +211,7 @@ if __name__ == "__main__":
     satellite = Satellite(
         name=name,
         fred_client=fred_client,
-				keygroup_layers=keygroup_layers,
+		keygroup_layers=keygroup_layers,
     )
     
     join_managing_keygroups()
