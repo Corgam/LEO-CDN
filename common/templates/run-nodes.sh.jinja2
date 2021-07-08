@@ -14,4 +14,4 @@ docker-compose --env-file .env \
   {%- for name in node_names %}
   -f temp/{{name}}.yml \
   {%- endfor %}
-  up --force-recreate --abort-on-container-exit --renew-anon-volumes --remove-orphans
+  up --force-recreate --renew-anon-volumes --remove-orphans

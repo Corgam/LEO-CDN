@@ -172,3 +172,5 @@ gcp.json
 #visualization
 visualization/plots/html/
 visualization/plots/png/
+
+satellite/db
