@@ -9,8 +9,12 @@ from multiprocessing import Process
 from lorem_text import lorem
 import csv
 import toml
-
-app = Flask(__name__)
+from Request import db, Request
+import datetime
+import sqlite3
+# from pathlib import Path
+# 
+# Path("/db").mkdir(parents=True, exist_ok=True)
 
 # Load the config
 with open("./config.toml") as f:
@@ -29,6 +33,7 @@ ip = node_configs[name]["server"]
 port = node_configs[name]["sport"]
 fred = node_configs[name]["fred"]
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
+db_server = node_configs[name]['db']
 
 # Loading node configurations
 with open("/info/nodes.json") as f:
@@ -44,6 +49,15 @@ logging.basicConfig(filename='/logs/' + name + '_server.log',
 logger = logging.getLogger(f'{name}_server')
 
 files_csv = open('./files.csv', "r")
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:123@{db_server}/leo_cdn'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.app = app
+db.init_app(app)
+db.create_all()
+db.session.commit()
 
 #########################
 ## Internal functions  ##
@@ -149,12 +163,24 @@ def getLocation():
 def addSatellite():
     return " ".join(str(x) for x in fred_client.get_keygroups())
 
+@app.route('/mostPopularFile')
+def mostPopularFile():
+    date = datetime.datetime.utcnow() - datetime.timedelta(hours = 24)
+    top_files = db.engine.execute(
+        'select file_id, count(file_id) as req_count ' +
+       f'from request where time >= "{date}"' + 
+        'group by file_id order by req_count;').all()
+    return jsonify({'file_ids': list(reversed([row[0] for row in top_files]))})
+
 
 @app.route("/", defaults={"u_path": ""})
 @app.route("/<path:u_path>")
 def catch_all(u_path):
     file_id = u_path
     saved = fred_client.read_file(file_id)
+    stat_record = Request(file_id=file_id, time=datetime.datetime.utcnow())
+    db.session.add(stat_record)
+    db.session.commit()
     if saved == "":
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
