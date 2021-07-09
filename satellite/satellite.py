@@ -387,12 +387,12 @@ class Satellite:
                 try:
                     self.logger.info(f"[CHECK KEYGROUP]: getting meta data from {kg}")
                     # get current popular files in the current keygroup
-                    current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popular_files")
+                    current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
                     # update all the popular files in the current keygroup
                     all_files = self.strategy.update_keygroup(self.get_all_files(), current_popular_files)
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
-                    self.fred_client.set_data(f"{kg}metadata", "popular_files", all_files)
+                    self.fred_client.set_data(f"{kg}metadata", "popularfiles", all_files)
                     # remove satellite from keygroup
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.fred_client.remove_replica_node_from_keygroup(kg+"metadata")
@@ -425,7 +425,7 @@ class Satellite:
         for kg in keygroups:
             # get all popular files from the neighbors and only save the keys = file ids
             self.logger.info(f"[GET FILES TO PUSH AND REMOVE]: getting meta data from {kg}")
-            files = self.fred_client.read_file_from_node(f"{kg}metadata", "popular_files")
+            files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
             if len(files) > 0:
                 all_file_id_occurence.append(list(files.keys()))
 
@@ -512,8 +512,9 @@ class Satellite:
 
                 # get all keygroup this satellite has to check the popular files of
                 keygroups_to_manage.append(manage_keygroup)
+
                 # get current files in the top layer
-                files_currently_on_top_layer = self.fred_client.read_file_from_node(f"{manage_keygroup}metadata", "layer0_files")
+                files_currently_on_top_layer = self.fred_client.read_file_from_node(f"{manage_keygroup}metadata", "layer0files")
                 files_to_push, files_to_remove = self.get_files_to_push_or_remove(keygroups_to_manage, files_currently_on_top_layer)
                 self.logger.info(f"Pushing files up {files_to_push}")
                 self.logger.info(f"Remove files {files_to_remove} from top layer")
@@ -521,7 +522,7 @@ class Satellite:
                 # can we do this differently?
                 self.add_data_to_kg(files_to_push, keygroups[0])
                 self.remove_data_from_kg(files_to_remove, keygroups[0])
-                self.fred_client.set_data(kg=manage_keygroup+"metadata", key="layer0_files", value=files_to_push )
+                self.fred_client.set_data(kg=manage_keygroup+"metadata", key="layer0files", value=str(files_to_push) )
 
     def isManager(self, keygroups):
         """
