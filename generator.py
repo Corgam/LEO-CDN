@@ -114,8 +114,9 @@ for x in range(nodes):
         nase_host=nase_host,
         server_name=server_name,
         server_IP=server_IP,
+        server_port=5000,
         db_IP=db_IP,
-        db_port=db_port
+        db_port=db_port,
     )
     with open(f"./temp/satellite{x}.yml", "w") as f:
         f.write(nodex_yaml)
@@ -165,7 +166,7 @@ for x in range(nodes):
                 "node": f"172.26.{x + 7}.1",
                 "nport": 9001,
                 "fred": f"fred{x}",
-                "db": f"172.26.{x + 7}.4:3306"
+                "db": f"172.26.{x + 7}.4:3306",
             }
         }
         json.dump(nodes_config, f, indent=4)
