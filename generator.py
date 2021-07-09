@@ -38,12 +38,17 @@ print("Selecting all data files...")
 shutil.copyfile(gsts_list, "./temp/gsts.csv")
 
 # Copy the file order
-if os.path.isfile(config["workload"]["output_file"]):
+# TODO: If workload is not generated: run the makefile command
+if os.path.isfile(config["workload"]["output_file"]) and os.path.isfile(
+    config["workload"]["file_size_output_file"]
+):
     shutil.copyfile(config["workload"]["output_file"], "./temp/file_orders.json")
-else:
-    print(
-        "FILE_ORDERS.JSON WAS NOT GENERATED. ERRORS CAN HAPPEN, PLEASE GENERATE THE MISSING FILE WITH `make generate_workload`!"
+    shutil.copyfile(
+        config["workload"]["file_size_output_file"], "./temp/file_sizes.csv"
     )
+else:
+    print("Workload is not generated. Please generate with `make generate_workload`!")
+
 
 ##################
 ## Certificates ##

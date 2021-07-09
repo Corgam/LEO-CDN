@@ -26,3 +26,5 @@ number_of_threads = 5
 
 ["workload"]
 output_file = "data/file_orders.json"
+file_size_output_file = "data/file_sizes.csv"
+pareto_alpha = 1
