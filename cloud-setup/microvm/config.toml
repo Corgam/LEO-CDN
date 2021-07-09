@@ -4,6 +4,9 @@ model = "SGP4"
 # bounding box of coverage area in lat-long (bottom left) lat-long (top right)
 # http://bboxfinder.com/
 bbox = [-85.000000, -180.000000, 85.000000, 180.000000]
+#bbox = [35.895210,-14.238281,61.682706,40.957031]
+#bbox = [44.626428,0.703125,55.526912,20.830078]
+#bbox = [44.6264, 0.7031, 57.7617, 20.8301]
 
 interval = 1
 
@@ -38,16 +41,16 @@ bandwidth = 10_000
 # for example, if a link goes below 100km at
 # its lowest point, light might be fractured
 # by the atmosphere
-#mincommsaltitude = 100_000
-mincommsaltitude = 0
+mincommsaltitude = 100_000
+#mincommsaltitude = 0
 
 # minimum elevation of satellites in order for a ground station
 # to connect, in degrees (0<= minelevation <= 90)
 # if there is no satellite within this distance from
 # a ground station, the ground station is cut off from
 # the satellite network
-#minelevation = 40
-minelevation = 0
+minelevation = 40
+#minelevation = 0
 
 # gstpropagation describes the delay of the uplink, in ms/m
 # this is probably higher than in a vacuum, maybe 1/(2c)?
@@ -113,8 +116,10 @@ rootfs = "rootfs-sat.ext4"
 bootparams = ""
 
 [[shell]]
+#planes = 72
+#sats = 22
 planes = 1
-sats = 12
+sats = 1
 altitude = 550
 inclination = 53.0
 arcofascendingnodes = 360.0

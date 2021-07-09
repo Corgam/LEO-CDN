@@ -2,8 +2,8 @@
 
 genRootFs(){
     rm rootfs-${1}.ext4 2> /dev/null
-    rm rootfs-${1}.ext4.zst 2> /dev/null
-    dd if=/dev/zero of=rootfs-${1}.ext4 bs=1M count=1500
+    rm rootfs-${1}.tar.zst 2> /dev/null
+    dd if=/dev/zero of=rootfs-${1}.ext4 bs=1M count=5000
     mkfs.ext4 rootfs-${1}.ext4
 
     mkdir /tmp/mnt-${1}
@@ -11,7 +11,8 @@ genRootFs(){
     sudo tar -xf $(nixos-generate -f lxc -c ${1}.nix) -C /tmp/mnt-${1}
     
     sudo mkdir /tmp/mnt-${1}/fred
-    sudo cp frednode /tmp/mnt-${1}/fred/
+    #sudo cp frednode /tmp/mnt-${1}/fred/
+    sudo cp docker-*.tar /tmp/mnt-${1}/fred/
 
     sudo cp -r ../../common/cert /tmp/mnt-${1}
 
@@ -23,9 +24,9 @@ genRootFs(){
     fi
 }
 
-for ROLE in sat gst loc
+for ROLE in sat gst
 do
-    genRootFs "$ROLE" &
+    genRootFs "$ROLE"
 done
 
 wait
