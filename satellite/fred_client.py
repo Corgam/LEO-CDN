@@ -128,7 +128,7 @@ class FredClient:
 
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
-        self.logger.info(f"Adding {key}:{value} to {kg}...")
+        # self.logger.info(f"Adding {key}:{value} to {kg}...")
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
             try:

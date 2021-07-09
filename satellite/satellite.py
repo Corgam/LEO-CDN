@@ -394,7 +394,7 @@ class Satellite:
                     all_files = self.strategy.update_keygroup(self.get_all_files(), current_popular_files)
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
-                    self.fred_client.set_data(f"{kg}metadata", "popularfiles", all_files)
+                    self.fred_client.set_data(f"{kg}metadata", "popularfiles", json.dumps(all_files))
                     # remove satellite from keygroup
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.fred_client.remove_replica_node_from_keygroup(kg+"metadata")
@@ -426,9 +426,10 @@ class Satellite:
         all_file_id_occurence = list()
         for kg in keygroups:
             # get all popular files from the neighbors and only save the keys = file ids
-            self.logger.info(f"[GET FILES TO PUSH AND REMOVE]: getting meta data from {kg}")
             files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
+            self.logger.info(f"meta data from {kg}: {files}")
             if len(files) > 0:
+                files = json.loads(files)
                 all_file_id_occurence.append(list(files.keys()))
 
         list_of_ids_that_should_be_pushed = []
@@ -442,10 +443,15 @@ class Satellite:
 
             # if more than 4 keygroups have the same file id put it in a list of ids that should be on the top layer
             list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 4]
+        
+        self.logger.info(f"list_of_ids_that_should_be_pushed: {list_of_ids_that_should_be_pushed} - set: {set(list_of_ids_that_should_be_pushed)}")
+        self.logger.info(f"list_of_ids_that_should_be_pushed: {files_on_top_layer} - set: {set(files_on_top_layer)} - type: {type(files_on_top_layer)}")
         # files that should be on the top layer but aren't
         list_of_ids_to_push_up = list(set(list_of_ids_that_should_be_pushed) - set(files_on_top_layer))
+        self.logger.info(f"list_of_ids_to_push_up: {list_of_ids_to_push_up}")
         # files that are in top layer but should not be there
         list_of_ids_to_remove = list(set(files_on_top_layer) - set(list_of_ids_that_should_be_pushed))
+        self.logger.info(f"list_of_ids_to_remove: {list_of_ids_to_remove}")
 
         return list_of_ids_to_push_up, list_of_ids_to_remove
 
@@ -465,6 +471,7 @@ class Satellite:
         """
         if len(file_ids) == 0:
             return
+        self.logger.info(f"Fiels to add: {file_ids}")
         files_csv = open('./files.csv', "r")
         reader = csv.reader(files_csv)
         paragraphs = 5
@@ -479,6 +486,7 @@ class Satellite:
     def remove_data_from_kg(self, file_ids:list, keygroup):
         if len(file_ids) == 0:
             return
+        self.logger.info(f"Files to remove: {file_ids}")
         for file_id in file_ids:
             self.fred_client.remove_data(kg=keygroup, file_id=file_id)
 
