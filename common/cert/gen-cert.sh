@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # usage: gen-cert.sh <name> <ip>
 # check that we got the 2 parameters we needed or exit the script with a usage message
