@@ -26,5 +26,7 @@ number_of_threads = 5
 
 ["workload"]
 output_file = "data/file_orders.json"
-geometric_p = 0.1
 num_requests_per_step = 1000
+file_size_output_file = "data/file_sizes.csv"
+geometric_p = 0.1
+pareto_alpha = 1

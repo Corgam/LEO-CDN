@@ -138,6 +138,7 @@ def generateRequests(gstID, p, numberOfRequests):
         file_id = fileOrder[file_ind]
         req = f"GET /{file_id} HTTP/1.1"
         reqsList.append(HTTPRequest.fromString(req))
+    reqsList.append(HTTPRequest.fromString("GET /mostPopularFile HTTP/1.1"))
     return reqsList
 
 
@@ -196,7 +197,7 @@ def sendRequestsForAllGsts(config, gstList):
     # Read all of the responses (wait for them)
     for future in as_completed(responses):
         res = future.result()
-        print(f"[{threading.current_thread().name}]Status: {res.status_code}\n")
+        print(f"[{threading.current_thread().name}]Status: {res.status_code}\nResult: {res.text}")
 
 
 # Main function, run on startup

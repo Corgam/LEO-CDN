@@ -38,12 +38,17 @@ print("Selecting all data files...")
 shutil.copyfile(gsts_list, "./temp/gsts.csv")
 
 # Copy the file order
-if os.path.isfile(config["workload"]["output_file"]):
+# TODO: If workload is not generated: run the makefile command
+if os.path.isfile(config["workload"]["output_file"]) and os.path.isfile(
+    config["workload"]["file_size_output_file"]
+):
     shutil.copyfile(config["workload"]["output_file"], "./temp/file_orders.json")
-else:
-    print(
-        "FILE_ORDERS.JSON WAS NOT GENERATED. ERRORS CAN HAPPEN, PLEASE GENERATE THE MISSING FILE WITH `make generate_workload`!"
+    shutil.copyfile(
+        config["workload"]["file_size_output_file"], "./temp/file_sizes.csv"
     )
+else:
+    print("Workload is not generated. Please generate with `make generate_workload`!")
+
 
 ##################
 ## Certificates ##
@@ -92,11 +97,13 @@ for x in range(nodes):
     node_IP = f"172.26.{x + 7}.1"
     store_IP = f"172.26.{x + 7}.2"
     server_IP = f"172.26.{x + 7}.3"
+    db_IP = f"172.26.{x + 7}.4"
     node_name = f"fred{x}"
     store_name = f"store{x}"
     server_name = f"satellite{x}"
     host_port = 9000 + x + 3
     nase_host = "https://172.26.6.1:2379"
+    db_port = 3306 + x
 
     nodex_yaml = node_template.render(
         node_IP=node_IP,
@@ -107,6 +114,8 @@ for x in range(nodes):
         nase_host=nase_host,
         server_name=server_name,
         server_IP=server_IP,
+        db_IP=db_IP,
+        db_port=db_port
     )
     with open(f"./temp/satellite{x}.yml", "w") as f:
         f.write(nodex_yaml)
@@ -156,6 +165,7 @@ for x in range(nodes):
                 "node": f"172.26.{x + 7}.1",
                 "nport": 9001,
                 "fred": f"fred{x}",
+                "db": f"172.26.{x + 7}.4:3306"
             }
         }
         json.dump(nodes_config, f, indent=4)

@@ -10,8 +10,10 @@ RUN pip install -r /requirements.txt
 COPY satellite_server.py /satellite_server.py
 COPY fred_client.py /fred_client.py
 COPY satellite.py /satellite.py
+COPY Request.py /Request.py
 COPY files.csv /files.csv
 COPY proto /proto
 RUN mkdir logs
+RUN mkdir data
 
 CMD ["python", "satellite_server.py"]
