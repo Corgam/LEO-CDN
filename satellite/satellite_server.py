@@ -87,7 +87,14 @@ db.session.commit()
 #         except Exception as e:
 #             logger.info(f"Couldn't create nor join manage")
             
-
+def get_file_ids_and_count():
+    date = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    top_files = db.engine.execute(
+        'select file_id, count(file_id) as req_count ' +
+        f'from request where time >= "{date}"' +
+        'group by file_id order by req_count;').all()
+    return [files._asdict() for files in top_files]
+    # return {'file_ids': list(reversed([row[0] for row in top_files]))}
 
 def append_data(keygroup, key, entry):
     response = fred_client.read_file_from_node(keygroup, key)
@@ -212,7 +219,7 @@ if __name__ == "__main__":
         name=name,
         fred_client=fred_client,
 		keygroup_layers=keygroup_layers,
-        db=db
+        db=get_file_ids_and_count
     )
     
     # join_managing_keygroups()

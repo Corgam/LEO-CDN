@@ -22,6 +22,7 @@ import json
 from fred_client import FredClient
 import numpy as np
 import datetime
+from Request import db
 
 
 class CacheStrategy:
@@ -291,7 +292,7 @@ class Satellite:
 
         """
         date = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
-        top_files = self.db.engine.execute(
+        top_files = db.engine.execute(
             'select file_id, count(file_id) as req_count ' +
             f'from request where time >= "{date}"' +
             'group by file_id order by req_count desc;').all()
@@ -391,7 +392,11 @@ class Satellite:
                     # get current popular files in the current keygroup
                     current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
                     # update all the popular files in the current keygroup
-                    all_files = self.strategy.update_keygroup(self.get_all_files(), json.loads(current_popular_files))
+                    self.logger.info(f"[CHECK KEYGROUP]: get data from db")
+                    # db_data = self.get_all_files()
+                    db_data = self.db()
+                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in current satellite:  {db_data}")
+                    all_files = self.strategy.update_keygroup(db_data, json.loads(current_popular_files))
                     self.logger.info(f"[CHECK KEYGROUP]: current popular files in keygroup {kg}:  {all_files}")
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
@@ -444,7 +449,9 @@ class Satellite:
                 counted_common_file_ids[id] = counted_common_file_ids.get(id, 0) + 1
 
             # if more than 4 keygroups have the same file id put it in a list of ids that should be on the top layer
-            list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 4]
+            # TODO change back to another number than 1
+            # Doing this for testing purposes because we only run 3 satellites locally
+            list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 1]
         
         self.logger.info(f"list_of_ids_that_should_be_pushed: {list_of_ids_that_should_be_pushed} - set: {set(list_of_ids_that_should_be_pushed)}")
         self.logger.info(f"files on top layer: {files_on_top_layer} - set: {set(files_on_top_layer)} - type: {type(files_on_top_layer)}")
