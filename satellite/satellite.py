@@ -319,7 +319,8 @@ class Satellite:
             try:
                 response = self.fred_client.create_keygroup(keygroup)
             except:
-                return
+                return False
+        return True
 
     def check_keygroup(self):
         """
@@ -337,6 +338,7 @@ class Satellite:
         lat, lon = self.get_current_position()
         new_keygroup_names = [h3.geo_to_h3(lat, lon, resolution) for resolution in
                               range(self.keygroup_layers)]  # is the same as h3 are
+        self.fred_client.setLowestKeygroup(new_keygroup_names[-1])
         joined_keygroups = self.fred_client.get_keygroups()
 
         # remove all the keygroups that contain the word metadata
@@ -380,7 +382,7 @@ class Satellite:
         for kg in keygroups:
             remove = False
             for new_kg in new_keygroup_names:
-                if kg != new_kg and kg != "manage":
+                if kg != new_kg:
                     remove = True
                     break
             if remove:
@@ -506,15 +508,19 @@ class Satellite:
                 # Get responsible satellite for each neighbour
                 for neighbour in keygroups_to_manage:
                     # enter all surrounding meta data keygroups
-                    self.join_metadata_keygroup(neighbour+"metadata")
+                    success = self.join_metadata_keygroup(neighbour+"metadata")
+                    self.logger.info(f"Joined the metadata: {success}")
                     # responsible_satellite = self.fred_client.get_keygroup_replica(neighbour)
                     # self.logger.info(f"{responsible_satellite} is responsible for the neighbour: {neighbour}")
 
                 # get all keygroup this satellite has to check the popular files of
+                self.logger.info(f"Appending: {manage_keygroup}")
                 keygroups_to_manage.append(manage_keygroup)
 
                 # get current files in the top layer
+                self.logger.info(f"Reading file from {manage_keygroup}metadata: layer0files")
                 files_currently_on_top_layer = self.fred_client.read_file_from_node(f"{manage_keygroup}metadata", "layer0files")
+                self.logger.info(f"Result: {files_currently_on_top_layer}")
                 files_to_push, files_to_remove = self.get_files_to_push_or_remove(keygroups_to_manage, files_currently_on_top_layer)
                 self.logger.info(f"Pushing files up {files_to_push}")
                 self.logger.info(f"Remove files {files_to_remove} from top layer")

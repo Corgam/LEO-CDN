@@ -64,39 +64,39 @@ db.session.commit()
 #########################
 
 
-def join_managing_keygroups():
-    try_joining = False
-    try:
-        response = fred_client.create_keygroup("manage")
-        if response.status != 0:
-            response = fred_client.add_replica_node_to_keygroup("manage")
-            if response.status == 0:
-                append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-            else:
-                logger.info(f"Couldn't create nor join manage")
-        else:
-            fred_client.set_data("manage", "addresses", json.dumps(
-                ["http://" + ip + ":" + str(port) + "/"]))
-    except Exception as e:
-        try:
-            response = fred_client.add_replica_node_to_keygroup("manage")
-            if response.status == 0:
-                append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-            else:
-                logger.info(f"Couldn't create nor join manage")
-        except Exception as e:
-            logger.info(f"Couldn't create nor join manage")
+# def join_managing_keygroups():
+#     try_joining = False
+#     try:
+#         response = fred_client.create_keygroup("manage")
+#         if response.status != 0:
+#             response = fred_client.add_replica_node_to_keygroup("manage")
+#             if response.status == 0:
+#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+#             else:
+#                 logger.info(f"Couldn't create nor join manage")
+#         else:
+#             fred_client.set_data("manage", "addresses", json.dumps(
+#                 ["http://" + ip + ":" + str(port) + "/"]))
+#     except Exception as e:
+#         try:
+#             response = fred_client.add_replica_node_to_keygroup("manage")
+#             if response.status == 0:
+#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
+#             else:
+#                 logger.info(f"Couldn't create nor join manage")
+#         except Exception as e:
+#             logger.info(f"Couldn't create nor join manage")
             
 
 
 def append_data(keygroup, key, entry):
     response = fred_client.read_file_from_node(keygroup, key)
-    if response.status != 0:
+    if len(response) == 0:
         cur_data = []
         cur_data.append(entry)
         fred_client.set_data(keygroup, key, json.dumps(cur_data))
     else:
-        cur_data = json.loads(response.data)
+        cur_data = json.loads(response)
         cur_data.append(entry)
         fred_client.set_data(keygroup, key, json.dumps(cur_data))
     return json.dumps(cur_data)
@@ -186,7 +186,7 @@ def catch_all(u_path):
         # set_data("manage", md5, r.text)
         paragraph_length = get_paragraph_length(file_id)
         lorem_text = lorem.paragraphs(paragraph_length)
-        fred_client.set_data("manage", file_id, lorem_text)
+        fred_client.set_data_to_last_layer(file_id, lorem_text)
         logger.info(f"added new key: {file_id}")
         # return r.text
         return lorem_text
@@ -215,7 +215,7 @@ if __name__ == "__main__":
         db=db
     )
     
-    join_managing_keygroups()
+    # join_managing_keygroups()
 
     simulation = Process(target=position_query)
     simulation.start()

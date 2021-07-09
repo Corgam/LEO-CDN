@@ -22,7 +22,11 @@ class FredClient:
         )
 
         self.keygroups = []
+        self.lowestKeygroup = ""
     
+    def setLowestKeygroup(self, kg):
+        self.lowestKeygroup = kg
+
     def get_all_existing_replica_nodes(self):
         self.logger.info("Retrieving all replica nodes: ")
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
@@ -135,9 +139,26 @@ class FredClient:
             except Exception as e:
                 response = self.read_file_from_node(kg, key)
                 if response:
-                    cur_data = json.loads(response.data)
+                    cur_data = json.loads(response)
                     cur_data.append(value)
                     self.set_data(kg, key, json.dumps(cur_data))
+
+    # Adds data to the lowest layer keygroup
+    def set_data_to_last_layer(self, key, value):
+        self.logger.info(f"Adding {key}:{value} to {self.lowestKeygroup}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            try:
+                response = stub.Update(
+                    client_pb2.UpdateRequest(keygroup=self.lowestKeygroup, id=key, data=value)
+                )
+                self.logger.info(response)
+            except Exception as e:
+                response = self.read_file_from_node(self.lowestKeygroup, key)
+                if response:
+                    cur_data = json.loads(response)
+                    cur_data.append(value)
+                    self.set_data(self.lowestKeygroup, key, json.dumps(cur_data))
 
     def remove_data(self, kg, file_id):
         self.logger.info(f"Removing file {file_id} from {kg}...")
@@ -161,8 +182,7 @@ class FredClient:
                 response = stub.Read(
                     client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
                 )
-                print(response)
-                return response
+                return response.data
         except Exception as e:
             # if file does not exist an error is raised
             # return str(e)
