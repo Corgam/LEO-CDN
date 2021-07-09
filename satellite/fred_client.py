@@ -138,6 +138,19 @@ class FredClient:
                     cur_data = json.loads(response.data)
                     cur_data.append(value)
                     self.set_data(kg, key, json.dumps(cur_data))
+
+    def remove_data(self, kg, file_id):
+        self.logger.info(f"Removing file {file_id} from {kg}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+
+            response = stub.Delete(
+                client_pb2.DeleteRequest(keygroup=kg, id=file_id)
+            )
+            self.logger.info(response)
+            if response.status == 0:
+                self.logger.info(f"Successfully removed file {file_id}")
+            return response
     
     # Reads file
     def read_file_from_node(self, keygroup, file_id):

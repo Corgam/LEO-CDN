@@ -212,6 +212,7 @@ if __name__ == "__main__":
         name=name,
         fred_client=fred_client,
 		keygroup_layers=keygroup_layers,
+        db=db
     )
     
     join_managing_keygroups()
