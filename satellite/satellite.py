@@ -391,7 +391,8 @@ class Satellite:
                     # get current popular files in the current keygroup
                     current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
                     # update all the popular files in the current keygroup
-                    all_files = self.strategy.update_keygroup(self.get_all_files(), current_popular_files)
+                    all_files = self.strategy.update_keygroup(self.get_all_files(), json.loads(current_popular_files))
+                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in keygroup {kg}:  {all_files}")
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
                     self.fred_client.set_data(f"{kg}metadata", "popularfiles", json.dumps(all_files))
@@ -407,7 +408,7 @@ class Satellite:
         self.logger.info(f"The keygroups of {self.name}: " + " ".join(str(x) for x in keygroups))
         self.manage(new_keygroup_names)
 
-    def get_files_to_push_or_remove(self, keygroups:list, files_on_top_layer):
+    def get_files_to_push_or_remove(self, keygroups:list, files_on_top_layer:list):
         """
 
         Parameters
@@ -421,8 +422,9 @@ class Satellite:
         -------
 
         """
+        self.logger.info(f"[get_files_to_push_or_remove] - top layer: {files_on_top_layer}")
         if len(files_on_top_layer) == 0:
-            files_on_top_layer = []
+            files_on_top_layer = list()
         all_file_id_occurence = list()
         for kg in keygroups:
             # get all popular files from the neighbors and only save the keys = file ids
@@ -445,7 +447,7 @@ class Satellite:
             list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 4]
         
         self.logger.info(f"list_of_ids_that_should_be_pushed: {list_of_ids_that_should_be_pushed} - set: {set(list_of_ids_that_should_be_pushed)}")
-        self.logger.info(f"list_of_ids_that_should_be_pushed: {files_on_top_layer} - set: {set(files_on_top_layer)} - type: {type(files_on_top_layer)}")
+        self.logger.info(f"files on top layer: {files_on_top_layer} - set: {set(files_on_top_layer)} - type: {type(files_on_top_layer)}")
         # files that should be on the top layer but aren't
         list_of_ids_to_push_up = list(set(list_of_ids_that_should_be_pushed) - set(files_on_top_layer))
         self.logger.info(f"list_of_ids_to_push_up: {list_of_ids_to_push_up}")
@@ -469,6 +471,8 @@ class Satellite:
         -------
 
         """
+        # TODO get data from lower kg and push that up
+        # TODO remove that data from lower keygroup if successful
         if len(file_ids) == 0:
             return
         self.logger.info(f"Fiels to add: {file_ids}")
@@ -528,15 +532,19 @@ class Satellite:
                 # get current files in the top layer
                 self.logger.info(f"Reading file from {manage_keygroup}metadata: layer0files")
                 files_currently_on_top_layer = self.fred_client.read_file_from_node(f"{manage_keygroup}metadata", "layer0files")
-                self.logger.info(f"Result: {files_currently_on_top_layer}")
-                files_to_push, files_to_remove = self.get_files_to_push_or_remove(keygroups_to_manage, files_currently_on_top_layer)
+                self.logger.info(f"Result: {files_currently_on_top_layer} type: {type(files_currently_on_top_layer)}")
+
+                # if it is an empty string
+                if len(files_currently_on_top_layer) == 0:
+                    files_currently_on_top_layer = "[]"
+                files_to_push, files_to_remove = self.get_files_to_push_or_remove(keygroups_to_manage, json.loads(files_currently_on_top_layer))
                 self.logger.info(f"Pushing files up {files_to_push}")
                 self.logger.info(f"Remove files {files_to_remove} from top layer")
                 # push and remove files to layer 0
                 # can we do this differently?
                 self.add_data_to_kg(files_to_push, keygroups[0])
                 self.remove_data_from_kg(files_to_remove, keygroups[0])
-                self.fred_client.set_data(kg=manage_keygroup+"metadata", key="layer0files", value=str(files_to_push) )
+                self.fred_client.set_data(kg=manage_keygroup+"metadata", key="layer0files", value=json.dumps(files_to_push) )
 
     def isManager(self, keygroups):
         """
