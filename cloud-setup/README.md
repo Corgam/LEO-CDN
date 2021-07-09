@@ -79,7 +79,7 @@ The [HTTP API](https://github.com/OpenFogStack/celestial#http-api) can be querie
 `curl localhost/shell/0/0`
 ### Interacting with the MicroVMs
 
-**WIP**: They respond to pings but not to SSH or HTTP queries.
+We can login to the microvms using ssh. The username is `user` and password `leocdn`.
 
 ## building the rootfs and kernel
 
@@ -90,6 +90,13 @@ The rootfs can also be built using the builder in the `microvm` directory.
 Note: In case the files take too long, try downloading them via browser.
 
 ### state of the rootfs
+
+The rootfs doesn't contain our application yet.
+
+The DNS server needs to be configured to Celestial.
+
+
+
 
 The current rootfs is way too large.
 
@@ -113,3 +120,25 @@ Some useful commands are listed below:
 
 ### Delete all instances
 `gcloud compute instances delete $(gcloud compute instances list --project leo-cdn | awk '(NR>1) {print $1}')`
+
+## local testing
+
+We use the existing docker bridge to minimize messing around with the network settings.
+
+(rootfs)[https://ipfs.io/ipfs/QmfSekKPHgS38KPLQWQuU7w8DPTqEqmcUQKYRJo18Tzv5z?filename=rootfs-loc.ext4.zst]
+
+Create a new tap device
+
+`sudo ip tuntap add veth0 mode tap`
+
+Add it to the docker bridge
+
+`sudo brctl addif docker0 veth0`
+
+Get the MAC adress
+
+`ip a | grep -A1 veth0 | grep ether`
+
+Start microvm (insert MAC)
+
+`firectl --kernel=hello-vmlinux.bin --root-drive=rootfs-loc.ext4 --tap-device=veth0/xx:xx:xx:xx:xx:xx`

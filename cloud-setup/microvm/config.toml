@@ -3,7 +3,7 @@ model = "SGP4"
 
 # bounding box of coverage area in lat-long (bottom left) lat-long (top right)
 # http://bboxfinder.com/
-bbox = [-85.000000,-180.000000,85.000000,180.000000]
+bbox = [-85.000000, -180.000000, 85.000000, 180.000000]
 
 interval = 1
 
@@ -38,14 +38,16 @@ bandwidth = 10_000
 # for example, if a link goes below 100km at
 # its lowest point, light might be fractured
 # by the atmosphere
-mincommsaltitude = 100_000
+#mincommsaltitude = 100_000
+mincommsaltitude = 0
 
 # minimum elevation of satellites in order for a ground station
 # to connect, in degrees (0<= minelevation <= 90)
 # if there is no satellite within this distance from
 # a ground station, the ground station is cut off from
 # the satellite network
-minelevation = 40
+#minelevation = 40
+minelevation = 0
 
 # gstpropagation describes the delay of the uplink, in ms/m
 # this is probably higher than in a vacuum, maybe 1/(2c)?
@@ -103,16 +105,16 @@ mem_size_mib = 128
 ht_enabled = false
 # name of the kernel file (must be in the "/celestial" folder
 # of the hosts)
-kernel = "hello-vmlinux.bin"
+kernel = "vmlinux-5.10.bin"
 # name of the rootfs (must be in the "/celestial" folder of
 # the hosts)
-rootfs = "rootfs.ext4"
+rootfs = "rootfs-sat.ext4"
 
 bootparams = ""
 
 [[shell]]
 planes = 1
-sats = 7
+sats = 12
 altitude = 550
 inclination = 53.0
 arcofascendingnodes = 360.0
@@ -131,11 +133,11 @@ long = 13.32666938
 # how many vCPUs to allocate to ground station server
 vcpu_count = 1
 # how much memory to allocate to ground station server
-mem_size_mib = 1024 
+mem_size_mib = 1024
 # enable Hyperthreading (default is off)
 ht_enabled = true
-kernel = "hello-vmlinux.bin"
-rootfs = "rootfs.ext4"
+kernel = "vmlinux-5.10.bin"
+rootfs = "rootfs-gst.ext4"
 
 # ground station also needs network params
 [groundstation.networkparams]
