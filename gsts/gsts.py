@@ -6,6 +6,7 @@ import http.client
 import json
 import math
 import threading
+from concurrent.futures import as_completed
 
 # Importing needed libraries
 import numpy as np
@@ -39,14 +40,6 @@ class HTTPRequest:
                 heads[parts[0]] = parts[1]
         return HTTPRequest(url, heads)
 
-    # Returns the URL of the HTTP Request
-    def getURL(self):
-        return self.URL
-
-    # Returns the dict of heads of the HTTP Request
-    def getHeads(self):
-        return self.heads
-
 
 # This class holds information about one groundstation
 class GST:
@@ -57,36 +50,18 @@ class GST:
         self.country = country
         self.numberOfRequests = numberOfRequests
 
-    # Returns the ID of the GST
-    def getID(self):
-        return self.id
-
-    # Returns the latitude of the GST
-    def getLatitude(self):
-        return self.latitude
-
-    # Returns the longitude of the GST
-    def getLongitude(self):
-        return self.longitude
-
-    # Returns the country of the GST
-    def getCountry(self):
-        return self.country
-
-    # Returns the numberOfRequests the GST will send
-    def getNumberOfRequests(self):
-        return self.numberOfRequests
-
 
 #########################
 ## Internal functions  ##
 #########################
 
 # Load the GSTs info into a list
-def loadGSTsInfo():
+def loadGSTsInfo(config):
     gstsList = list()
     # Treat each line as new object
     df_gst = pd.read_csv("/gsts.csv")
+
+    total_population = df_gst.population.sum()
     for index, gst in df_gst.iterrows():
         gstsList.append(
             GST(
@@ -95,17 +70,17 @@ def loadGSTsInfo():
                 float(gst.lng),
                 gst.country,
                 # TODO: make number of requests (per second?) depend on population
-                10,
+                math.ceil(
+                    (gst.population / total_population)
+                    * config["workload"]["num_requests_per_step"]
+                ),
             )
         )
     return gstsList
 
 
 # Create all threads and all GSTs
-def createGSTs(gstsList):
-    # Load the config
-    with open("./config.toml") as f:
-        config = toml.load(f)
+def createGSTs(config, gstsList):
     # Number of threads to create
     threadsNumber = config["gsts"]["number_of_threads"]
     # Split the gsts into n threads
@@ -125,7 +100,15 @@ def createGSTs(gstsList):
     threads = list()
     # Create thread for each list of the gsts
     for gstList in threadsLists:
-        threads.append(threading.Thread(target=sendRequests, args=(gstList,)))
+        threads.append(
+            threading.Thread(
+                target=sendRequestsForAllGsts,
+                args=(
+                    config,
+                    gstList,
+                ),
+            )
+        )
     # Start threads
     for thread in threads:
         thread.start()
@@ -160,59 +143,71 @@ def generateRequests(gstID, p, numberOfRequests):
 
 
 # Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
-def getTheBestSatellite(id):
+def getTheBestSatellite(session, id):
     # Communicate with the Coordinator to choose the best satellite.
-    coordConn = http.client.HTTPConnection("172.26.4.1", "9001")
-    coordConn.request(method="GET", url=f"/best_satellite/{id}")
-    # Get the response
-    res = coordConn.getresponse()
-    # Extract ip and port
-    data = res.read().decode()
+    future = session.get(f"http://172.26.4.1:9001/best_satellite/{id}")
+    resp = future.result()
+    data = resp.text
     if data != "Invalid GST ID":
         # Return the ip and port to the best satellite
         print(
             f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n"
         )
-        coordConn.close()
         return data
     else:
         return -1
 
 
-# Send all requests to the best satellite
-def sendRequests(gstList):
+def sendRequests(session, gst, reqsList):
     responses = []
+
+    # Generate the requests
+    reqsList = generateRequests(
+        gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
+    )
+    # Create a connection to the best satellite
+    print(
+        f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
+    )
+    bestSat = getTheBestSatellite(session, gst.id)
+    if bestSat == -1:
+        print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
+        return
+    # Send all requests
+    print(
+        f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
+    )
+    for req in reqsList:
+        # Send the request in an async fashion
+        responses.append(session.get("http://" + bestSat + req.URL))
+    return responses
+
+
+# Send all requests to the best satellite
+def sendRequestsForAllGsts(config, gstList):
+    responses = []
+    session = FuturesSession()
     for gst in gstList:
         # Generate the requests
-        reqsList = generateRequests(gst.getID(), 0.1, gst.getNumberOfRequests())
-        # Create a connection to the best satellite
-        print(
-            f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
+        reqsList = generateRequests(
+            gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
         )
-        bestSat = getTheBestSatellite(gst.getID())
-        if bestSat == -1:
-            print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
-            return
-        # Send all requests
-        print(
-            f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
-        )
-        # Create an async session
-        session = FuturesSession()
-        for req in reqsList:
-            # Send the request in an async fashion
-            responses.append(session.get("http://" + bestSat + req.getURL()))
+        responses += sendRequests(session, gst, reqsList)
+
     # Read all of the responses (wait for them)
-    for future in responses:
+    for future in as_completed(responses):
         res = future.result()
         print(f"[{threading.current_thread().name}]Status: {res.status_code}\nResult: {res.text}")
 
 
 # Main function, run on startup
 if __name__ == "__main__":
+    # Load the config
+    with open("./config.toml") as f:
+        config = toml.load(f)
     print("Starting Ground Stations...")
     # Read the list of the gsts
-    gstsList = loadGSTsInfo()
+    gstsList = loadGSTsInfo(config)
     # Create GSTs threads
     print(f"Creating {len(gstsList)} threads...\n")
-    createGSTs(gstsList)
+    createGSTs(config, gstsList)
