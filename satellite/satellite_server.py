@@ -219,7 +219,7 @@ if __name__ == "__main__":
         name=name,
         fred_client=fred_client,
 		keygroup_layers=keygroup_layers,
-        db=get_file_ids_and_count
+        db_get_files=get_file_ids_and_count
     )
     
     # join_managing_keygroups()

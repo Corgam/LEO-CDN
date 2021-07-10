@@ -144,7 +144,12 @@ class LFU(CacheStrategy):
 
 
 class Personalised(CacheStrategy):
-    def __init__(self, capacity=0, expiry_h=24, threshold=10):
+    """
+    capacity: how many at max we store in our meta data kg
+    expiry_h: file ids that are removed in our meta data kg after this many hours
+    treshold: how many request a file_id at least have to have to land in the meta data cache.
+    """
+    def __init__(self, capacity=0, expiry_h=24, threshold=2):
         self.capacity = capacity
         self.expiry_h = expiry_h
         self.threshold = threshold
@@ -162,7 +167,7 @@ class Personalised(CacheStrategy):
         current_time = datetime.datetime.utcnow() - datetime.timedelta(hours=self.expiry_h)
         for key in self.cache.keys():
             # remove from meta data if file hasn't been accessed for the setted expiry time
-            if self.cache[key]["timestamp"] < current_time:
+            if self.cache[key]["timestamp"] < datetime.datetime.timestamp(current_time):
                 del self.cache[key] # delete key
 
     def update_keygroup(self, new_file_ids:list, old_file_ids:dict):
@@ -184,7 +189,9 @@ class Personalised(CacheStrategy):
         if len(new_file_ids) > 0:
             for row in new_file_ids:
                 if row["req_count"] > self.threshold:
-                    self.add(row["file_id"], {"timestamp": datetime.datetime.utcnow()})
+                    now = datetime.datetime.utcnow()
+                    # transform to timestamp bc datetime is not supported by json dumps
+                    self.add(row["file_id"], {"timestamp": datetime.datetime.timestamp(now)})
         self.clean_up()
         return self.cache
 
@@ -248,7 +255,7 @@ class Satellite:
                  name,
                  fred_client,
                  keygroup_layers,
-                 db,
+                 db_get_files,
                  kepler_ellipse=None,
                  offset=0,
                  strategy: CacheStrategy = Personalised()
@@ -264,7 +271,7 @@ class Satellite:
         self.keygroup_layers = keygroup_layers
         self.baseurl = "http://172.26.4.1:9001/position/" + name
         self.strategy = strategy
-        self.db = db
+        self.db_get_files = db_get_files
 
     def get_current_position(self):
         """
@@ -391,16 +398,32 @@ class Satellite:
                     self.logger.info(f"[CHECK KEYGROUP]: getting meta data from {kg}")
                     # get current popular files in the current keygroup
                     current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
+                    if len(current_popular_files) > 0:
+                        # json.loads does not work if we get an empty string
+                        # that's why we have to catch this case
+                        current_popular_files = json.loads(current_popular_files)
+                    else:
+                        current_popular_files = {}
+                        # TODO test out how whether everything works if it's not empty
                     # update all the popular files in the current keygroup
                     self.logger.info(f"[CHECK KEYGROUP]: get data from db")
                     # db_data = self.get_all_files()
-                    db_data = self.db()
+                    db_data = self.db_get_files()
                     self.logger.info(f"[CHECK KEYGROUP]: current popular files in current satellite:  {db_data}")
-                    all_files = self.strategy.update_keygroup(db_data, json.loads(current_popular_files))
+                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in current kg metadata:  {current_popular_files}")
+                    all_files = self.strategy.update_keygroup(db_data, current_popular_files)
                     self.logger.info(f"[CHECK KEYGROUP]: current popular files in keygroup {kg}:  {all_files}")
+                    # TODO Test works until here
+                    self.logger.info(f"[CHECK KEYGROUP]: JSON DUMPS current popular files in keygroup {kg}:  {json.dumps(all_files)}")
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
                     self.fred_client.set_data(f"{kg}metadata", "popularfiles", json.dumps(all_files))
+
+                    # TODO remove this I'm just testin whether the update went well
+                    test_file = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
+                    self.logger.info(
+                        f"[CHECK KEYGROUP]: TEST popular files in keygroup {kg} read:  {json.loads(test_file)}")
+
                     # remove satellite from keygroup
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.fred_client.remove_replica_node_from_keygroup(kg+"metadata")
@@ -449,8 +472,8 @@ class Satellite:
                 counted_common_file_ids[id] = counted_common_file_ids.get(id, 0) + 1
 
             # if more than 4 keygroups have the same file id put it in a list of ids that should be on the top layer
-            # TODO change back to another number than 1
-            # Doing this for testing purposes because we only run 3 satellites locally
+            # TODO change back to another number than 1 : Doing this for testing purposes because we only run 3 satellites locally
+            # Before it was >= 4
             list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 1]
         
         self.logger.info(f"list_of_ids_that_should_be_pushed: {list_of_ids_that_should_be_pushed} - set: {set(list_of_ids_that_should_be_pushed)}")
@@ -463,6 +486,14 @@ class Satellite:
         self.logger.info(f"list_of_ids_to_remove: {list_of_ids_to_remove}")
 
         return list_of_ids_to_push_up, list_of_ids_to_remove
+
+    def get_file_content_of_neighbors(self, center_kg, top_layer_kg):
+        neighbors = list(h3.k_ring_distances(center_kg, 1)[1])
+        # TODO enter neighbors
+        # TODO get files
+        # TODO call add_data_to_kg with those files and top_layer_kg
+        # TODO if successful delete from childrens kg
+        # TODO leave from neighbors
 
     def add_data_to_kg(self, file_ids:list, keygroup):
         """
@@ -516,6 +547,8 @@ class Satellite:
 
         # Gets a list of keygroups that has a managing role
         manager_list = self.isManager(keygroups)
+
+        self.logger.info(f"Satellite has to manage?: {manager_list}")
 
         # if the list isn't empty, the satellite is a manager
         if len(manager_list) > 0:
