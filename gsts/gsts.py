@@ -72,11 +72,23 @@ def loadGSTsInfo(config):
                 # TODO: make number of requests (per second?) depend on population
                 math.ceil(
                     (gst.population / total_population)
-                    * config["workload"]["num_requests_per_step"]
+                    * config["workload"]["num_requests_per_interval"]
                 ),
             )
         )
     return gstsList
+
+
+def startRequestLoop(config, gstList):
+    threading.Timer(
+        config["workload"]["interval"],
+        startRequestLoop,
+        args=(
+            config,
+            gstList,
+        ),
+    ).start()
+    sendRequestsForAllGsts(config, gstList)
 
 
 # Create all threads and all GSTs
@@ -97,21 +109,9 @@ def createGSTs(config, gstsList):
         splittedGST = splittedGST + numberOfGSTinThread
         # Add the list to the list of lists
         threadsLists.append(newThreadList)
-    threads = list()
-    # Create thread for each list of the gsts
-    for gstList in threadsLists:
-        threads.append(
-            threading.Thread(
-                target=sendRequestsForAllGsts,
-                args=(
-                    config,
-                    gstList,
-                ),
-            )
-        )
-    # Start threads
-    for thread in threads:
-        thread.start()
+
+    startRequestLoop(config, gstsList)
+
 
 
 # Reads the file order for generator of requests
@@ -197,7 +197,9 @@ def sendRequestsForAllGsts(config, gstList):
     # Read all of the responses (wait for them)
     for future in as_completed(responses):
         res = future.result()
-        print(f"[{threading.current_thread().name}]Status: {res.status_code}\nResult: {res.text}")
+        print(
+            f"[{threading.current_thread().name}]Status: {res.status_code}\nResult: {res.text}"
+        )
 
 
 # Main function, run on startup

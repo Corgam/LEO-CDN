@@ -25,8 +25,9 @@ keygroup_layers = 2
 number_of_threads = 5
 
 ["workload"]
+interval = 1
 output_file = "data/file_orders.json"
-num_requests_per_step = 1000
+num_requests_per_interval = 100
 file_size_output_file = "data/file_sizes.csv"
 geometric_p = 0.1
 pareto_alpha = 1
