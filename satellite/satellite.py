@@ -256,6 +256,7 @@ class Satellite:
                  fred_client,
                  keygroup_layers,
                  db_get_files,
+                 db_rm_all,
                  kepler_ellipse=None,
                  offset=0,
                  strategy: CacheStrategy = Personalised()
@@ -272,6 +273,7 @@ class Satellite:
         self.baseurl = "http://172.26.4.1:9001/position/" + name
         self.strategy = strategy
         self.db_get_files = db_get_files
+        self.db_rm_all = db_rm_all
 
     def get_current_position(self):
         """
@@ -291,21 +293,7 @@ class Satellite:
 
         return lat, lon
 
-    def get_all_files(self):
-        """
-        Get all file ids and their amount for the last 24h of the local satellites.
-        Returns
-        -------
-
-        """
-        date = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
-        top_files = db.engine.execute(
-            'select file_id, count(file_id) as req_count ' +
-            f'from request where time >= "{date}"' +
-            'group by file_id order by req_count desc;').all()
-        return [files._asdict() for files in top_files]
-
-    def join_metadata_keygroup(self, keygroup):
+    def join_keygroup(self, keygroup):
         """
         Join the metadata keygroup
         Parameters
@@ -344,8 +332,10 @@ class Satellite:
 
         """
         lat, lon = self.get_current_position()
+        self.logger.info(f"[CHECK KEYGROUP] current position: {lat} and {lon}")
         new_keygroup_names = [h3.geo_to_h3(lat, lon, resolution) for resolution in
                               range(self.keygroup_layers)]  # is the same as h3 are
+        self.logger.info(f"[CHECK KEYGROUP] new_keygroup_names: {new_keygroup_names}")
         self.fred_client.setLowestKeygroup(new_keygroup_names[-1])
         joined_keygroups = self.fred_client.get_keygroups()
 
@@ -383,6 +373,7 @@ class Satellite:
                         continue
 
 
+
         # Get all keygroups of the satellite and check if it needs to be removed
         keygroups = self.fred_client.get_keygroups()
         # remove all the keygroups that contain the word metadata
@@ -395,7 +386,7 @@ class Satellite:
                     break
             if remove:
                 try:
-                    self.logger.info(f"[CHECK KEYGROUP]: getting meta data from {kg}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: getting meta data from {kg}")
                     # get current popular files in the current keygroup
                     current_popular_files = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
                     if len(current_popular_files) > 0:
@@ -406,28 +397,31 @@ class Satellite:
                         current_popular_files = {}
                         # TODO test out how whether everything works if it's not empty
                     # update all the popular files in the current keygroup
-                    self.logger.info(f"[CHECK KEYGROUP]: get data from db")
-                    # db_data = self.get_all_files()
+                    #self.logger.info(f"[CHECK KEYGROUP]: get data from db")
+
                     db_data = self.db_get_files()
-                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in current satellite:  {db_data}")
-                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in current kg metadata:  {current_popular_files}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: current popular files in current satellite:  {db_data}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: current popular files in current kg metadata:  {current_popular_files}")
                     all_files = self.strategy.update_keygroup(db_data, current_popular_files)
-                    self.logger.info(f"[CHECK KEYGROUP]: current popular files in keygroup {kg}:  {all_files}")
-                    # TODO Test works until here
-                    self.logger.info(f"[CHECK KEYGROUP]: JSON DUMPS current popular files in keygroup {kg}:  {json.dumps(all_files)}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: current popular files in keygroup {kg}:  {all_files}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: JSON DUMPS current popular files in keygroup {kg}:  {json.dumps(all_files)}")
                     # set popular files of current keygroup
                     # this is just a dictionary with keys = file ids, and values = meta data
                     self.fred_client.set_data(f"{kg}metadata", "popularfiles", json.dumps(all_files))
 
                     # TODO remove this I'm just testin whether the update went well
                     test_file = self.fred_client.read_file_from_node(f"{kg}metadata", "popularfiles")
-                    self.logger.info(
-                        f"[CHECK KEYGROUP]: TEST popular files in keygroup {kg} read:  {json.loads(test_file)}")
+                    #self.logger.info(f"[CHECK KEYGROUP]: TEST popular files in keygroup {kg} read:  {json.loads(test_file)}")
 
                     # remove satellite from keygroup
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.fred_client.remove_replica_node_from_keygroup(kg+"metadata")
                     # TODO clear out db
+                    #self.logger.info(f"DELETE ROWS")
+                    self.db_rm_all()
+                    #self.logger.info(f"DELETE ROWS DONE")
+                    #self.logger.info(f"DELETE ROWS TEST: {self.db_get_files()}")
+
                 except:
                     continue
 
@@ -487,17 +481,55 @@ class Satellite:
 
         return list_of_ids_to_push_up, list_of_ids_to_remove
 
-    def get_file_content_of_neighbors(self, center_kg, top_layer_kg):
-        neighbors = list(h3.k_ring_distances(center_kg, 1)[1])
-        # TODO enter neighbors
-        # TODO get files
-        # TODO call add_data_to_kg with those files and top_layer_kg
-        # TODO if successful delete from childrens kg
-        # TODO leave from neighbors
-
-    def add_data_to_kg(self, file_ids:list, keygroup):
+    def get_file_content_of_neighbors(self, all_ring_kg, top_layer_kg, file_ids):
         """
-        Adds the data to a keygroup.
+        Gets the data from the lower keygroups (center kg and surrounding kg).
+        Parameters
+        ----------
+        all_ring_kg:
+            all lower layer kg (center and neighbors)
+        top_layer_kg:
+            top layer kg
+        file_ids:
+            ids to push up
+
+        Returns
+        -------
+
+        """
+        if len(file_ids) == 0:
+            return
+        for kg in all_ring_kg:
+            self.logger.info(f"[GET FILE CONTENT FROM] join: {kg}")
+            try:
+                response = self.fred_client.add_replica_node_to_keygroup(kg)
+                status = response.status
+            except Exception as e:
+                status = 1
+            self.logger.info(f"[GET FILE CONTENT FROM] added to kg. status: {status}")
+            if status == 0:
+                for id in file_ids:
+                    self.logger.info(f"[GET FILE CONTENT FROM] get from kg {kg} the file id {id}")
+                    data = self.fred_client.read_file(id)
+                    self.logger.info(f"[GET FILE CONTENT FROM] got data 1: {data}")
+                    if len(data) != 0:
+                        self.logger.info(f"[GET FILE CONTENT FROM] add data to top layer {top_layer_kg} the file id {id}: {json.loads(data)}")
+                        self.fred_client.set_data(top_layer_kg, id, data)
+                        self.logger.info(f"[GET FILE CONTENT FROM] remove {id} from {kg}")
+                        self.fred_client.remove_data(kg, id)
+
+                        # TODO rm bc TEST
+                        test_file = self.fred_client.read_file_from_node(top_layer_kg, id)
+                        self.logger.info(
+                            f"[ADD FILES TO UPPER LAYER]: TEST files of {top_layer_kg}:  {json.loads(test_file)}")
+
+                self.logger.info(f"[GET FILE CONTENT FROM] leave: {kg}")
+                self.fred_client.remove_replica_node_from_keygroup(kg)
+
+    def add_data_to_kg(self, file_ids: list, keygroup):
+        """
+        NOT USED ATM
+        Adds the data to a keygroup but generates the data first and doesnt delete from lower kg
         Parameters
         ----------
         file_ids
@@ -509,8 +541,6 @@ class Satellite:
         -------
 
         """
-        # TODO get data from lower kg and push that up
-        # TODO remove that data from lower keygroup if successful
         if len(file_ids) == 0:
             return
         self.logger.info(f"Fiels to add: {file_ids}")
@@ -560,7 +590,7 @@ class Satellite:
                 # Get responsible satellite for each neighbour
                 for neighbour in keygroups_to_manage:
                     # enter all surrounding meta data keygroups
-                    success = self.join_metadata_keygroup(neighbour+"metadata")
+                    success = self.join_keygroup(neighbour+"metadata")
                     self.logger.info(f"Joined the metadata: {success}")
                     # responsible_satellite = self.fred_client.get_keygroup_replica(neighbour)
                     # self.logger.info(f"{responsible_satellite} is responsible for the neighbour: {neighbour}")
@@ -582,7 +612,11 @@ class Satellite:
                 self.logger.info(f"Remove files {files_to_remove} from top layer")
                 # push and remove files to layer 0
                 # can we do this differently?
-                self.add_data_to_kg(files_to_push, keygroups[0])
+                # self.add_data_to_kg(files_to_push, keygroups[0])
+
+                self.logger.info(f"[MANAGE] Lifting data to top layer {keygroups[0]}")
+                # self.add_data_to_kg(file_ids=files_to_push, keygroup=keygroups[0])
+                self.get_file_content_of_neighbors(keygroups_to_manage, keygroups[0], files_to_push)
                 self.remove_data_from_kg(files_to_remove, keygroups[0])
                 self.fred_client.set_data(kg=manage_keygroup+"metadata", key="layer0files", value=json.dumps(files_to_push) )
 
