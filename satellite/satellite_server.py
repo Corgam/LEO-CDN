@@ -5,13 +5,13 @@ import time
 from PyAstronomy import pyasl
 from fred_client import FredClient
 from satellite import Satellite
-from multiprocessing import Process
 from lorem_text import lorem
 import csv
 import toml
 from Request import db, Request
 import datetime
 from sqlalchemy import text
+from threading import Thread
 
 
 # from pathlib import Path
@@ -129,7 +129,7 @@ def append_data(keygroup, key, entry):
     # return response
 
 
-def position_query():
+def position_query(satellite):
     while (True):
         satellite.check_keygroup()
         time.sleep(frequency)
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     # join_managing_keygroups()
 
-    simulation = Process(target=position_query)
-    simulation.start()
+    simulation_thread = Thread(target = position_query, args = (satellite,))
+    simulation_thread.start()
 
     app.run(debug=True, host=ip, port=port, use_reloader=False)
