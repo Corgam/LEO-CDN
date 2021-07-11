@@ -416,7 +416,6 @@ class Satellite:
                     # remove satellite from keygroup
                     self.fred_client.remove_replica_node_from_keygroup(kg)
                     self.fred_client.remove_replica_node_from_keygroup(kg+"metadata")
-                    # TODO clear out db
                     #self.logger.info(f"DELETE ROWS")
                     self.db_rm_all()
                     #self.logger.info(f"DELETE ROWS DONE")
@@ -469,7 +468,7 @@ class Satellite:
             # TODO change back to another number than 1 : Doing this for testing purposes because we only run 3 satellites locally
             # Before it was >= 4
             list_of_ids_that_should_be_pushed = [k for k, v in counted_common_file_ids.items() if v >= 1]
-        
+
         self.logger.info(f"list_of_ids_that_should_be_pushed: {list_of_ids_that_should_be_pushed} - set: {set(list_of_ids_that_should_be_pushed)}")
         self.logger.info(f"files on top layer: {files_on_top_layer} - set: {set(files_on_top_layer)} - type: {type(files_on_top_layer)}")
         # files that should be on the top layer but aren't
@@ -511,17 +510,18 @@ class Satellite:
                 for id in file_ids:
                     self.logger.info(f"[GET FILE CONTENT FROM] get from kg {kg} the file id {id}")
                     data = self.fred_client.read_file(id)
-                    self.logger.info(f"[GET FILE CONTENT FROM] got data 1: {data}")
-                    if len(data) != 0:
-                        self.logger.info(f"[GET FILE CONTENT FROM] add data to top layer {top_layer_kg} the file id {id}: {json.loads(data)}")
+                    self.logger.info(f"[GET FILE CONTENT FROM] got data 1: {len(data)}: {data} ")
+                    if len(data) > 0:
+                        self.logger.info(f"A [GET FILE CONTENT FROM] add data to top layer {top_layer_kg} the file id {id}: {data}")
                         self.fred_client.set_data(top_layer_kg, id, data)
                         self.logger.info(f"[GET FILE CONTENT FROM] remove {id} from {kg}")
                         self.fred_client.remove_data(kg, id)
 
                         # TODO rm bc TEST
+                        self.logger.info(f"1 TESTING: Reading {id} from {top_layer_kg}")
                         test_file = self.fred_client.read_file_from_node(top_layer_kg, id)
                         self.logger.info(
-                            f"[ADD FILES TO UPPER LAYER]: TEST files of {top_layer_kg}:  {json.loads(test_file)}")
+                            f" 3 [ADD FILES TO UPPER LAYER]: TEST files of {top_layer_kg}:  {test_file}")
 
                 self.logger.info(f"[GET FILE CONTENT FROM] leave: {kg}")
                 self.fred_client.remove_replica_node_from_keygroup(kg)
