@@ -2,10 +2,40 @@
 // Automatic rotation taken from: https://jorin.me/d3-canvas-globe-hover/
 
 var lastTime = d3.now()
-var autorotate, path, land110, land50, ground_stations, satellites_0, satellites_1, satellites_2, satellites_3, satellites_4;
+var autorotate, path, land110, land50, ground_stations, 
+    satellites_0_0, 
+    satellites_0_1, 
+    satellites_0_2, 
+    satellites_0_3, 
+    satellites_0_4,
+    satellites_1_0, 
+    satellites_1_1, 
+    satellites_1_2, 
+    satellites_1_3, 
+    satellites_1_4;
 var current_layer = null
 var current_layer_value = 0
 var current_timestep = null
+
+function getSatellite(layer_number, timestep){
+  if (layer_number === 0){
+    switch(timestep){
+      case 0: return satellites_0_0
+      case 1: return satellites_0_1
+      case 2: return satellites_0_2
+      case 3: return satellites_0_3
+      case 4: return satellites_0_4
+    }    
+  } else if (layer_number === 1){
+    switch(timestep){
+      case 0: return satellites_1_0
+      case 1: return satellites_1_1
+      case 2: return satellites_1_2
+      case 3: return satellites_1_3
+      case 4: return satellites_1_4
+    }    
+  }
+}
 
 // function for data rendering to svg
 // the path returned by createPathAndPrepSvg is required for correct rendering
@@ -14,7 +44,8 @@ var current_timestep = null
 // - keygroups (to render keygroups)
 // - path (to generate svg paths with correct projection)
 // - ground_stations (ground stations to generate)
-function render(land, keygroups, path, ground_stations, satellites) {
+function render(land, keygroup_layer, path, ground_stations, timestep) {
+
     // standard colors from seaborn
     const colors = [
       "#4c72b0",
@@ -44,6 +75,9 @@ function render(land, keygroups, path, ground_stations, satellites) {
       "#34495e",
       "#2ecc71",
     ];
+
+    keygroups = current_layer
+    satellites = getSatellite(keygroup_layer, timestep)
   
     // get svg
     const map_svg = d3.select("#visualization-svg");
@@ -58,7 +92,7 @@ function render(land, keygroups, path, ground_stations, satellites) {
       renderGroundStations(ground_stations, path)
     }
 
-    if (satellites !== null && current_layer_value === 0) {
+    if (satellites !== null) { 
       renderSatellites(satellites, path)
     }
 }
@@ -88,7 +122,7 @@ function startRotation(delay, projection) {
       rotation = projection.rotate()
       rotation[0] += diff * (6/1000)
       projection.rotate(rotation)
-      render(land50, current_layer, path, ground_stations, current_timestep) //or land 50?
+      render(land50, current_layer_value, path, ground_stations, current_timestep) //or land 50?
     }
     lastTime = now
   }, delay || 0)
@@ -196,27 +230,49 @@ clearState();
       .then(getResponseText)
       .then(parseResponse);
 
-    satellites_0 = await fetch("CSV/satellites_0.csv")
+    // resolution 0, layer 0
+    satellites_0_0 = await fetch("CSV/satellites_0_0.csv")
       .then(getResponseText)
       .then(parseResponse);
 
-    if (satellites_0 != null) {
-      current_timestep = satellites_0
+    if (satellites_0_0 != null) {
+      current_timestep = 0
     }
   
-    satellites_1 = await fetch("CSV/satellites_0.csv")
+    satellites_0_1 = await fetch("CSV/satellites_0_1.csv")
       .then(getResponseText)
       .then(parseResponse);
   
-    satellites_2 = await fetch("CSV/satellites_0.csv")
+    satellites_0_2 = await fetch("CSV/satellites_0_2.csv")
       .then(getResponseText)
       .then(parseResponse);
   
-    satellites_3 = await fetch("CSV/satellites_0.csv")
+    satellites_0_3 = await fetch("CSV/satellites_0_3.csv")
       .then(getResponseText)
       .then(parseResponse);
 
-    satellites_4 = await fetch("CSV/satellites_0.csv")
+    satellites_0_4 = await fetch("CSV/satellites_0_4.csv")
+    .then(getResponseText)
+    .then(parseResponse);
+
+    // resolution 1 = layer 1
+    satellites_1_0 = await fetch("CSV/satellites_1_0.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+  
+    satellites_1_1 = await fetch("CSV/satellites_1_1.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+  
+    satellites_1_2 = await fetch("CSV/satellites_1_2.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+  
+    satellites_1_3 = await fetch("CSV/satellites_1_3.csv")
+      .then(getResponseText)
+      .then(parseResponse);
+
+    satellites_1_4 = await fetch("CSV/satellites_1_4.csv")
     .then(getResponseText)
     .then(parseResponse);
     
@@ -280,9 +336,9 @@ clearState();
       map_svg
         .call(
           drag(projection)
-            .on("drag.render", () => render(land110, current_layer, path, ground_stations, current_timestep))
-            .on("end.render", () => render(land50, current_layer,path, ground_stations, current_timestep)))
-        .call(() => render(land50, first_layer, path, ground_stations, current_timestep));
+            .on("drag.render", () => render(land110, current_layer_value, path, ground_stations, current_timestep))
+            .on("end.render", () => render(land50, current_layer_value,path, ground_stations, current_timestep)))
+        .call(() => render(land50, 0, path, ground_stations, current_timestep));
   
       return path;
     }
@@ -305,7 +361,7 @@ clearState();
         rotation = projection.rotate()
         rotation[0] += diff * (6/1000)
         projection.rotate(rotation)
-        render(land50, current_layer, path, ground_stations, current_timestep) //or land 50?
+        render(land50, current_layer_value, path, ground_stations, current_timestep) //or land 50?
       }
       lastTime = now
     }, 150);
@@ -332,30 +388,30 @@ clearState();
                 break;
         }
         clearDataFromSvg();
-        render(land50, current_layer, path, ground_stations, current_timestep);
+        render(land50, current_layer_value, path, ground_stations, current_timestep);
       }
     // create listeners for input of rotation angles
     function sliderListener() {
-        const correctedValue = boundNumberToInterval(this.value, 0, 200); 
+        const correctedValue = boundNumberToInterval(this.value, 0, 4); 
         document.getElementById("timestep").value = correctedValue;
         document.getElementById("timestep-val").value = correctedValue;
         switch (correctedValue){
-          case "0": current_timestep = satellites_0;
+          case "0": current_timestep = 0;
           break;
-          case "50": current_timestep = satellites_1;
+          case "1": current_timestep = 1;
           break;
-          case "100": current_timestep = satellites_2;
+          case "2": current_timestep = 2;
           break;
-          case "150": current_timestep = satellites_3;
+          case "3": current_timestep = 3;
           break;
-          case "200": current_timestep = satellites_4;
+          case "4": current_timestep = 4;
           break;
-          default : current_timestep = satellites_0;
+          default : current_timestep = 0;
           break;          
         }
 
         clearDataFromSvg();
-        render(land50, current_layer, path, ground_stations, current_timestep);
+        render(land50, current_layer_value, path, ground_stations, current_timestep);
     }
 
     document.getElementById("layer-selection").onchange = dataListener;
@@ -519,14 +575,15 @@ function renderGroundStations(data, path){
 }
 
 function renderSatellites(data, path){
+  console.log(data)
   const data_group = d3.select("#data");
     for (let i = 0; i < data.length; i++) {
-      const point = createGeoJsonPoint([data[i].longitude, data[i].latitude]); // lon, lat; has to be inverted because of GeoJson
+      const point = createGeoJsonPoint([data[i].lon, data[i].lat]); // lon, lat; has to be inverted because of GeoJson
       const id = "satellite"+i;
       let keygroup = data[i].keygroupID
       let keygroup_svg = d3.select("#" + "keygroup_" + keygroup)
       const color = keygroup_svg.attr("fill")
-
+      // const color = "red"
       // generate point if it does not exist
       let point_svg = d3.select("#"+id);
       if (point_svg.empty()) {
