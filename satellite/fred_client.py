@@ -25,9 +25,7 @@ class FredClient:
         self.lowestKeygroup = ""
     
     def setLowestKeygroup(self, kg):
-        self.logger.info(f"Set lowest kg: {kg}")
         self.lowestKeygroup = kg
-        self.logger.info(f"Set lowest kg: {self.lowestKeygroup}")
 
     def get_all_existing_replica_nodes(self):
         self.logger.info("Retrieving all replica nodes: ")
@@ -130,7 +128,7 @@ class FredClient:
 
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
-        # self.logger.info(f"Adding {key}:{value} to {kg}...")
+        self.logger.info(f"Adding {key}:{value} to {kg}...")
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
             try:
@@ -147,8 +145,6 @@ class FredClient:
 
     # Adds data to the lowest layer keygroup
     def set_data_to_last_layer(self, key, value):
-        self.logger.info("SET DATA TO LAST LAYER")
-        self.logger.info(f"SET DATA TO LAST LAYER: {self.keygroups}")
         self.logger.info(f"Adding to {self.lowestKeygroup} {key}:{value} ...")
         with grpc.secure_channel(self.target, credentials=self.creds) as channel:
             stub = client_pb2_grpc.ClientStub(channel)
@@ -211,7 +207,6 @@ class FredClient:
         for keygroup in self.keygroups:
             try:
                 print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
-                self.logger.info(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
                 with grpc.secure_channel(self.target, credentials=self.creds) as channel:
                     stub = client_pb2_grpc.ClientStub(channel)
                     response = stub.Read(

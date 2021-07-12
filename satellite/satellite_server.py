@@ -102,17 +102,14 @@ def get_file_ids_and_count():
 
 
 def rm_all_lines_in_db_table():
-    logger.info(f"Deleting ROWS {db.Model}")
     try:
         num_rows_deleted = db.session.query(Request).delete()
-        logger.info(f"Deleting ROWS: {num_rows_deleted}")
         db.session.commit()
     except Exception as e:
-        logger.info("Deleting ROWS: FAILED")
         logger.info(e)
         db.session.rollback()
     test = get_file_ids_and_count()
-    logger.info(f"Check Rows: {test}")
+    logger.info(f"Check Deleted Rows: {test}")
 
 
 def append_data(keygroup, key, entry):
@@ -213,7 +210,6 @@ def catch_all(u_path):
     db.session.add(stat_record)
     db.session.commit()
     if saved == "":
-        logger.info(f"miss {file_id}")
         # r = requests.get(url=link)
         # set_data("manage", md5, r.text)
         paragraph_length = get_paragraph_length(file_id)
@@ -223,7 +219,6 @@ def catch_all(u_path):
         # return r.text
         return lorem_text
     else:
-        logger.info("hit")
         logger.info(f"key was found: {file_id}")
         return saved
 
