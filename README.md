@@ -19,7 +19,7 @@ Authors:
 ## Run Simulation
 
 1. (Optional) Customize the config file.
-2. Generate the workload `make generate_workload`.
+2. Generate the workload `make workload`.
 3. Run `make setup` command.
 4. Run `make satellites` command.
 5. Run `make gsts` command.

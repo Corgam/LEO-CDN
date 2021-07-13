@@ -9,6 +9,7 @@ RUN pip install -r /requirements.txt
 
 COPY ./temp/gsts.csv /gsts.csv
 COPY ./temp/file_orders.json /file_orders.json
+COPY ./config.toml /config.toml
 
 COPY ./FReD /FReD
 ENV PYTHONPATH="${PYTHONPATH}:/FReD"
