@@ -85,7 +85,7 @@ services:
     build:
       context: ../../satellite/
       dockerfile: satellite.Dockerfile
-    command: gunicorn --bind {{ server_IP }}:{{ server_port }} --worker-class=gevent satellite_server:app
+    command: gunicorn --bind {{ server_IP }}:{{ server_port }} --worker-class=gevent --workers 3 satellite_server:app
     ports:
       - 5000:5000
     depends_on:
