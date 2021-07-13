@@ -97,7 +97,7 @@ for x in range(nodes):
     node_IP = f"172.26.{x + 7}.1"
     store_IP = f"172.26.{x + 7}.2"
     server_IP = f"172.26.{x + 7}.3"
-    db_IP = f"172.26.{x + 7}.4"
+    db_IP = f"172.26.{x + 7}.5"
     node_name = f"fred{x}"
     store_name = f"store{x}"
     server_name = f"satellite{x}"
@@ -166,7 +166,7 @@ for x in range(nodes):
                 "node": f"172.26.{x + 7}.1",
                 "nport": 9001,
                 "fred": f"fred{x}",
-                "db": f"172.26.{x + 7}.4:3306",
+                "db": f"172.26.{x + 7}.5:3306"
             }
         }
         json.dump(nodes_config, f, indent=4)
