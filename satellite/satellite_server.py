@@ -227,38 +227,37 @@ def catch_all(u_path):
         fred_client.set_data_to_last_layer(file_id, lorem_text)
         logger.info(f"added new key: {file_id} in {fred_client.lowestKeygroup}")
         # return r.text
-        return json.dumps({ 'hit' : False})
+        return jsonify({ 'hit' : False})
     else:
         logger.info(f"key was found: {file_id}")
-        return json.dumps({ 'hit' : True})
+        return jsonify({'hit': True})
 
-if __name__ == "__main__":
-    # Loading certificates
-    with open("/cert/client.crt", "rb") as f:
-        client_crt = f.read()
+# Loading certificates
+with open("/cert/client.crt", "rb") as f:
+    client_crt = f.read()
 
-    with open("/cert/client.key", "rb") as f:
-        client_key = f.read()
+with open("/cert/client.key", "rb") as f:
+    client_key = f.read()
 
-    with open("/cert/ca.crt", "rb") as f:
-        ca_crt = f.read()
+with open("/cert/ca.crt", "rb") as f:
+    ca_crt = f.read()
 
-    fred_client = FredClient(name, fred, target, client_crt, client_key, ca_crt)
+fred_client = FredClient(name, fred, target, client_crt, client_key, ca_crt)
 
-    satellite = Satellite(
-        name=name,
-        fred_client=fred_client,
-        keygroup_layers=keygroup_layers,
-        db_get_files=get_file_ids_and_count,
-        db_rm_all=rm_all_lines_in_db_table
-    )
+satellite = Satellite(
+    name=name,
+    fred_client=fred_client,
+    keygroup_layers=keygroup_layers,
+    db_get_files=get_file_ids_and_count,
+    db_rm_all=rm_all_lines_in_db_table
+)
 
     # join_managing_keygroups()
 
-    simulation_thread = Thread(target = position_query, args = (satellite,))
-    simulation_thread.start()
-    
-    reader = csv.reader(files_csv)
-    for line in reader:
-        logger.info(line)
+simulation_thread = Thread(target = position_query, args = (satellite,))
+simulation_thread.start()
+
+reader = csv.reader(files_csv)
+for line in reader:
+    logger.info(line)
         
