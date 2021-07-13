@@ -94,7 +94,7 @@ def startRequestLoop(config, gstList):
 # Create all threads and all GSTs
 def createGSTs(config, gstsList):
     # Number of threads to create
-    threadsNumber = 1
+    threadsNumber = config["gsts"]["number_of_threads"]
     # Split the gsts into n threads
     splittedGST = 0
     numberOfGSTinThread = math.ceil(len(gstsList) / threadsNumber)
