@@ -5,20 +5,13 @@ import logging
 import sqlite3
 import time
 from multiprocessing import Process
-
 import toml
 from flask import Flask, jsonify, request
 from lorem_text import lorem
 from PyAstronomy import pyasl
-
 from fred_client import FredClient
 from Request import Request, db
 from satellite import Satellite
-from lorem_text import lorem
-import csv
-import toml
-from Request import db, Request
-import datetime
 from sqlalchemy import text
 from threading import Thread
 
@@ -78,30 +71,6 @@ db.session.commit()
 #########################
 ## Internal functions  ##
 #########################
-
-
-# def join_managing_keygroups():
-#     try_joining = False
-#     try:
-#         response = fred_client.create_keygroup("manage")
-#         if response.status != 0:
-#             response = fred_client.add_replica_node_to_keygroup("manage")
-#             if response.status == 0:
-#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-#             else:
-#                 logger.info(f"Couldn't create nor join manage")
-#         else:
-#             fred_client.set_data("manage", "addresses", json.dumps(
-#                 ["http://" + ip + ":" + str(port) + "/"]))
-#     except Exception as e:
-#         try:
-#             response = fred_client.add_replica_node_to_keygroup("manage")
-#             if response.status == 0:
-#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-#             else:
-#                 logger.info(f"Couldn't create nor join manage")
-#         except Exception as e:
-#             logger.info(f"Couldn't create nor join manage")
 
 def get_file_ids_and_count():
     date = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
@@ -227,35 +196,32 @@ def catch_all(u_path):
         fred_client.set_data_to_last_layer(file_id, lorem_text)
         logger.info(f"added new key: {file_id} in {fred_client.lowestKeygroup}")
         # return r.text
-        return lorem_text
+        return jsonify({ 'hit' : False})
     else:
         logger.info(f"key was found: {file_id}")
-        return saved
+        return jsonify({'hit': True})
 
-if __name__ == "__main__":
-    # Loading certificates
-    with open("/cert/client.crt", "rb") as f:
-        client_crt = f.read()
+# Loading certificates
+with open("/cert/client.crt", "rb") as f:
+    client_crt = f.read()
 
-    with open("/cert/client.key", "rb") as f:
-        client_key = f.read()
+with open("/cert/client.key", "rb") as f:
+    client_key = f.read()
 
-    with open("/cert/ca.crt", "rb") as f:
-        ca_crt = f.read()
+with open("/cert/ca.crt", "rb") as f:
+    ca_crt = f.read()
 
-    fred_client = FredClient(name, fred, target, client_crt, client_key, ca_crt)
+fred_client = FredClient(name, fred, target, client_crt, client_key, ca_crt)
 
-    satellite = Satellite(
-        name=name,
-        fred_client=fred_client,
-        keygroup_layers=keygroup_layers,
-        db_get_files=get_file_ids_and_count,
-        db_rm_all=rm_all_lines_in_db_table
-    )
+satellite = Satellite(
+    name=name,
+    fred_client=fred_client,
+    keygroup_layers=keygroup_layers,
+    db_get_files=get_file_ids_and_count,
+    db_rm_all=rm_all_lines_in_db_table
+)
 
-    # join_managing_keygroups()
+# join_managing_keygroups()
 
-    simulation_thread = Thread(target = position_query, args = (satellite,))
-    simulation_thread.start()
-    
-    app.run(debug=True, host=ip, port=port, use_reloader=False)
+simulation_thread = Thread(target = position_query, args = (satellite,))
+simulation_thread.start()
