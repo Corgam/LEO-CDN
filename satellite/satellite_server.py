@@ -227,10 +227,10 @@ def catch_all(u_path):
         fred_client.set_data_to_last_layer(file_id, lorem_text)
         logger.info(f"added new key: {file_id} in {fred_client.lowestKeygroup}")
         # return r.text
-        return lorem_text
+        return json.dumps({ 'hit' : False})
     else:
         logger.info(f"key was found: {file_id}")
-        return saved
+        return json.dumps({ 'hit' : True})
 
 if __name__ == "__main__":
     # Loading certificates
@@ -258,4 +258,7 @@ if __name__ == "__main__":
     simulation_thread = Thread(target = position_query, args = (satellite,))
     simulation_thread.start()
     
-    app.run(debug=True, host=ip, port=port, use_reloader=False)
+    reader = csv.reader(files_csv)
+    for line in reader:
+        logger.info(line)
+        
