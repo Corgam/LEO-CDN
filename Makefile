@@ -1,21 +1,24 @@
-.PHONY: generate run setup stardust clean compile_grpc_python coordinator
+.PHONY: generate workload run setup gsts clean compile_grpc_python coordinator
 
 generate:
 	@python ./generator.py
 
-run:
+workload:
+	@python ./generate_workload.py
+
+satellites:
 	@sh ./temp/run-nodes.sh
 
-setup: generate run
+setup: generate coordinator
 		
-stardust:
-	@! docker ps -a | grep stardust || docker container rm stardust -f
-	@docker build -f ./stardust/stardust.Dockerfile -t stardust .
+gsts:
+	@! docker ps -a | grep gsts || docker container rm gsts -f
+	@docker build -f ./gsts/gsts.Dockerfile -t gsts .
 	@docker run -it \
-		--name stardust \
+		--name gsts \
 		--network=fredwork \
-		--ip=172.26.8.4 \
-		stardust
+		--ip=172.26.8.5 \
+		gsts
 
 clean:
 	@sh temp/clean.sh
@@ -25,6 +28,7 @@ compile_grpc_python:
 
 coordinator:
 # Run the coordinator and the simulation
+	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || true
 	@! docker ps -a | grep coordinator || docker container rm coordinator -f
 	@mkdir -p output/frames
 	@rm -rf output/frames/*

@@ -8,3 +8,9 @@ matplotlib==3.4.2
 flask==2.0.0
 requests==2.25.1
 h3~=3.7.2
+lorem-text
+toml==0.10.2
+flask-sqlalchemy==2.5.1
+mysqlclient==2.0.3
+PyMySQL==1.0.2
+cryptography==3.4.7

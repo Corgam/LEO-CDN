@@ -56,6 +56,30 @@ services:
     networks:
       fredwork:
         ipv4_address: {{ store_IP }}
+  
+  {{ server_name }}_db:
+    image: mysql
+    ports:
+      - {{ db_port }}:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+    volumes:
+      - ../../satellite/db/{{node_name}}/mysql:/var/lib/mysql
+      - ../../satellite/db/{{node_name}}/mysql_files:/var/lib/mysql_files
+      - ../../satellite/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      fredwork:
+        ipv4_address: {{ db_IP }}
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   {{ server_name }}:
     build:
@@ -63,6 +87,8 @@ services:
       dockerfile: satellite.Dockerfile
     depends_on:
     - {{ node_name }}
+    - {{ server_name }}_db
+    restart: on-failure
     image: satellite:local
     container_name: {{ server_name }}
     volumes:
@@ -71,6 +97,9 @@ services:
       - ../../common/cert/ca.crt:/cert/ca.crt
       - ../../temp/freds.json:/info/nodes.json
       - ../../temp/{{ server_name }}.json:/info/node.json
+      - ../../temp/logs:/logs
+      - ../../config.toml:/config.toml
+      - ../../satellite/db/{{node_name}}:/db
     networks:
       fredwork:
         ipv4_address: {{ server_IP }}

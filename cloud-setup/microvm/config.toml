@@ -3,13 +3,9 @@ model = "SGP4"
 
 # bounding box of coverage area in lat-long (bottom left) lat-long (top right)
 # http://bboxfinder.com/
-bbox = [34.657635,-13.881488,58.794799,26.196637]
+bbox = [-85.000000, -180.000000, 85.000000, 180.000000]
 
-# maxmimum update frequency in Hz
-# e.g. "1.0" means the model is updated once every second
-# higher frequencies lead to more resource consumption,
-# lower frequencies are less accurate
-frequency = 0.5
+interval = 1
 
 # whether to animate the constellation
 # for debug purposes
@@ -17,17 +13,17 @@ animation = false
 
 # endpoints of machines running firecracker and
 # our api
-hosts = ["34.89.212.29:1969"]
+hosts = ["172.17.0.1:1969"]
 # hosts = ["35.246.247.15:1969", "34.107.74.168:1969"]
 # peer addresses of our hosts so they can talk
 # to each other
-peeringhosts = ["127.0.0.1:1970"]
+peeringhosts = ["172.17.0.1:1970"]
 # peeringhosts = ["192.168.0.20:1970", "192.168.0.30:1970"]
 
 # whether to enable database for machines
 database = true
 # dbhost if database is enabled
-dbhost = "127.0.0.1:8000"
+dbhost = "172.17.0.1:8000"
 
 [networkparams]
 # ISL propagation factor
@@ -42,18 +38,20 @@ bandwidth = 10_000
 # for example, if a link goes below 100km at
 # its lowest point, light might be fractured
 # by the atmosphere
-mincommsaltitude = 100_000
+#mincommsaltitude = 100_000
+mincommsaltitude = 0
 
 # minimum elevation of satellites in order for a ground station
 # to connect, in degrees (0<= minelevation <= 90)
 # if there is no satellite within this distance from
 # a ground station, the ground station is cut off from
 # the satellite network
-minelevation = 40
+#minelevation = 40
+minelevation = 0
 
 # gstpropagation describes the delay of the uplink, in ms/m
 # this is probably higher than in a vacuum, maybe 1/(2c)?
-gstpropagation = 6.672e-6
+gstpropagation = 3.336e-6
 
 # ground station connection type
 # how many satellites can a ground station connect to?
@@ -107,93 +105,18 @@ mem_size_mib = 128
 ht_enabled = false
 # name of the kernel file (must be in the "/celestial" folder
 # of the hosts)
-kernel = "hello-vmlinux.bin"
+kernel = "vmlinux-5.10.bin"
 # name of the rootfs (must be in the "/celestial" folder of
 # the hosts)
-rootfs = "rootfs.ext4"
+rootfs = "rootfs-sat.ext4"
 
 bootparams = ""
 
-# # arbitrary number of shells can be used
-# [[shell]]
-# # shell must have a number of planes (evenly spaced around the globe)
-# planes = 72
-# # define how many satellites per orbit
-# sats = 22
-# # define altitude of satellites in km
-# altitude = 550
-# # define orbital inclination in degrees
-# inclination = 53.0
-# # The angle of arc (in degrees) that the ascending nodes of all the
-# # orbital planes is evenly spaced along. Ex, seting this to 180 results
-# # in a Pi constellation like Iridium
-# # you'll probably want to set this to 360.0 to cover the entire globe
-# arcofascendingnodes = 360.0
-# # eccentricity of orbit, between 0.0 (circular)
-# # and 1.0 (parabolic)
-# # mostly 0.0 for LEO constellations
-# # for reference:
-# # STARLINK-2046 0.0001205
-# # ONEWEB-145 0.0012512
-# eccentricity = 0.0
-
-
-
-# # possible to override some sgp4params for specific orbits
-# # starttime, model, and mode cannot be overriden
-# [shell.sgp4params]
-# bstar = 0.0
-# ndot = 0.0
-
-
-# # also possible to override computeparams for specific orbits
-# [shell.computeparams]
-# # how much memory to allocate to each server
-# mem_size_mib = 256
-
-# # also possible to override network params for specific orbits
-# [shell.networkparams]
-# islpropagation = 3.336e-6
-# bandwidth = 10_000
-# mincommsaltitude = 100_000
-
-# [[shell]]
-# planes = 32
-# sats = 50
-# altitude = 1110
-# inclination = 53.8
-# arcofascendingnodes = 360.0
-# eccentricity = 0.0
-
-# [[shell]]
-# planes = 8
-# sats = 50
-# altitude = 1130
-# inclination = 74.0
-# arcofascendingnodes = 360.0
-# eccentricity = 0.0
-
-# [[shell]]
-# planes = 5
-# sats = 75
-# altitude = 1275
-# inclination = 81.0
-# arcofascendingnodes = 360.0
-# eccentricity = 0.0
-
-# [[shell]]
-# planes = 1
-# sats = 10
-# altitude = 1325
-# inclination = 53.0
-# arcofascendingnodes = 360.0
-# eccentricity = 0.0
-
 [[shell]]
 planes = 1
-sats = 5
-altitude = 1325
-inclination = 70.0
+sats = 12
+altitude = 550
+inclination = 53.0
 arcofascendingnodes = 360.0
 eccentricity = 0.0
 
@@ -210,11 +133,11 @@ long = 13.32666938
 # how many vCPUs to allocate to ground station server
 vcpu_count = 1
 # how much memory to allocate to ground station server
-mem_size_mib = 1024 
+mem_size_mib = 1024
 # enable Hyperthreading (default is off)
 ht_enabled = true
-kernel = "hello-vmlinux.bin"
-rootfs = "rootfs.ext4"
+kernel = "vmlinux-5.10.bin"
+rootfs = "rootfs-gst.ext4"
 
 # ground station also needs network params
 [groundstation.networkparams]
@@ -224,73 +147,3 @@ gstpropagation = 6.672e-6
 # bandwidth from ground terminal to satellite in Mbit/s
 # let's go with 1Gbit/s
 bandwidth = 1_000
-
-# [[groundstation]]
-# name = "Aliso Viejo"
-# lat = 33.57
-# long = -117.73
-
-# [[groundstation]]
-# name = "Buffalo"
-# lat = 42.89
-# long = -78.86
-
-# [[groundstation]]
-# name = "Camden"
-# lat = 39.94
-# long = -75.11
-
-# [[groundstation]]
-# name = "Chapel Hill"
-# lat = 35.93
-# long = -79.04
-
-# [[groundstation]]
-# name = "Charleston"
-# lat = 32.79
-# long = -79.99
-
-# [[groundstation]]
-# name = "Charlotte"
-# lat = 35.2
-# long = -80.83
-
-# [[groundstation]]
-# name = "Chattanooga"
-# lat = 35.07
-# long = -85.26
-
-# [[groundstation]]
-# name = "Cherry Hill"
-# lat = 39.9
-# long = -75
-
-# [[groundstation]]
-# name = "Chesapeake"
-# lat = 36.68
-# long = -76.31
-
-# [[groundstation]]
-# name = "East Orange"
-# lat = 40.77
-# long = -74.21
-
-# [[groundstation]]
-# name = "East Providence"
-# lat = 41.8
-# long = -71.36
-
-# [[groundstation]]
-# name = "Eau Claire"
-# lat = 44.82
-# long = -91.49
-
-# [[groundstation]]
-# name = "Eden Prairie"
-# lat = 44.85
-# long = -93.46
-
-# [[groundstation]]
-# name = "Edinburg"
-# lat = 26.3
-# long = -98.16

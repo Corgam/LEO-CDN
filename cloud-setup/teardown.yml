@@ -2,11 +2,11 @@
   hosts: localhost
   gather_facts: no
   vars:
-      gcp_project: leo-cdn
-      gcp_cred_kind: serviceaccount
-      gcp_cred_file: gcp.json
-      zone: "europe-west3-c"
-      region: "europe-west3"
+    gcp_project: leo-cdn
+    gcp_cred_kind: serviceaccount
+    gcp_cred_file: gcp.json
+    zone: "europe-west3-a"
+    region: "europe-west3"
 
   tasks:
     - name: Destroy our instance
@@ -23,7 +23,7 @@
 
     - name: Delete our disk
       gcp_compute_disk:
-        name: 'disk-dbuster-ans'
+        name: "disk-dbuster-ans"
         state: absent
 
         zone: "{{ zone }}"
@@ -43,7 +43,7 @@
     - name: Get address
       tags: [instance]
       gcp_compute_address:
-        name: 'address-instance'
+        name: "address-instance"
 
         region: "{{ region }}"
         project: "{{ gcp_project }}"

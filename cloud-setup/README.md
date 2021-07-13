@@ -13,7 +13,9 @@ It can be useful to have the `gcloud` CLI tool installed as the web interface is
 
 To run the cloud setup, you need to have Ansible installed on your machine.
 
-The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang`.
+The required ansible modules can be installed using `ansible-galaxy collection install ansible.posix community.general google.cloud gantsign.golang andrewrothstein.firecracker geerlingguy.docker`.
+
+Note: In case `gantsign.golang` or `andrewrothstein.firecracker` or `geerlingguy.docker` cannot be found, install them via: `ansible-galaxy install andrewrothstein.firecracker gantsign.golang geerlingguy.docker`.
 
 ## Starting the VM
 
@@ -39,6 +41,8 @@ To do the full teardown, you need to run `ansible-playbook teardown.yml`. If you
 
 The celestial server needs to be started manually for now.
 
+To keep the simulation running without an active SSH session, you can use `tmux`.
+
 To do so, log in via ssh:
 
 `ssh 34.89.212.29`
@@ -51,13 +55,48 @@ and start celestial:
 
 `make runserver`
 
+and in a separate shell:
+
+`cd celestial`
+
+`make container`
+
+`sudo docker run -p 8000:8000 --rm -it -v /config.toml:/config.toml celestial /config.toml`
+
+## Working in the VM environment
+### The Celestial APIs
+
+The `drill` DNS client is available to interact with Celestials [DNS API](https://github.com/OpenFogStack/celestial#dns-api).
+
+`drill @127.0.0.1 0.0.celestial`
+
+`drill @127.0.0.1 Berlin.gst.celestial`
+
+The [HTTP API](https://github.com/OpenFogStack/celestial#http-api) can be queried using `curl`
+
+`curl localhost/info`
+
+`curl localhost/shell/0/0`
+### Interacting with the MicroVMs
+
+We can login to the microvms using ssh. The username is `user` and password `leocdn`.
+
 ## building the rootfs and kernel
 
 Rootfs and kernel can be downloaded using the `dl-microvm.sh` script.
 
 The rootfs can also be built using the builder in the `microvm` directory.
 
+Note: In case the files take too long, try downloading them via browser.
+
 ### state of the rootfs
+
+The rootfs doesn't contain our application yet.
+
+The DNS server needs to be configured to Celestial.
+
+
+
 
 The current rootfs is way too large.
 
@@ -81,3 +120,25 @@ Some useful commands are listed below:
 
 ### Delete all instances
 `gcloud compute instances delete $(gcloud compute instances list --project leo-cdn | awk '(NR>1) {print $1}')`
+
+## local testing
+
+We use the existing docker bridge to minimize messing around with the network settings.
+
+(rootfs)[https://ipfs.io/ipfs/QmfSekKPHgS38KPLQWQuU7w8DPTqEqmcUQKYRJo18Tzv5z?filename=rootfs-loc.ext4.zst]
+
+Create a new tap device
+
+`sudo ip tuntap add veth0 mode tap`
+
+Add it to the docker bridge
+
+`sudo brctl addif docker0 veth0`
+
+Get the MAC adress
+
+`ip a | grep -A1 veth0 | grep ether`
+
+Start microvm (insert MAC)
+
+`firectl --kernel=hello-vmlinux.bin --root-drive=rootfs-loc.ext4 --tap-device=veth0/xx:xx:xx:xx:xx:xx`
