@@ -21,16 +21,20 @@ class FredClient:
             root_certificates=ca_crt,
         )
 
-        self.channel = grpc.secure_channel(target, credentials=self.creds)
         self.keygroups = []
+        self.lowestKeygroup = ""
     
+    def setLowestKeygroup(self, kg):
+        self.lowestKeygroup = kg
+
     def get_all_existing_replica_nodes(self):
         self.logger.info("Retrieving all replica nodes: ")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        status_response = stub.GetAllReplica(
-            client_pb2.GetAllReplicaRequest()
-        )
-        self.logger.info(status_response)
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.GetAllReplica(
+                client_pb2.GetAllReplicaRequest()
+            )
+            self.logger.info(status_response)
 
     def create_keygroup(self, keygroup, mutable=True, expiry=0):
         """
@@ -54,15 +58,13 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Initializing {keygroup} at {self.name}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        status_response = stub.CreateKeygroup(
-            client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
-        )
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.CreateKeygroup(
+                client_pb2.CreateKeygroupRequest(keygroup=keygroup, mutable=mutable)
+            )
         if status_response.status == 0:
             self.keygroups.append(keygroup)
-            self.logger.info(f"Initializing succeeded...")
-        else:
-            self.logger.info(f"Failed initializing {keygroup} at {self.name}...")
         return status_response
     
     def add_replica_node_to_keygroup(self, keygroup):
@@ -83,10 +85,11 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Adding {self.name} to {keygroup}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        status_response = stub.AddReplica(
-            client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
-        )
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.AddReplica(
+                client_pb2.AddReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+            )
 
         if status_response.status == 0:
             self.keygroups.append(keygroup)
@@ -112,14 +115,13 @@ class FredClient:
             1 means error and 0 means OK.
         """
         self.logger.info(f"Removing {self.name} from {keygroup}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        status_response = stub.RemoveReplica(
-            client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
-        )
-        self.logger.info(f"{self.name} tried to leave keygroup...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            status_response = stub.RemoveReplica(
+                client_pb2.RemoveReplicaRequest(keygroup=keygroup, nodeId=self.fred)
+            )
         
         if status_response.status == 0:
-            self.logger.info(f"{self.name} successfully left keygroup...")
             self.keygroups.remove(keygroup)
         
         return status_response
@@ -127,44 +129,90 @@ class FredClient:
     # Adds data to a keygroup
     def set_data(self, kg, key, value):
         self.logger.info(f"Adding {key}:{value} to {kg}...")
-        stub = client_pb2_grpc.ClientStub(self.channel)
-        try:
-            response = stub.Update(
-                client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            try:
+                response = stub.Update(
+                    client_pb2.UpdateRequest(keygroup=kg, id=key, data=value)
+                )
+                self.logger.info(response)
+            except Exception as e:
+                response = self.read_file_from_node(kg, key)
+                if response:
+                    cur_data = json.loads(response)
+                    cur_data.append(value)
+                    self.set_data(kg, key, json.dumps(cur_data))
+
+    # Adds data to the lowest layer keygroup
+    def set_data_to_last_layer(self, key, value):
+        self.logger.info(f"Adding to {self.lowestKeygroup} {key}:{value} ...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+            try:
+                response = stub.Update(
+                    client_pb2.UpdateRequest(keygroup=self.lowestKeygroup, id=key, data=value)
+                )
+                self.logger.info(response)
+            except Exception as e:
+                response = self.read_file_from_node(self.lowestKeygroup, key)
+                if response:
+                    cur_data = json.loads(response)
+                    cur_data.append(value)
+                    self.set_data(self.lowestKeygroup, key, json.dumps(cur_data))
+
+    def remove_data(self, kg, file_id):
+        self.logger.info(f"Removing file {file_id} from {kg}...")
+        with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+            stub = client_pb2_grpc.ClientStub(channel)
+
+            response = stub.Delete(
+                client_pb2.DeleteRequest(keygroup=kg, id=file_id)
             )
             self.logger.info(response)
-        except Exception as e:
-            response = self.read_file_from_node(kg, key)
-            if response:
-                cur_data = json.loads(response.data)
-                cur_data.append(value)
-                self.set_data(kg, key, json.dumps(cur_data))
+            if response.status == 0:
+                self.logger.info(f"Successfully removed file {file_id}")
+            return response
     
     # Reads file
     def read_file_from_node(self, keygroup, file_id):
         try:
             print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
-            stub = client_pb2_grpc.ClientStub(self.channel)
-            response = stub.Read(
-                client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-            )
-            print(response)
-            return response
+            with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+                stub = client_pb2_grpc.ClientStub(channel)
+                response = stub.Read(
+                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+                )
+                return response.data
         except Exception as e:
             # if file does not exist an error is raised
             # return str(e)
             return ""
+    
+    # Get replicas
+    def get_keygroup_replica(self, kg):
+        try:
+            with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+                stub = client_pb2_grpc.ClientStub(channel)
+                response = stub.GetKeygroupReplica(
+                    client_pb2.GetKeygroupReplicaRequest(keygroup=kg)
+                )
+                return response
+        except Exception as e:
+            self.logger.info(e)
+            return "[none]"
+        
 
     # Reads file
     def read_file(self, file_id):
         for keygroup in self.keygroups:
             try:
                 print(f"Reading {file_id=} in {keygroup=} from {self.name=}...")
-                stub = client_pb2_grpc.ClientStub(self.channel)
-                response = stub.Read(
-                    client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
-                )
-                return response.data
+                with grpc.secure_channel(self.target, credentials=self.creds) as channel:
+                    stub = client_pb2_grpc.ClientStub(channel)
+                    response = stub.Read(
+                        client_pb2.ReadRequest(keygroup=keygroup, id=file_id)
+                    )
+                    return response.data
             except:
                 # if file does not exist an error is raised
                 continue

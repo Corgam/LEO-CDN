@@ -56,7 +56,7 @@ services:
     networks:
       fredwork:
         ipv4_address: {{ store_IP }}
-  
+
   {{ server_name }}_db:
     image: mysql
     ports:
@@ -85,6 +85,9 @@ services:
     build:
       context: ../../satellite/
       dockerfile: satellite.Dockerfile
+    command: gunicorn --bind {{ server_IP }}:{{ server_port }} --worker-class=gevent --workers 3 satellite_server:app
+    ports:
+      - 5000:5000
     depends_on:
     - {{ node_name }}
     - {{ server_name }}_db
