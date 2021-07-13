@@ -14,3 +14,5 @@ flask-sqlalchemy==2.5.1
 mysqlclient==2.0.3
 PyMySQL==1.0.2
 cryptography==3.4.7
+gunicorn[gevent]==20.1.0
+greenlet==1.1.0

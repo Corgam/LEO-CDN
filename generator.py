@@ -114,8 +114,9 @@ for x in range(nodes):
         nase_host=nase_host,
         server_name=server_name,
         server_IP=server_IP,
+        server_port=5000,
         db_IP=db_IP,
-        db_port=db_port
+        db_port=db_port,
     )
     with open(f"./temp/satellite{x}.yml", "w") as f:
         f.write(nodex_yaml)

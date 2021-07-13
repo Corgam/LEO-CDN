@@ -1,9 +1,18 @@
-from flask import *
+import csv
+import datetime
 import json
 import logging
+import sqlite3
 import time
+from multiprocessing import Process
+
+import toml
+from flask import Flask, jsonify, request
+from lorem_text import lorem
 from PyAstronomy import pyasl
+
 from fred_client import FredClient
+from Request import Request, db
 from satellite import Satellite
 from lorem_text import lorem
 import csv
@@ -15,16 +24,16 @@ from threading import Thread
 
 
 # from pathlib import Path
-# 
+#
 # Path("/db").mkdir(parents=True, exist_ok=True)
 
 # Load the config
 with open("./config.toml") as f:
-    node_configs = toml.load(f)
+    configs = toml.load(f)
 
 # Frequency for sending position queries
-frequency = node_configs["satellites"]["position_interval"]
-keygroup_layers = node_configs["satellites"]["keygroup_layers"]
+frequency = configs["satellites"]["position_interval"]
+keygroup_layers = configs["satellites"]["keygroup_layers"]
 
 # Loading node configurations
 with open("/info/node.json") as f:
@@ -35,7 +44,7 @@ ip = node_configs[name]["server"]
 port = node_configs[name]["sport"]
 fred = node_configs[name]["fred"]
 target = f"{node_configs[name]['node']}:{node_configs[name]['nport']}"
-db_server = node_configs[name]['db']
+db_server = node_configs[name]["db"]
 
 
 # Loading node configurations
@@ -44,18 +53,20 @@ with open("/info/nodes.json") as f:
 
 nodes = [key for key in node_configs.keys()]
 
-logging.basicConfig(filename='/logs/' + name + '_server.log',
-                    filemode='a',
-                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.INFO)
-logger = logging.getLogger(f'{name}_server')
+logging.basicConfig(
+    filename="/logs/" + name + "_server.log",
+    filemode="a",
+    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.INFO,
+)
+logger = logging.getLogger(f"{name}_server")
 
-files_csv = open('./files.csv', "r")
+files_csv = open("./files.csv", "r")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:123@{db_server}/leo_cdn'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://root:123@{db_server}/leo_cdn"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.app = app
 db.init_app(app)
@@ -125,7 +136,6 @@ def append_data(keygroup, key, entry):
     return json.dumps(cur_data)
     # return response
 
-
 def position_query(satellite):
     while (True):
         satellite.check_keygroup()
@@ -181,14 +191,14 @@ def appendData(keygroup, key):
     return cur_data, 200
 
 
-@app.route('/getLocation')
+@app.route("/getLocation")
 def getLocation():
     return str(satellite.get_current_position())
-
 
 @app.route('/currentKeygroup')
 def addSatellite():
     return " ".join(str(x) for x in fred_client.get_keygroups())
+
 
 
 @app.route('/mostPopularFile')
@@ -222,7 +232,6 @@ def catch_all(u_path):
         logger.info(f"key was found: {file_id}")
         return saved
 
-
 if __name__ == "__main__":
     # Loading certificates
     with open("/cert/client.crt", "rb") as f:
@@ -248,5 +257,5 @@ if __name__ == "__main__":
 
     simulation_thread = Thread(target = position_query, args = (satellite,))
     simulation_thread.start()
-
+    
     app.run(debug=True, host=ip, port=port, use_reloader=False)
