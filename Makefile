@@ -1,9 +1,9 @@
-.PHONY: generate generate_workload run setup gsts clean compile_grpc_python coordinator
+.PHONY: generate workload run setup gsts clean compile_grpc_python coordinator
 
 generate:
 	@python ./generator.py
 
-generate_workload:
+workload:
 	@python ./generate_workload.py
 
 satellites:
@@ -28,6 +28,7 @@ compile_grpc_python:
 
 coordinator:
 # Run the coordinator and the simulation
+	@docker network create fredwork --gateway 172.26.0.1 --subnet 172.26.0.0/16 || true
 	@! docker ps -a | grep coordinator || docker container rm coordinator -f
 	@mkdir -p output/frames
 	@rm -rf output/frames/*

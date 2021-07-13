@@ -15,6 +15,7 @@ with open("./config.toml") as f:
 # TODO: Read the cities list from config
 input_file = config["general"]["gsts_list"]
 output_file = config["workload"]["output_file"]
+file_size_output_file = config["workload"]["file_size_output_file"]
 
 print(f"Reading input file from {input_file}")
 df_gst = pd.read_csv(input_file)
@@ -60,7 +61,9 @@ zmin = np.min(X_transformed[:, 1])
 zmax = np.max(X_transformed[:, 1])
 
 xx, yy, zz = np.mgrid[xmin:xmax:10j, ymin:ymax:10, zmin:zmax:10j]
-positions = np.vstack([xx.ravel(), yy.ravel(), zz.ravel()])
+
+# file_id is index in file_positions
+file_positions = np.vstack([xx.ravel(), yy.ravel(), zz.ravel()])
 
 
 def calculate_distance_to_files(gst_coords, files_coords):
@@ -77,10 +80,21 @@ for index, row in df_gst.iterrows():
     gst_id = row.id
     print(f"Computing file popularity for ground station {gst_id}...")
     gst_coords = row[["x", "y", "z"]].to_numpy()
-    D = calculate_distance_to_files(gst_coords, positions)
+    D = calculate_distance_to_files(gst_coords, file_positions)
 
     file_order = D.argsort()
     gst_file_orders[gst_id] = file_order.tolist()
+
+
+# https://www.researchgate.net/publication/227252035_Web_Workload_Characterization_Ten_Years_Later suggest pareto distribution with alpha~1
+# https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwjhpZj0wMzxAhUhg_0HHXalChQQFjAAegQIAhAD&url=https%3A%2F%2Fwww.cc.gatech.edu%2F~dovrolis%2FCourses%2F8803_F03%2Famogh.ppt&usg=AOvVaw3OA7_OuBWI0B1lMUOV9dVh suggests lognormal model or  hybrid model with lognormal distribution with a Pareto tail
+file_sizes = np.ceil(
+    np.random.pareto(int(config["workload"]["pareto_alpha"]), file_positions.shape[0])
+)
+
+df_fs = pd.DataFrame(data=file_sizes, columns=["file_size"])
+df_fs.index.name = "file_id"
+df_fs.to_csv(file_size_output_file, mode="w", index=True)
 
 print(f"Saving file popularity output file to {output_file}...")
 with open(output_file, "w") as f:
