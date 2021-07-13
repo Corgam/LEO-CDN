@@ -17,7 +17,7 @@ gsts:
 	@docker run -it \
 		--name gsts \
 		--network=fredwork \
-		--ip=172.26.8.5 \
+		--ip=172.26.8.4 \
 		gsts
 
 clean:

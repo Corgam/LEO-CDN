@@ -84,9 +84,9 @@ class SatellitePos:
         self.x_position = int(np.int32(updated_position[0]))
         self.y_position = int(np.int32(updated_position[1]))
         self.z_position = int(np.int32(updated_position[2]))
-        print(
-            f"Position Update ({self.name}: {self.x_position} - {self.y_position} - {self.z_position}"
-        )
+        # print(
+        #     f"Position Update {self.name}: {self.x_position} - {self.y_position} - {self.z_position}"
+        # )
 
     def set_xyz_position(self, x, y, z):
         self.x_position = x
