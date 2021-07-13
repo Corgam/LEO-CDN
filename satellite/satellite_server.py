@@ -5,20 +5,13 @@ import logging
 import sqlite3
 import time
 from multiprocessing import Process
-
 import toml
 from flask import Flask, jsonify, request
 from lorem_text import lorem
 from PyAstronomy import pyasl
-
 from fred_client import FredClient
 from Request import Request, db
 from satellite import Satellite
-from lorem_text import lorem
-import csv
-import toml
-from Request import db, Request
-import datetime
 from sqlalchemy import text
 from threading import Thread
 
@@ -78,30 +71,6 @@ db.session.commit()
 #########################
 ## Internal functions  ##
 #########################
-
-
-# def join_managing_keygroups():
-#     try_joining = False
-#     try:
-#         response = fred_client.create_keygroup("manage")
-#         if response.status != 0:
-#             response = fred_client.add_replica_node_to_keygroup("manage")
-#             if response.status == 0:
-#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-#             else:
-#                 logger.info(f"Couldn't create nor join manage")
-#         else:
-#             fred_client.set_data("manage", "addresses", json.dumps(
-#                 ["http://" + ip + ":" + str(port) + "/"]))
-#     except Exception as e:
-#         try:
-#             response = fred_client.add_replica_node_to_keygroup("manage")
-#             if response.status == 0:
-#                 append_data("manage", "addresses", "http://" + ip + ":" + str(port) + "/")
-#             else:
-#                 logger.info(f"Couldn't create nor join manage")
-#         except Exception as e:
-#             logger.info(f"Couldn't create nor join manage")
 
 def get_file_ids_and_count():
     date = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
@@ -252,12 +221,7 @@ satellite = Satellite(
     db_rm_all=rm_all_lines_in_db_table
 )
 
-    # join_managing_keygroups()
+# join_managing_keygroups()
 
 simulation_thread = Thread(target = position_query, args = (satellite,))
 simulation_thread.start()
-
-reader = csv.reader(files_csv)
-for line in reader:
-    logger.info(line)
-        
