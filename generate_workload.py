@@ -57,10 +57,11 @@ xmax = np.max(X_transformed[:, 0])
 ymin = np.min(X_transformed[:, 1])
 ymax = np.max(X_transformed[:, 1])
 
-zmin = np.min(X_transformed[:, 1])
-zmax = np.max(X_transformed[:, 1])
+zmin = np.min(X_transformed[:, 2])
+zmax = np.max(X_transformed[:, 2])
 
-xx, yy, zz = np.mgrid[xmin:xmax:10j, ymin:ymax:10, zmin:zmax:10j]
+files_per_dim = config["workload"]["num_files"] ** (1./3) * 1j
+xx, yy, zz = np.mgrid[xmin:xmax:files_per_dim, ymin:ymax:files_per_dim, zmin:zmax:files_per_dim]
 
 # file_id is index in file_positions
 file_positions = np.vstack([xx.ravel(), yy.ravel(), zz.ravel()])

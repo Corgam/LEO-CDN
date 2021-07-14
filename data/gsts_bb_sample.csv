@@ -1,0 +1,51 @@
+city,city_ascii,lat,lng,country,iso2,iso3,admin_name,capital,population,id
+Obernkirchen,Obernkirchen,52.2664,9.1178,Germany,DE,DEU,Lower Saxony,,9246.0,1276033571
+Herzogenrath,Herzogenrath,50.8667,6.1,Germany,DE,DEU,North Rhine-Westphalia,,46402.0,1276873875
+Lahnstein,Lahnstein,50.3011,7.6056,Germany,DE,DEU,Rhineland-Palatinate,,18067.0,1276335770
+Medebach,Medebach,51.1972,8.7069,Germany,DE,DEU,North Rhine-Westphalia,,8055.0,1276925254
+Gamprin,Gamprin,47.2199,9.5099,Liechtenstein,LI,LIE,Gamprin,admin,,1438568521
+Delitzsch,Delitzsch,51.5264,12.3425,Germany,DE,DEU,Saxony,,24868.0,1276928962
+Erkrath,Erkrath,51.2239,6.9147,Germany,DE,DEU,North Rhine-Westphalia,,44384.0,1276917229
+Fürstenau,Furstenau,52.5167,7.6667,Germany,DE,DEU,Lower Saxony,,9439.0,1276365707
+Rosenfeld,Rosenfeld,48.2864,8.7242,Germany,DE,DEU,Baden-Württemberg,,6347.0,1276473331
+Weinsberg,Weinsberg,49.1519,9.2858,Germany,DE,DEU,Baden-Württemberg,,12336.0,1276634003
+Stavelot,Stavelot,50.3947,5.9297,Belgium,BE,BEL,Wallonia,,7145.0,1056769188
+Třemošná,Tremosna,49.8159,13.3951,Czechia,CZ,CZE,Plzeňský Kraj,,5082.0,1203235254
+Osterwieck,Osterwieck,51.9667,10.7167,Germany,DE,DEU,Saxony-Anhalt,,11103.0,1276571992
+Buchen in Odenwald,Buchen in Odenwald,49.5217,9.3233,Germany,DE,DEU,Baden-Württemberg,,17796.0,1276974738
+Zittau,Zittau,50.8961,14.8072,Germany,DE,DEU,Saxony,,25381.0,1276061456
+Forchtenberg,Forchtenberg,49.2833,9.5667,Germany,DE,DEU,Baden-Württemberg,,5057.0,1276130592
+Elsfleth,Elsfleth,53.2333,8.4667,Germany,DE,DEU,Lower Saxony,,9105.0,1276056093
+Ettlingen,Ettlingen,48.9333,8.4,Germany,DE,DEU,Baden-Württemberg,,39339.0,1276126657
+Lengenfeld,Lengenfeld,50.5667,12.3667,Germany,DE,DEU,Saxony,,7118.0,1276728827
+Plzeň,Plzen,49.7414,13.3825,Czechia,CZ,CZE,Plzeňský Kraj,admin,174842.0,1203402469
+Waldbröl,Waldbrol,50.8789,7.615,Germany,DE,DEU,North Rhine-Westphalia,,19543.0,1276170251
+Braunsbedra,Braunsbedra,51.2833,11.9,Germany,DE,DEU,Saxony-Anhalt,,10678.0,1276157165
+Rakovník,Rakovnik,50.1038,13.7335,Czechia,CZ,CZE,Středočeský Kraj,,15709.0,1203062806
+Blankenhain,Blankenhain,50.86,11.3439,Germany,DE,DEU,Thuringia,,6455.0,1276207910
+Schwandorf,Schwandorf,49.3236,12.0993,Germany,DE,DEU,Bavaria,minor,28828.0,1276268287
+Slaný,Slany,50.2305,14.087,Czechia,CZ,CZE,Středočeský Kraj,,15864.0,1203367412
+Havlíčkŭv Brod,Havlickuv Brod,49.6079,15.5807,Czechia,CZ,CZE,Vysočina,,23442.0,1203272361
+Glauchau,Glauchau,50.8233,12.5444,Germany,DE,DEU,Saxony,,22440.0,1276610130
+Flawil,Flawil,47.4053,9.1977,Switzerland,CH,CHE,Sankt Gallen,,10520.0,1756417053
+Gladbeck,Gladbeck,51.5713,6.9827,Germany,DE,DEU,North Rhine-Westphalia,,75687.0,1276216238
+Kamp-Lintfort,Kamp-Lintfort,51.5,6.5333,Germany,DE,DEU,North Rhine-Westphalia,,37391.0,1276081102
+Horn,Horn,48.6653,15.6558,Austria,AT,AUT,Niederösterreich,minor,6520.0,1040255352
+Bünde,Bunde,52.2,8.6,Germany,DE,DEU,North Rhine-Westphalia,,45521.0,1276719683
+Flöha,Floha,50.8558,13.0714,Germany,DE,DEU,Saxony,,10762.0,1276141987
+Bassersdorf,Bassersdorf,47.4431,8.6283,Switzerland,CH,CHE,Zürich,,11593.0,1756124438
+Borna,Borna,51.1167,12.5,Germany,DE,DEU,Saxony,,19229.0,1276020510
+Olching,Olching,48.2,11.3167,Germany,DE,DEU,Bavaria,,27741.0,1276458023
+Gmunden,Gmunden,47.9181,13.7994,Austria,AT,AUT,Oberösterreich,minor,13191.0,1040670341
+Dohna,Dohna,50.9547,13.8575,Germany,DE,DEU,Saxony,,6146.0,1276926166
+Neuwied,Neuwied,50.4286,7.4614,Germany,DE,DEU,Rhineland-Palatinate,minor,64574.0,1276935443
+Elze,Elze,52.1167,9.7333,Germany,DE,DEU,Lower Saxony,,8939.0,1276949287
+Meiningen,Meiningen,50.55,10.4167,Germany,DE,DEU,Thuringia,minor,24233.0,1276941916
+Gerlingen,Gerlingen,48.8,9.0653,Germany,DE,DEU,Baden-Württemberg,,19745.0,1276144443
+Ramstein-Miesenbach,Ramstein-Miesenbach,49.4461,7.5547,Germany,DE,DEU,Rhineland-Palatinate,,7876.0,1276693089
+Neustadt bei Coburg,Neustadt bei Coburg,50.3289,11.1211,Germany,DE,DEU,Bavaria,,15257.0,1276116282
+Malchin,Malchin,53.7333,12.7833,Germany,DE,DEU,Mecklenburg-Western Pomerania,,7403.0,1276013353
+Stein bei Nürnberg,Stein bei Nurnberg,49.4167,11.0167,Germany,DE,DEU,Bavaria,,13996.0,1276407895
+Bergneustadt,Bergneustadt,51.0333,7.65,Germany,DE,DEU,North Rhine-Westphalia,,18865.0,1276283829
+Wetzlar,Wetzlar,50.5667,8.5,Germany,DE,DEU,Hesse,minor,52954.0,1276020868
+Borgholzhausen,Borgholzhausen,52.1,8.3,Germany,DE,DEU,North Rhine-Westphalia,,8973.0,1276557759
