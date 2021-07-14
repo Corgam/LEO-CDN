@@ -86,8 +86,6 @@ services:
       context: ../../satellite/
       dockerfile: satellite.Dockerfile
     command: gunicorn --bind {{ server_IP }}:{{ server_port }} --worker-class=gevent --workers 3 satellite_server:app
-    ports:
-      - 5000:5000
     depends_on:
     - {{ node_name }}
     - {{ server_name }}_db
@@ -101,6 +99,7 @@ services:
       - ../../temp/freds.json:/info/nodes.json
       - ../../temp/{{ server_name }}.json:/info/node.json
       - ../../temp/logs:/logs
+      - ../../temp/file_sizes.csv:/files.csv
       - ../../config.toml:/config.toml
       - ../../satellite/db/{{node_name}}:/db
     networks:
