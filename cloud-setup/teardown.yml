@@ -5,7 +5,7 @@
     gcp_project: leo-cdn
     gcp_cred_kind: serviceaccount
     gcp_cred_file: gcp.json
-    zone: "europe-west3-a"
+    zone: "europe-west3-c"
     region: "europe-west3"
 
   tasks:
