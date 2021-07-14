@@ -31,3 +31,4 @@ num_requests_per_interval = 100
 file_size_output_file = "data/file_sizes.csv"
 geometric_p = 0.1
 pareto_alpha = 1
+num_files = 1000
