@@ -7,6 +7,7 @@ RUN apt update && \
 COPY ./gsts/requirements-gsts.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
+COPY ./util.py /util.py
 COPY ./temp/gsts.csv /gsts.csv
 COPY ./temp/file_orders.json /file_orders.json
 COPY ./config.toml /config.toml

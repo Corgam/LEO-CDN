@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import toml
 from requests_futures.sessions import FuturesSession
+from util import transform_geo_to_xyz
 
 
 # This class holds all the information about a single HTTP Request.
@@ -113,7 +114,6 @@ def createGSTs(config, gstsList):
     startRequestLoop(config, gstsList)
 
 
-
 # Reads the file order for generator of requests
 def readFileOrder(gstID):
     # Read the file order json
@@ -142,23 +142,43 @@ def generateRequests(gstID, p, numberOfRequests):
     return reqsList
 
 
-# Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
-def getTheBestSatellite(session, id):
-    # Communicate with the Coordinator to choose the best satellite.
-    future = session.get(f"http://172.26.4.1:9001/best_satellite/{id}")
+def getSatellitePositions(session):
+    future = session.get(f"http://host.docker.internal:8080/shell/0")
     resp = future.result()
-    data = resp.text
-    if data != "Invalid GST ID":
-        # Return the ip and port to the best satellite
-        print(
-            f"[{threading.current_thread().name}]Answer from coordinator received: {data}.\n"
+    data = resp.json()
+
+    responses = []
+    for sat in data["activeSats"]:
+        sat_id = sat["sat"]
+        responses.append(
+            session.get(f"http://host.docker.internal:8080/shell/0/{sat_id}")
         )
-        return data
-    else:
-        return -1
+
+    positions = []
+    for future in as_completed(responses):
+        resp = future.result()
+        data = resp.json()
+        positions += [data]
+    return positions
 
 
-def sendRequests(session, gst, reqsList):
+# Choose the best satelitte to send the HTTP requests to, by communicating with the coordinator
+def getTheBestSatellite(gst_position, satellite_positions):
+    positions_xyz = []
+    for sat in satellite_positions:
+        position = sat["position"]
+        x, y, z = position["x"], position["y"], position["z"]
+        pos_xyz = np.array([x, y, z])
+        positions_xyz += [[pos_xyz]]
+    positions_xyz = np.array(positions_xyz)
+
+    dists = np.linalg.norm(positions_xyz - gst_position, axis=1)
+    best_sat = satellite_positions[np.argmin(dists)]
+
+    return best_sat
+
+
+def sendRequests(session, gst):
     responses = []
 
     # Generate the requests
@@ -169,10 +189,10 @@ def sendRequests(session, gst, reqsList):
     print(
         f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
     )
-    bestSat = getTheBestSatellite(session, gst.id)
-    if bestSat == -1:
-        print(f"[{threading.current_thread().name}]Invalid GST ID...\n")
-        return
+    satellite_positions = getSatellitePositions(session)
+    gst_position = np.array(transform_geo_to_xyz(gst.latitude, gst.longitude))
+    bestSat = getTheBestSatellite(gst_position, satellite_positions)
+
     # Send all requests
     print(
         f"[{threading.current_thread().name}]Sending all {len(reqsList)} HTTP requests...\n"
@@ -189,10 +209,7 @@ def sendRequestsForAllGsts(config, gstList):
     session = FuturesSession()
     for gst in gstList:
         # Generate the requests
-        reqsList = generateRequests(
-            gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
-        )
-        responses += sendRequests(session, gst, reqsList)
+        responses += sendRequests(session, gst)
 
     # Read all of the responses (wait for them)
     for future in as_completed(responses):

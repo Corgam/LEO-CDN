@@ -10,7 +10,7 @@ satellites:
 	@sh ./temp/run-nodes.sh
 
 setup: generate coordinator
-		
+
 gsts:
 	@! docker ps -a | grep gsts || docker container rm gsts -f
 	@docker build -f ./gsts/gsts.Dockerfile -t gsts .
@@ -18,6 +18,7 @@ gsts:
 		--name gsts \
 		--network=fredwork \
 		--ip=172.26.8.4 \
+		--add-host host.docker.internal:host-gateway \
 		gsts
 
 clean:
