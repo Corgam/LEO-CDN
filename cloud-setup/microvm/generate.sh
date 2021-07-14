@@ -3,7 +3,7 @@
 genRootFs(){
     rm rootfs-${1}.ext4 2> /dev/null
     rm rootfs-${1}.tar.zst 2> /dev/null
-    dd if=/dev/zero of=rootfs-${1}.ext4 bs=1M count=5000
+    dd if=/dev/zero of=rootfs-${1}.ext4 bs=1M count=3500
     mkfs.ext4 rootfs-${1}.ext4
 
     mkdir /tmp/mnt-${1}
