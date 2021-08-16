@@ -69,7 +69,6 @@ def loadGSTsInfo(config):
                 float(gst.lat),
                 float(gst.lng),
                 gst.country,
-                # TODO: make number of requests (per second?) depend on population
                 math.ceil(
                     (gst.population / total_population)
                     * config["workload"]["num_requests_per_interval"]
@@ -78,7 +77,7 @@ def loadGSTsInfo(config):
         )
     return gstsList
 
-
+# Create a thread on a timer, which will start every time interval
 def startRequestLoop(config, gstList):
     threading.Timer(
         config["workload"]["interval"],
@@ -89,29 +88,6 @@ def startRequestLoop(config, gstList):
         ),
     ).start()
     sendRequestsForAllGsts(config, gstList)
-
-
-# Create all threads and all GSTs
-def createGSTs(config, gstsList):
-    # Number of threads to create
-    threadsNumber = config["gsts"]["number_of_threads"]
-    # Split the gsts into n threads
-    splittedGST = 0
-    numberOfGSTinThread = math.ceil(len(gstsList) / threadsNumber)
-    threadsLists = list()
-    while splittedGST < len(gstsList):
-        # Create a list that will hold groundstations for one thread
-        newThreadList = list()
-        for x in range(numberOfGSTinThread):
-            # Look out for the out of bounds error
-            if splittedGST + x < len(gstsList):
-                newThreadList.append(gstsList[splittedGST + x])
-        splittedGST = splittedGST + numberOfGSTinThread
-        # Add the list to the list of lists
-        threadsLists.append(newThreadList)
-
-    startRequestLoop(config, gstsList)
-
 
 
 # Reads the file order for generator of requests
@@ -160,11 +136,6 @@ def getTheBestSatellite(session, id):
 
 def sendRequests(session, gst, reqsList):
     responses = []
-
-    # Generate the requests
-    reqsList = generateRequests(
-        gst.id, config["workload"]["geometric_p"], gst.numberOfRequests
-    )
     # Create a connection to the best satellite
     print(
         f"[{threading.current_thread().name}]Sending query to coordinator for the best satellite...\n"
@@ -212,4 +183,4 @@ if __name__ == "__main__":
     gstsList = loadGSTsInfo(config)
     # Create GSTs threads
     print(f"Creating {len(gstsList)} threads...\n")
-    createGSTs(config, gstsList)
+    startRequestLoop(config, gstsList)
