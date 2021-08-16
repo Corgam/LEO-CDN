@@ -20,10 +20,6 @@ step_interval = 0.25
 position_interval = 1
 keygroup_layers = 2
 
-[gsts]
-# Number of threads that will be created in order to start all GSTs
-number_of_threads = 5
-
 ["workload"]
 interval = 1
 output_file = "data/file_orders.json"
