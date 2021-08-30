@@ -14,6 +14,8 @@ Authors:
 
 ## Requirements and setup
 
+Ubuntu 20.04, Docker 20.10.6, Python 3.8, GNU Make 4.2.1
+
 `pip install -r requirements.txt`
 
 ## Run Simulation
