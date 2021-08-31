@@ -15,13 +15,12 @@ Authors:
 ## Requirements and setup
 
 1. Setup Ubuntu 20.04.3
-2. Run `sudo apt-get upgrade`.
-3. Install Docker 20.10.8 and docker-compose (Follow https://docs.docker.com/engine/install/ubuntu/ and `sudo apt-get install docker-compose`).
-4. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip` and `sudo apt install python-is-python3`).
-5. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
-6. Install Git and clone this repository together with its submodules (`sudo apt-get install git` and `git clone https://github.com/Corgam/LEO-CDN`).
+2. Install Docker 20.10.8 and docker-compose (Follow https://docs.docker.com/engine/install/ubuntu/ and `sudo apt-get install docker-compose`).
+3. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip` and `sudo apt install python-is-python3`).
+4. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
+5. Install Git and clone this repository together with its submodules (`sudo apt-get install git` and `git clone https://github.com/Corgam/LEO-CDN`).
 The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch.
-8. Run `pip install -r requirements.txt`.
+6. Run `pip install -r requirements.txt`.
 
 ## Run Simulation
 
