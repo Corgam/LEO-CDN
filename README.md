@@ -25,17 +25,11 @@ The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch (
 ## Run Simulation
 
 1. (Optional) Customize the config file.
-2. Generate the workload `sudo make workload`.
-3. Run `sudo make setup` command.
-4. Run `sudo make satellites` command.
-5. Run `sudo make gsts` command.
-
-If the first two make commands do not work, try:
-1. `python3 generate_workload.py`.
-2. `python3 generator.py`.
-3. `sudo make coordinator`.
-4. `sudo make satellites`.
-5. `sudo make gsts`.
+2. Generate the workload `python3 generate_workload.py`.
+3. Run `python3 generator.py` command.
+4. Run `sudo make coordinator` command.
+5. Run `sudo make satellites` command.
+6. Run `sudo make gsts` command.
 
 The coordinator, satellites and gsts need to be executed in different terminals.
 
