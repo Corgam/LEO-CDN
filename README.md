@@ -37,6 +37,8 @@ If the first two make commands do not work, try:
 4. `sudo make satellites`.
 5. `sudo make gsts`.
 
+The coordinator, satellites and gsts need to be executed in different terminals.
+
 ## Generator
 
 Generates certificates and a .yml file for each satellite. Creates a Makefile and then runs docker-compose to start all storage, FReD and HTTP-server nodes automatically. Furthermore, creates all necessary files to run the project.
