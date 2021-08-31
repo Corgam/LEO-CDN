@@ -19,7 +19,7 @@ Authors:
 3. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip`).
 4. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
 5. Install Git and clone this repository together with its submodules (`sudo apt-get install git`, `git clone https://github.com/Corgam/LEO-CDN` and `git submodule init`).
-The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch (`cd FReD/` and `git reset --hard origin/jb/add-disable/rbac/option`).
+The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch (`cd FReD/` and `git reset --hard origin/jb/add-disable-rbac-option`).
 6. Run `pip3 install -r requirements.txt`.
 
 ## Run Simulation
