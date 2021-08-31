@@ -18,7 +18,7 @@ Authors:
 2. Install Docker 20.10.8 and docker-compose (Follow https://docs.docker.com/engine/install/ubuntu/ and `sudo apt-get install docker-compose`).
 3. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip`).
 4. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
-5. Install Git and clone this repository together with its submodules (`sudo apt-get install git`, `git clone https://github.com/Corgam/LEO-CDN` and `git submodule init`).
+5. Install Git and clone this repository together with its submodules (`sudo apt-get install git`, `git clone https://github.com/Corgam/LEO-CDN`, `git submodule init`, and `git submodule update`).
 The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch (`cd FReD/` and `git reset --hard origin/jb/add-disable-rbac-option`).
 6. Run `pip3 install -r requirements.txt`.
 
