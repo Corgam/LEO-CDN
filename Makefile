@@ -1,7 +1,7 @@
 .PHONY: generate workload run setup gsts clean compile_grpc_python coordinator
 
 generate:
-	@python ./generator.py
+	@python3 ./generator.py
 
 workload:
 	@python ./generate_workload.py
