@@ -1,10 +1,10 @@
 .PHONY: generate workload run setup gsts clean compile_grpc_python coordinator
 
 generate:
-	@python3 ./generator.py
+	@python ./generator.py
 
 workload:
-	@python3 ./generate_workload.py
+	@python ./generate_workload.py
 
 satellites:
 	@sh ./temp/run-nodes.sh
@@ -24,7 +24,7 @@ clean:
 	@sh temp/clean.sh
 
 compile_grpc_python:
-	@python3 -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./satellite/proto/client.proto
+	@python -m grpc_tools.protoc -I . --python_out=. --grpc_python_out=. ./satellite/proto/client.proto
 
 coordinator:
 # Run the coordinator and the simulation
