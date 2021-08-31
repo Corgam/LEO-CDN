@@ -21,7 +21,7 @@ Authors:
 5. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
 6. Install Git and clone this repository together with its submodules (`sudo apt-get install git` and `git clone https://github.com/Corgam/LEO-CDN`).
 The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch.
-8. Run `pip3 install -r requirements.txt`.
+8. Run `pip install -r requirements.txt`.
 
 ## Run Simulation
 
