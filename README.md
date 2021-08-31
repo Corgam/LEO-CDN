@@ -16,10 +16,10 @@ Authors:
 
 1. Setup Ubuntu 20.04.3
 2. Install Docker 20.10.8 and docker-compose (Follow https://docs.docker.com/engine/install/ubuntu/ and `sudo apt-get install docker-compose`).
-3. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip` and `sudo apt install python-is-python3`).
+3. Install Python 3.8 (`sudo apt-get install python3.8`, `sudo apt-get install python3-pip` and `sudo apt-get install python-is-python3`).
 4. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
-5. Install Git and clone this repository together with its submodules (`sudo apt-get install git` and `git clone https://github.com/Corgam/LEO-CDN`).
-The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch.
+5. Install Git and clone this repository together with its submodules (`sudo apt-get install git`, `git clone https://github.com/Corgam/LEO-CDN` and `git submodule init`).
+The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch (`cd FReD/` and `git reset --hard origin/jb/add-disable/rbac/option`).
 6. Run `pip install -r requirements.txt`.
 
 ## Run Simulation
@@ -29,6 +29,13 @@ The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch.
 3. Run `sudo make setup` command.
 4. Run `sudo make satellites` command.
 5. Run `sudo make gsts` command.
+
+If the first two make commands do not work, try:
+1. `python3 generate_workload.py`.
+2. `python3 generator.py`.
+3. `sudo make coordinator`.
+4. `sudo make satellites`.
+5. `sudo make gsts`.
 
 ## Generator
 
