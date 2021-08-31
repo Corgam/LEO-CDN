@@ -14,17 +14,22 @@ Authors:
 
 ## Requirements and setup
 
-Ubuntu 20.04, Docker 20.10.6, Python 3.8, GNU Make 4.2.1
-
-`pip install -r requirements.txt`
+1. Setup Ubuntu 20.04.3
+2. Run `sudo apt-get upgrade`.
+3. Install Docker 20.10.8 and docker-compose (Follow https://docs.docker.com/engine/install/ubuntu/ and `sudo apt-get install docker-compose`).
+4. Install Python 3.8 (`sudo apt-get install python3.8` and `sudo apt-get install python3-pip`).
+5. Install GNU Make 4.2.1 (`sudo apt-get install build-essential`).
+6. Install Git and clone this repository together with its submodules (`sudo apt-get install git` and `git clone https://github.com/Corgam/LEO-CDN`).
+The `FReD` submodule should be cloned from `jb/add-disable-rbac-option` branch.
+8. Run `pip3 install -r requirements.txt`.
 
 ## Run Simulation
 
 1. (Optional) Customize the config file.
-2. Generate the workload `make workload`.
-3. Run `make setup` command.
-4. Run `make satellites` command.
-5. Run `make gsts` command.
+2. Generate the workload `sudo make workload`.
+3. Run `sudo make setup` command.
+4. Run `sudo make satellites` command.
+5. Run `sudo make gsts` command.
 
 ## Generator
 
